@@ -1,0 +1,15 @@
+[Oo]bj/
+[Bb]in/
+*.vspscc
+*.vssscc
+*.suo
+*.cache
+*.docstates
+packages/*
+*.log
+*.sdf
+*.opensdf
+Debug/
+Release/
+ipch/
+*.vcxproj.user
