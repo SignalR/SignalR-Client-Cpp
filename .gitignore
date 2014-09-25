@@ -13,3 +13,4 @@ Debug/
 Release/
 ipch/
 *.vcxproj.user
+*.exe

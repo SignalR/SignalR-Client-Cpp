@@ -1,0 +1,47 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30723.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signalrclient", "src\signalrclient\Build\VS2013\signalrclient.vcxproj", "{87ED3AD4-D820-48CD-8382-A12564213A12}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signalrclienttests", "test\signalrclienttests\Build\VS2013\signalrclienttests.vcxproj", "{10376148-BCF4-4B55-98A5-3C98C87FD898}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtest", "test\gtest-1.7.0\msvc\gtest.vcxproj", "{2AF210A9-5BDC-45E8-95DD-07B5A2616493}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signalrclientdll", "src\signalrclientdll\Build\VS2013\signalrclientdll.vcxproj", "{18377AE8-E372-40CE-94FD-7F65008D39A3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{063421D3-4E32-4BE5-874A-2E784B450858}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{87ED3AD4-D820-48CD-8382-A12564213A12}.Debug|Win32.ActiveCfg = Debug|Win32
+		{87ED3AD4-D820-48CD-8382-A12564213A12}.Debug|Win32.Build.0 = Debug|Win32
+		{87ED3AD4-D820-48CD-8382-A12564213A12}.Release|Win32.ActiveCfg = Release|Win32
+		{87ED3AD4-D820-48CD-8382-A12564213A12}.Release|Win32.Build.0 = Release|Win32
+		{10376148-BCF4-4B55-98A5-3C98C87FD898}.Debug|Win32.ActiveCfg = Debug|Win32
+		{10376148-BCF4-4B55-98A5-3C98C87FD898}.Debug|Win32.Build.0 = Debug|Win32
+		{10376148-BCF4-4B55-98A5-3C98C87FD898}.Release|Win32.ActiveCfg = Release|Win32
+		{10376148-BCF4-4B55-98A5-3C98C87FD898}.Release|Win32.Build.0 = Release|Win32
+		{2AF210A9-5BDC-45E8-95DD-07B5A2616493}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2AF210A9-5BDC-45E8-95DD-07B5A2616493}.Debug|Win32.Build.0 = Debug|Win32
+		{2AF210A9-5BDC-45E8-95DD-07B5A2616493}.Release|Win32.ActiveCfg = Release|Win32
+		{2AF210A9-5BDC-45E8-95DD-07B5A2616493}.Release|Win32.Build.0 = Release|Win32
+		{18377AE8-E372-40CE-94FD-7F65008D39A3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{18377AE8-E372-40CE-94FD-7F65008D39A3}.Debug|Win32.Build.0 = Debug|Win32
+		{18377AE8-E372-40CE-94FD-7F65008D39A3}.Release|Win32.ActiveCfg = Release|Win32
+		{18377AE8-E372-40CE-94FD-7F65008D39A3}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
