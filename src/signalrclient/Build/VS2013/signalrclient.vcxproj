@@ -91,8 +91,10 @@
     <ClInclude Include="..\..\..\..\include\signalrclient\trace_level.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\transport_type.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\_exports.h" />
+    <ClInclude Include="..\..\constants.h" />
     <ClInclude Include="..\..\stdafx.h" />
     <ClInclude Include="..\..\targetver.h" />
+    <ClInclude Include="..\..\url_builder.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\connection.cpp" />
