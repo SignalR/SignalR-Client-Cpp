@@ -8,7 +8,8 @@
 
 using namespace web;
 
-namespace signalr {
+namespace signalr 
+{
     namespace url_builder
     {
         uri_builder build_uri(const utility::string_t &command, const utility::string_t &query_string)
