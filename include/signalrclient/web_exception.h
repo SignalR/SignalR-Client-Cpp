@@ -3,18 +3,17 @@
 
 #pragma once
 
-#include <ppl.h>
+#include <stdexcept>
 #include <cpprest\basic_types.h>
-#include "_exports.h"
-
-namespace pplx = concurrency;
+#include <cpprest\asyncrt_utils.h>
 
 namespace signalr
 {
-    struct web_response
+    class web_exception : public std::runtime_error
     {
-        unsigned short status_code;
-        utility::string_t reason_phrase;
-        pplx::task<utility::string_t> body;
+    public:
+        web_exception(const utility::string_t &what) 
+            : runtime_error(utility::conversions::to_utf8string(what))
+        {}
     };
 }

@@ -4,6 +4,7 @@
 #include <cpprest\basic_types.h>
 #include <cpprest\http_client.h>
 #include "signalrclient\web_response.h"
+#include "signalrclient\web_exception.h"
 
 namespace signalr
 {
@@ -23,10 +24,15 @@ namespace signalr
             // TODO: set headers, user agent etc.
             request.set_user_agent(_XPLATSTR(""));
 
-            // TODO: check status code, catch exceptions
-
             return request.get_response().then([](web_response response) 
             {
+                if (response.status_code != 200)
+                {
+                    utility::ostringstream_t oss;
+                    oss << _XPLATSTR("web exception: ") << response.status_code << _XPLATSTR(" ") << response.reason_phrase;
+                    throw web_exception(oss.str());
+                }
+
                 return response.body;
             });
         }

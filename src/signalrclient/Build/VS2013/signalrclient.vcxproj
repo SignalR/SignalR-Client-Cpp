@@ -90,6 +90,7 @@
     <ClInclude Include="..\..\..\..\include\signalrclient\connection.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\trace_level.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\transport_type.h" />
+    <ClInclude Include="..\..\..\..\include\signalrclient\web_exception.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\web_request.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\web_response.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\_exports.h" />
