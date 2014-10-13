@@ -12,12 +12,6 @@ namespace signalr
     namespace http_sender
     {
         template<typename T>
-        static pplx::task<utility::string_t> get(const web::uri &url)
-        {
-            get(T(url));
-        }
-
-        template<typename T>
         static pplx::task<utility::string_t> get(T &request)
         {
             request.set_method(web::http::methods::GET);

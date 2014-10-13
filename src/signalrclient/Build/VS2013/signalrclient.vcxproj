@@ -99,6 +99,7 @@
     <ClInclude Include="..\..\stdafx.h" />
     <ClInclude Include="..\..\targetver.h" />
     <ClInclude Include="..\..\url_builder.h" />
+    <ClInclude Include="..\..\web_request_factory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\connection.cpp" />

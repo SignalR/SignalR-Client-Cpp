@@ -86,6 +86,8 @@
   <ItemGroup>
     <ClInclude Include="..\..\stdafx.h" />
     <ClInclude Include="..\..\targetver.h" />
+    <ClInclude Include="..\..\test_web_request_factory.h" />
+    <ClInclude Include="..\..\web_request_stub.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\http_sender_tests.cpp" />

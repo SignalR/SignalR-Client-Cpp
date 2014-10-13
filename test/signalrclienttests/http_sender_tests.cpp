@@ -4,35 +4,9 @@
 #include "stdafx.h"
 #include <cpprest\basic_types.h>
 #include <cpprest\asyncrt_utils.h>
-#include "http_sender.h"
 #include "signalrclient\web_exception.h"
-
-using namespace signalr;
-
-struct web_request_stub
-{
-    unsigned short m_status_code;
-    utility::string_t m_reason_code;
-    utility::string_t m_response_body;
-    utility::string_t m_method;
-    utility::string_t m_user_agent_string;
-
-    void set_method(const utility::string_t &method)
-    {
-        m_method = method;
-    }
-
-    void set_user_agent(const utility::string_t &user_agent_string)
-    {
-        m_user_agent_string = user_agent_string;
-    }
-
-    pplx::task<web_response> get_response()
-    {
-        return pplx::task_from_result<web_response>(
-            web_response{ m_status_code, m_reason_code, pplx::task_from_result<utility::string_t>(m_response_body) });
-    }
-};
+#include "http_sender.h"
+#include "web_request_stub.h"
 
 TEST(http_sender_get_response, request_sent_using_get_method)
 {

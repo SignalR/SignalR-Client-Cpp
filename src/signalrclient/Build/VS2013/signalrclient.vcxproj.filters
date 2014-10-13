@@ -51,6 +51,9 @@
     <ClInclude Include="..\..\..\..\include\signalrclient\web_exception.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\web_request_factory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\stdafx.cpp">
