@@ -5,6 +5,7 @@
 #include <cpprest\http_client.h>
 #include "signalrclient\web_response.h"
 #include "signalrclient\web_exception.h"
+#include "constants.h"
 
 namespace signalr
 {
@@ -21,8 +22,8 @@ namespace signalr
         {
             request.set_method(web::http::methods::GET);
 
-            // TODO: set headers, user agent etc.
-            request.set_user_agent(_XPLATSTR(""));
+            // TODO: set other and custom headers
+            request.set_user_agent(USER_AGENT);
 
             return request.get_response().then([](web_response response) 
             {
