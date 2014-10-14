@@ -91,6 +91,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\http_sender_tests.cpp" />
+    <ClCompile Include="..\..\request_sender_tests.cpp" />
     <ClCompile Include="..\..\signalrclienttests.cpp" />
     <ClCompile Include="..\..\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
