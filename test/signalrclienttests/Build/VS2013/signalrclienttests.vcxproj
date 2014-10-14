@@ -98,6 +98,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\url_builder_tests.cpp" />
+    <ClCompile Include="..\..\web_request_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\SignalRClient\Build\VS2013\SignalRClient.vcxproj">
