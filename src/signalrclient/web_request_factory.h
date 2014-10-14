@@ -11,6 +11,9 @@ namespace signalr
     class web_request_factory
     {
     public:
+        virtual ~web_request_factory()
+        {}
+
         virtual T create_web_request(const web::uri &url) const
         {
             return T(url);

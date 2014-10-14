@@ -31,10 +31,10 @@ struct web_request_stub
 
     void set_user_agent(utility::string_t user_agent_string)
     {
-        m_method = m_user_agent_string;
+        m_user_agent_string = user_agent_string;
     }
 
-    pplx::task<web_response> get_response()
+    pplx::task<web_response> get_response() const
     {
         return pplx::task_from_result<web_response>(
             web_response{ m_status_code, m_reason_phrase, pplx::task_from_result<utility::string_t>(m_response_body) });

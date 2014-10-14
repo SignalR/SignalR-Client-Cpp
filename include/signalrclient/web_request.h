@@ -24,6 +24,6 @@ namespace signalr
         void set_method(const utility::string_t &method);
         void set_user_agent(const utility::string_t &user_agent_string);
 
-        pplx::task<web_response> get_response();
+        pplx::task<web_response> get_response() const;
     };
 }
