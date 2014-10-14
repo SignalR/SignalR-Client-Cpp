@@ -65,10 +65,10 @@
     <ClCompile Include="..\..\stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\connection.cpp">
+    <ClCompile Include="..\..\url_builder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\url_builder.cpp">
+    <ClCompile Include="..\..\web_request.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
