@@ -9,17 +9,74 @@ using namespace signalr;
 TEST(url_builder_negotiate, url_correct_if_query_string_empty)
 {
     ASSERT_EQ(
-        web::uri(_XPLATSTR("http://fake/sigalr/negotiate?clientProtocol=1.4")),
-        url_builder::build_negotiate(web::uri{_XPLATSTR("http://fake/sigalr/")}, _XPLATSTR("")));
+        web::uri(_XPLATSTR("http://fake/signalr/negotiate?clientProtocol=1.4")),
+        url_builder::build_negotiate(web::uri{_XPLATSTR("http://fake/signalr/")}, _XPLATSTR("")));
 }
 
-TEST(url_builder, url_correct_if_query_string_not_empty)
+TEST(url_builder_negotiate, url_correct_if_query_string_not_empty)
 {
     ASSERT_EQ(
-        web::uri(_XPLATSTR("http://fake/sigalr/negotiate?clientProtocol=1.4&q1=1&q2=2")),
-        url_builder::build_negotiate(web::uri{ _XPLATSTR("http://fake/sigalr/") }, _XPLATSTR("q1=1&q2=2")));
+        web::uri(_XPLATSTR("http://fake/signalr/negotiate?clientProtocol=1.4&q1=1&q2=2")),
+        url_builder::build_negotiate(web::uri{ _XPLATSTR("http://fake/signalr/") }, _XPLATSTR("q1=1&q2=2")));
 
     ASSERT_EQ(
-        web::uri(_XPLATSTR("http://fake/sigalr/negotiate?clientProtocol=1.4&q1=1&q2=2")),
-        url_builder::build_negotiate(web::uri{ _XPLATSTR("http://fake/sigalr/") }, _XPLATSTR("&q1=1&q2=2")));
+        web::uri(_XPLATSTR("http://fake/signalr/negotiate?clientProtocol=1.4&q1=1&q2=2")),
+        url_builder::build_negotiate(web::uri{ _XPLATSTR("http://fake/signalr/") }, _XPLATSTR("&q1=1&q2=2")));
+}
+
+TEST(url_builder_connect_longPolling, url_correct_if_query_string_empty)
+{
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("http://fake/signalr/connect?transport=longPolling&clientProtocol=1.4&connectionToken=connection%20token")),
+        url_builder::build_connect(web::uri{ _XPLATSTR("http://fake/signalr/") }, 
+            transport_type::long_polling, _XPLATSTR("connection token"), _XPLATSTR("")));
+}
+
+TEST(url_builder_connect_longPolling, url_correct_if_query_string_not_empty)
+{
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("http://fake/signalr/connect?transport=longPolling&clientProtocol=1.4&connectionToken=connection-token&q1=1&q2=2")),
+        url_builder::build_connect(web::uri{ _XPLATSTR("http://fake/signalr/") }, 
+            transport_type::long_polling, _XPLATSTR("connection-token"), _XPLATSTR("q1=1&q2=2")));
+
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("http://fake/signalr/connect?transport=longPolling&clientProtocol=1.4&connectionToken=connection-token&q1=1&q2=2")),
+        url_builder::build_connect(web::uri{ _XPLATSTR("http://fake/signalr/") },
+            transport_type::long_polling, _XPLATSTR("connection-token"), _XPLATSTR("&q1=1&q2=2")));
+}
+
+TEST(url_builder_connect_webSockets, url_correct_if_query_string_empty)
+{
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("ws://fake/signalr/connect?transport=webSockets&clientProtocol=1.4&connectionToken=connection%20token")),
+        url_builder::build_connect(web::uri{ _XPLATSTR("http://fake/signalr/") },
+            transport_type::websockets, _XPLATSTR("connection token"), _XPLATSTR("")));
+
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("wss://fake/signalr/connect?transport=webSockets&clientProtocol=1.4&connectionToken=connection%20token")),
+        url_builder::build_connect(web::uri{ _XPLATSTR("https://fake/signalr/") },
+        transport_type::websockets, _XPLATSTR("connection token"), _XPLATSTR("")));
+}
+
+TEST(url_builder_connect_webSockets, url_correct_if_query_string_not_empty)
+{
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("ws://fake/signalr/connect?transport=webSockets&clientProtocol=1.4&connectionToken=connection-token&q1=1&q2=2")),
+        url_builder::build_connect(web::uri{ _XPLATSTR("http://fake/signalr/") },
+            transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("q1=1&q2=2")));
+
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("ws://fake/signalr/connect?transport=webSockets&clientProtocol=1.4&connectionToken=connection-token&q1=1&q2=2")),
+        url_builder::build_connect(web::uri{ _XPLATSTR("http://fake/signalr/") },
+            transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("&q1=1&q2=2")));
+
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("wss://fake/signalr/connect?transport=webSockets&clientProtocol=1.4&connectionToken=connection-token&q1=1&q2=2")),
+        url_builder::build_connect(web::uri{ _XPLATSTR("https://fake/signalr/") },
+        transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("q1=1&q2=2")));
+
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("wss://fake/signalr/connect?transport=webSockets&clientProtocol=1.4&connectionToken=connection-token&q1=1&q2=2")),
+        url_builder::build_connect(web::uri{ _XPLATSTR("https://fake/signalr/") },
+        transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("&q1=1&q2=2")));
 }
