@@ -4,12 +4,14 @@
 #pragma once
 
 #include <cpprest\http_client.h>
+#include "signalrclient\transport_type.h"
 
 namespace signalr
 {
     namespace url_builder
     {
-        web::uri_builder build_uri(const web::uri &base_url, const utility::string_t &command, const utility::string_t &query_string);
         web::uri build_negotiate(const web::uri &base_url, const utility::string_t &query_string);
+        web::uri build_connect(const web::uri &base_url, transport_type transport,
+            const utility::string_t &connection_token, const utility::string_t &query_string);
     }
 }
