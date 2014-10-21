@@ -17,7 +17,7 @@ namespace signalr
         m_user_agent_string = user_agent_string;
     }
 
-    pplx::task<web_response> web_request::get_response() const
+    pplx::task<web_response> web_request::get_response()
     {
         web::http::client::http_client client(m_url);
         web::http::http_request request(m_method);
