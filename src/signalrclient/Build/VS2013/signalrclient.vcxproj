@@ -101,6 +101,7 @@
     <ClInclude Include="..\..\stdafx.h" />
     <ClInclude Include="..\..\targetver.h" />
     <ClInclude Include="..\..\url_builder.h" />
+    <ClInclude Include="..\..\websocket_transport.h" />
     <ClInclude Include="..\..\web_request_factory.h" />
   </ItemGroup>
   <ItemGroup>
