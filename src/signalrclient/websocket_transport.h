@@ -23,9 +23,9 @@ namespace signalr
             : m_websocket_client(websocket_client)
         { }
 
-        websocket_transport(const websocket_transport&) = delete;
+        websocket_transport(const websocket_transport<T>&) = delete;
 
-        websocket_transport<T>& operator=(const websocket_transport&) = delete;
+        websocket_transport<T>& operator=(const websocket_transport<T>&) = delete;
 
         pplx::task<void> connect(const web::uri &url)
         {
