@@ -1,15 +1,18 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#pragma once
+
 #include <cpprest/ws_client.h>
 #include "url_builder.h"
+#include "transport.h"
 
 using namespace web::experimental;
 
 namespace signalr
 {
     template<typename T = web_sockets::client::websocket_client> // testing
-    class websocket_transport
+    class websocket_transport : public transport
     {
     public:
         websocket_transport() : websocket_transport(T())
@@ -27,7 +30,7 @@ namespace signalr
 
         websocket_transport<T>& operator=(const websocket_transport<T>&) = delete;
 
-        pplx::task<void> connect(const web::uri &url)
+        pplx::task<void> connect(const web::uri &url) override
         {
             // TODO: prepare request (websocket_client_config)
 
@@ -48,7 +51,7 @@ namespace signalr
             return pplx::create_task(m_connect_tce);
         }
 
-        pplx::task<void> send(const utility::string_t &data)
+        pplx::task<void> send(const utility::string_t &data) override
         {
             web_sockets::client::websocket_outgoing_message msg;
             msg.set_utf8_message(utility::conversions::to_utf8string(data));
@@ -57,7 +60,7 @@ namespace signalr
             return m_websocket_client.send(msg);
         }
 
-        pplx::task<void> disconnect()
+        pplx::task<void> disconnect() override
         {
             return m_websocket_client.close();
         }
