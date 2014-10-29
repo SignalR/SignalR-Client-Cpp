@@ -6,7 +6,6 @@
 #include <cpprest\basic_types.h>
 #include <cpprest\base_uri.h>
 #include "web_response.h"
-#include "_exports.h"
 
 namespace signalr
 {
@@ -21,9 +20,9 @@ namespace signalr
         web_request(const web::uri &url) : m_url(url)
         {}
 
-        void set_method(const utility::string_t &method);
-        void set_user_agent(const utility::string_t &user_agent_string);
+        virtual void set_method(const utility::string_t &method);
+        virtual void set_user_agent(const utility::string_t &user_agent_string);
 
-        pplx::task<web_response> get_response();
+        virtual pplx::task<web_response> get_response();
     };
 }

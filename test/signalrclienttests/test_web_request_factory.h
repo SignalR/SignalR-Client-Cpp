@@ -3,25 +3,23 @@
 
 #pragma once
 
-#include "web_request_factory.h"
+#include "signalrclient\web_request_factory.h"
 #include "web_request_stub.h"
 
 using namespace signalr;
 
-template<typename T>
-class test_web_request_factory : public web_request_factory<T>
+class test_web_request_factory : public web_request_factory
 {
-private:
-    T m_web_request;
-
 public:
-
-    test_web_request_factory(const T &web_request)
-        : m_web_request(web_request)
+    test_web_request_factory(std::function<std::unique_ptr<web_request>(const web::uri &url)> create_web_request_fn)
+        : m_create_web_request_fn(create_web_request_fn)
     { }
 
-    T create_web_request(const web::uri &) const
+    virtual std::unique_ptr<web_request> create_web_request(const web::uri &url) override
     {
-        return m_web_request;
+        return m_create_web_request_fn(url);
     }
+
+private:
+    std::function<std::unique_ptr<web_request>(const web::uri &url)> m_create_web_request_fn;
 };

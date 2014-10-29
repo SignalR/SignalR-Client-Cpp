@@ -9,56 +9,38 @@
 
 using namespace signalr;
 
-// this class should not be visible outside this file
-template<typename T>
-class request_factory_fake : public web_request_factory<T>
-{
-private:
-    T m_web_request;
-    mutable web::uri m_last_url;
-
-public:
-
-    request_factory_fake(const T &web_request)
-        : m_web_request(web_request)
-    { }
-
-    T create_web_request(const web::uri &url) const
-    {
-        m_last_url = url;
-        return m_web_request;
-    }
-
-    web::uri get_last_url() const
-    {
-        return m_last_url;
-    }
-};
-
 TEST(request_sender_negotiate, request_created_with_correct_url)
 {
-    utility::string_t response_body(
-        _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
-        _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
-        _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}"));
+    web::uri requested_url;
+    auto request_factory = test_web_request_factory([&requested_url](const web::uri &url) -> std::unique_ptr<web_request>
+    {
+        utility::string_t response_body(
+            _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}"));
 
-    request_factory_fake<web_request_stub> request_factory{ web_request_stub{ (unsigned short)200, _XPLATSTR("OK"), response_body } };
+        requested_url = url;
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
 
-    request_sender::negotiate<web_request_stub>(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") }, _XPLATSTR("")).get();
+    request_sender::negotiate(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") }, _XPLATSTR("")).get();
 
-    ASSERT_EQ(web::uri(_XPLATSTR("http://fake/signalr/negotiate?clientProtocol=1.4")), request_factory.get_last_url());
+    ASSERT_EQ(web::uri(_XPLATSTR("http://fake/signalr/negotiate?clientProtocol=1.4")), requested_url);
 }
 
 TEST(request_sender_negotiate, negotiation_request_sent_and_response_serialized)
 {
-    utility::string_t response_body(
-        _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
-        _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
-        _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.5, \"LongPollDelay\" : 0.0}"));
+    auto request_factory = test_web_request_factory([](const web::uri&) -> std::unique_ptr<web_request>
+    {
+        utility::string_t response_body(
+            _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.5, \"LongPollDelay\" : 0.0}"));
 
-    test_web_request_factory<web_request_stub> request_factory{ web_request_stub{ (unsigned short)200, _XPLATSTR("OK"), response_body } };
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
 
-    auto response = request_sender::negotiate<web_request_stub>(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") }, _XPLATSTR("")).get();
+    auto response = request_sender::negotiate(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") }, _XPLATSTR("")).get();
 
     ASSERT_EQ(_XPLATSTR("f7707523-307d-4cba-9abf-3eef701241e8"), response.connection_id);
     ASSERT_EQ(_XPLATSTR("A=="), response.connection_token);

@@ -5,7 +5,6 @@
 
 #include <ppl.h>
 #include <cpprest\basic_types.h>
-#include "_exports.h"
 
 namespace pplx = concurrency;
 

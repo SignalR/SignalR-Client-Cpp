@@ -11,6 +11,12 @@ namespace signalr
 {
     class transport_factory
     {
-        std::unique_ptr<transport> virtual create_transport(transport_type transport_type);
+    public:
+        std::unique_ptr<transport> virtual create_transport(transport_type /*transport_type*/)
+        {
+            throw std::exception("not implemented");
+        }
+
+        virtual ~transport_factory() {};
     };
 }

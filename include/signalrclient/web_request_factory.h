@@ -4,19 +4,19 @@
 #pragma once
 
 #include <cpprest\base_uri.h>
+#include "web_request.h"
 
 namespace signalr
 {
-    template<typename T>
     class web_request_factory
     {
     public:
+        virtual std::unique_ptr<web_request> create_web_request(const web::uri &url)
+        {
+            return std::make_unique<web_request>(url);
+        }
+
         virtual ~web_request_factory()
         {}
-
-        virtual T create_web_request(const web::uri &url) const
-        {
-            return T(url);
-        }
     };
 }

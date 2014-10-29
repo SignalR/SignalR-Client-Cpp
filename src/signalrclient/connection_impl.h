@@ -4,27 +4,28 @@
 #pragma once
 
 #include <cpprest\http_client.h>
+#include "signalrclient\web_request_factory.h"
+#include "signalrclient\transport_factory.h"
 
 namespace signalr
 {
-    template<typename T>
     class connection_impl
     {
     public:
-        connection_impl(const transport_factory& transport_factory)
-            : m_transport_factory(transport_factory)
+        // taking references to be able to inject factories for test purposes. The consumer must 
+        // make sure that actual instances outlive connection_impl
+        connection_impl(web_request_factory& web_request_factory, transport_factory& transport_factory)
+            : m_web_request_factory(web_request_factory), m_transport_factory(transport_factory)
         { }
 
-        connection_impl(const connection_impl<T>&) = delete;
+        connection_impl(const connection_impl&) = delete;
 
-        connection_impl<T>& operator=(const connection_impl<T>&) = delete;
+        connection_impl& operator=(const connection_impl&) = delete;
 
-        pplx::task<void> start()
-        {
-            return pplx::task_from_result();
-        }
+        pplx::task<void> start();
 
     private:
-        const transport_factory& m_transport_factory;
+        web_request_factory &m_web_request_factory;
+        transport_factory& m_transport_factory;
     };
 }

@@ -6,41 +6,34 @@
 #include <cpprest\http_client.h>
 #include "_exports.h"
 #include "transport_type.h"
-#include "web_request.h"
+#include "web_request_factory.h"
+#include "transport_factory.h"
 
 namespace signalr
 {
-    template<typename T>
     class connection_impl;
 
-    template<typename T = web_request>
-    class connection_T
+    class connection
     {
     public:
-        connection_T(const utility::string_t& url, const utility::string_t& querystring = U(""))
-            : m_base_uri(url), m_querystring(querystring), m_pImpl(new connection_impl<T>())
-        {}
+        connection(const utility::string_t& url, const utility::string_t& querystring = U(""));
 
-        connection_T(const connection_T<T>&) = delete;
+        connection(const connection&) = delete;
 
-        connection_T<T>& operator=(const connection_T<T>&) = delete;
+        connection& operator=(const connection&) = delete;
 
-        ~connection_T()
-        {
-            delete m_pImpl;
-        }
+        ~connection();
 
-        SIGNALRCLIENT_API pplx::task<void> start()
-        {
-            return m_pImpl->start();
-        }
+        SIGNALRCLIENT_API pplx::task<void> start();
 
     private:
         web::uri m_base_uri;
         utility::string_t m_querystring;
 
-        connection_impl<T> *m_pImpl;
-    };
+        // the order is important since we the factories are used to create and initialize the connection_impl instance
+        web_request_factory m_web_request_factory;
+        transport_factory m_transport_factory;
 
-    using connection = connection_T<>;
+        connection_impl *m_pImpl;
+    };
 }

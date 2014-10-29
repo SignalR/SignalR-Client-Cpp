@@ -5,36 +5,33 @@
 
 #include <cpprest\basic_types.h>
 #include "signalrclient\web_response.h"
+#include "signalrclient\web_request.h"
 
 using namespace signalr;
 
-struct web_request_stub
+struct web_request_stub : public web_request
 {
-    web::uri m_url;
     unsigned short m_status_code;
     utility::string_t m_reason_phrase;
     utility::string_t m_response_body;
     utility::string_t m_method;
     utility::string_t m_user_agent_string;
 
-    web_request_stub(const web::uri &url) : m_url(url) 
+    web_request_stub(unsigned short status_code, const utility::string_t& reason_phrase, const utility::string_t& response_body = _XPLATSTR(""))
+        : web_request(web::uri(_XPLATSTR(""))), m_status_code(status_code), m_reason_phrase(reason_phrase), m_response_body(response_body)
     { }
 
-    web_request_stub(unsigned short status_code, const utility::string_t &reason_phrase, const utility::string_t &response_body = _XPLATSTR("")) 
-        : m_status_code(status_code), m_reason_phrase(reason_phrase), m_response_body(response_body)
-    { }
-
-    void set_method(utility::string_t method)
+    virtual void set_method(const utility::string_t &method) override
     {
         m_method = method;
     }
 
-    void set_user_agent(utility::string_t user_agent_string)
+    virtual void set_user_agent(const utility::string_t &user_agent_string) override
     {
         m_user_agent_string = user_agent_string;
     }
 
-    pplx::task<web_response> get_response()
+    virtual pplx::task<web_response> get_response() override
     {
         return pplx::task_from_result<web_response>(
             web_response{ m_status_code, m_reason_phrase, pplx::task_from_result<utility::string_t>(m_response_body) });

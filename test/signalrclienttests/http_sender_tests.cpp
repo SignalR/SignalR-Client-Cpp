@@ -13,7 +13,7 @@ TEST(http_sender_get_response, request_sent_using_get_method)
     utility::string_t response_body{ _XPLATSTR("response body") };
     web_request_stub request{ (unsigned short)200, _XPLATSTR("OK"), response_body };
 
-    ASSERT_EQ(response_body, http_sender::get<web_request_stub>(request).get());
+    ASSERT_EQ(response_body, http_sender::get(request).get());
     ASSERT_EQ(_XPLATSTR("GET"), request.m_method);
 }
 
@@ -40,7 +40,7 @@ TEST(http_sender_get_response, user_agent_set)
     utility::string_t response_body{ _XPLATSTR("response body") };
     web_request_stub request{ (unsigned short)200, response_body };
 
-    http_sender::get<web_request_stub>(request).get();
+    http_sender::get(request).get();
 
     ASSERT_EQ(_XPLATSTR("SignalR.Client.Cpp/3.0.0"), request.m_user_agent_string);
 }
