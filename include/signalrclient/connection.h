@@ -30,7 +30,7 @@ namespace signalr
         web::uri m_base_uri;
         utility::string_t m_querystring;
 
-        // the order is important since we the factories are used to create and initialize the connection_impl instance
+        // the order is important since the factories are used to create and initialize the connection_impl instance
         web_request_factory m_web_request_factory;
         transport_factory m_transport_factory;
 

@@ -22,7 +22,7 @@ namespace signalr
             : m_websocket_client(std::move(websocket_client))
         { }
 
-        websocket_transport(T websocket_client)
+        websocket_transport(const T &websocket_client)
             : m_websocket_client(websocket_client)
         { }
 
