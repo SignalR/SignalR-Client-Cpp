@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <cpprest/ws_client.h>
+#include <cpprest\ws_client.h>
 #include "url_builder.h"
 #include "signalrclient\transport.h"
 
@@ -15,14 +15,14 @@ namespace signalr
     class websocket_transport : public transport
     {
     public:
-        websocket_transport() : websocket_transport(T())
+        explicit websocket_transport() : websocket_transport(T())
         { }
 
-        websocket_transport(T&& websocket_client)
+        explicit websocket_transport(T&& websocket_client)
             : m_websocket_client(std::move(websocket_client))
         { }
 
-        websocket_transport(const T &websocket_client)
+        explicit websocket_transport(const T &websocket_client)
             : m_websocket_client(websocket_client)
         { }
 

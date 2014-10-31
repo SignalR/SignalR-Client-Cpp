@@ -11,8 +11,9 @@
 namespace signalr
 {
     connection::connection(const utility::string_t& url, const utility::string_t& querystring)
-        : m_base_uri(url), m_querystring(querystring), m_pImpl(new connection_impl(m_web_request_factory, m_transport_factory))
-    {}
+    {
+        m_pImpl = new connection_impl(url, querystring, m_web_request_factory, m_transport_factory);
+    }
 
     connection::~connection()
     {

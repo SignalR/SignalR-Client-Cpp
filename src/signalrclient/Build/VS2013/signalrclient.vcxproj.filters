@@ -94,8 +94,11 @@
     </ClCompile>
     <ClCompile Include="..\..\connection.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>    
+    </ClCompile>
     <ClCompile Include="..\..\transport_factory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\web_request_factory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

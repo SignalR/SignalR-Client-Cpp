@@ -14,6 +14,6 @@ namespace signalr
     public:
         std::unique_ptr<transport> virtual create_transport(transport_type transport_type);
 
-        virtual ~transport_factory() {};
+        virtual ~transport_factory();
     };
 }

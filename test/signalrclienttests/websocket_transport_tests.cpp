@@ -2,68 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 #include "stdafx.h"
+#include "test_websocket_client.h"
 #include "websocket_transport.h"
 
 using namespace signalr;
 using namespace web::experimental;
-
-class test_websocket_client
-{
-public:
-
-    pplx::task<void> connect(const web::uri &url)
-    {
-        return m_connect_function(url);
-    }
-
-    pplx::task<void> send(web_sockets::client::websocket_outgoing_message msg)
-    {
-        return m_send_function(msg);
-    }
-
-    pplx::task<web_sockets::client::websocket_incoming_message> receive()
-    {
-        return m_receive_function();
-    }
-
-    pplx::task<void> close()
-    {
-        return m_close_function();
-    }
-
-    void set_connect_function(std::function<pplx::task<void>(const web::uri &url)> connect_function)
-    {
-        m_connect_function = connect_function;
-    }
-
-    void set_send_function(std::function<pplx::task<void>(web_sockets::client::websocket_outgoing_message)> send_function)
-    {
-        m_send_function = send_function;
-    }
-
-    void set_receive_function(std::function<pplx::task<web_sockets::client::websocket_incoming_message>()> receive_function)
-    {
-        m_receive_function = receive_function;
-    }
-
-    void set_close_function(std::function<pplx::task<void>()> close_function)
-    {
-        m_close_function = close_function;
-    }
-
-private:
-    std::function<pplx::task<void>(const web::uri &url)> m_connect_function
-        = [](const web::uri &){ return pplx::task_from_result(); };
-
-    std::function<pplx::task<void>(web_sockets::client::websocket_outgoing_message)> m_send_function
-        = [](web_sockets::client::websocket_outgoing_message msg){ return pplx::task_from_result(); };
-
-    std::function<pplx::task<web_sockets::client::websocket_incoming_message>()> m_receive_function
-        = [](){ return pplx::task_from_result(web_sockets::client::websocket_incoming_message()); };
-
-    std::function<pplx::task<void>()> m_close_function
-        = [](){ return pplx::task_from_result(); };
-};
 
 TEST(websocket_transport_connect, connect_connects_and_starts_receive_loop)
 {

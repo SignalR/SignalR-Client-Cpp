@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include "web_response.h"
 #include <cpprest\basic_types.h>
 #include <cpprest\base_uri.h>
-#include "web_response.h"
 
 namespace signalr
 {
@@ -17,8 +17,7 @@ namespace signalr
         utility::string_t m_user_agent_string;
 
     public:
-        web_request(const web::uri &url) : m_url(url)
-        {}
+        explicit web_request(const web::uri &url);
 
         virtual void set_method(const utility::string_t &method);
         virtual void set_user_agent(const utility::string_t &user_agent_string);

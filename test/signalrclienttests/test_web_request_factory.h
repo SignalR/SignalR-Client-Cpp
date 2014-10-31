@@ -11,14 +11,9 @@ using namespace signalr;
 class test_web_request_factory : public web_request_factory
 {
 public:
-    test_web_request_factory(std::function<std::unique_ptr<web_request>(const web::uri &url)> create_web_request_fn)
-        : m_create_web_request_fn(create_web_request_fn)
-    { }
+    explicit test_web_request_factory(std::function<std::unique_ptr<web_request>(const web::uri &url)> create_web_request_fn);
 
-    virtual std::unique_ptr<web_request> create_web_request(const web::uri &url) override
-    {
-        return m_create_web_request_fn(url);
-    }
+    virtual std::unique_ptr<web_request> create_web_request(const web::uri &url) override;
 
 private:
     std::function<std::unique_ptr<web_request>(const web::uri &url)> m_create_web_request_fn;

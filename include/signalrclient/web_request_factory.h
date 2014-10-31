@@ -11,12 +11,8 @@ namespace signalr
     class web_request_factory
     {
     public:
-        virtual std::unique_ptr<web_request> create_web_request(const web::uri &url)
-        {
-            return std::make_unique<web_request>(url);
-        }
+        virtual std::unique_ptr<web_request> create_web_request(const web::uri &url);
 
-        virtual ~web_request_factory()
-        {}
+        virtual ~web_request_factory();
     };
 }

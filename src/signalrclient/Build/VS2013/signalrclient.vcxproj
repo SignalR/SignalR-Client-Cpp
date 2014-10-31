@@ -120,6 +120,7 @@
     <ClCompile Include="..\..\transport_factory.cpp" />
     <ClCompile Include="..\..\url_builder.cpp" />
     <ClCompile Include="..\..\web_request.cpp" />
+    <ClCompile Include="..\..\web_request_factory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

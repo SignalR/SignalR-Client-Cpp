@@ -17,4 +17,6 @@ namespace signalr
         throw std::exception("not implemented");
     }
 
+    transport_factory::~transport_factory()
+    { }
 }

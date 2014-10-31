@@ -16,7 +16,7 @@ namespace signalr
     class connection
     {
     public:
-        connection(const utility::string_t& url, const utility::string_t& querystring = U(""));
+        explicit connection(const utility::string_t& url, const utility::string_t& querystring = U(""));
 
         connection(const connection&) = delete;
 
@@ -27,10 +27,6 @@ namespace signalr
         SIGNALRCLIENT_API pplx::task<void> start();
 
     private:
-        web::uri m_base_uri;
-        utility::string_t m_querystring;
-
-        // the order is important since the factories are used to create and initialize the connection_impl instance
         web_request_factory m_web_request_factory;
         transport_factory m_transport_factory;
 

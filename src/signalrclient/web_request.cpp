@@ -7,6 +7,10 @@
 
 namespace signalr
 {
+    web_request::web_request(const web::uri &url)
+        : m_url(url)
+    {}
+
     void web_request::set_method(const utility::string_t &method)
     {
         m_method = method;

@@ -12,11 +12,10 @@ namespace signalr
     class connection_impl
     {
     public:
-        // taking references to be able to inject factories for test purposes. The consumer must 
+        // taking references to be able to inject factories for test purposes. The caller must 
         // make sure that actual instances outlive connection_impl
-        connection_impl(web_request_factory& web_request_factory, transport_factory& transport_factory)
-            : m_web_request_factory(web_request_factory), m_transport_factory(transport_factory)
-        { }
+        connection_impl(const utility::string_t& url, const utility::string_t& querystring,
+            web_request_factory& web_request_factory, transport_factory& transport_factory);
 
         connection_impl(const connection_impl&) = delete;
 
@@ -25,6 +24,9 @@ namespace signalr
         pplx::task<void> start();
 
     private:
+        web::uri m_base_uri;
+        utility::string_t m_querystring;
+
         web_request_factory &m_web_request_factory;
         transport_factory& m_transport_factory;
     };

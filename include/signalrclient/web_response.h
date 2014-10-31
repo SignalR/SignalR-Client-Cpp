@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <ppl.h>
+#include <ppltasks.h>
 #include <cpprest\basic_types.h>
 
-namespace pplx = concurrency;
+namespace pplx = Concurrency;
 
 namespace signalr
 {
