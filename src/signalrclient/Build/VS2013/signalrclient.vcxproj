@@ -89,6 +89,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\signalrclient\connection.h" />
+    <ClInclude Include="..\..\..\..\include\signalrclient\connection_state.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\trace_level.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\transport.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\transport_factory.h" />

@@ -8,11 +8,17 @@ namespace signalr
 {
     connection_impl::connection_impl(const utility::string_t& url, const utility::string_t& querystring,
         web_request_factory& web_request_factory, transport_factory& transport_factory)
-        : m_base_uri(url), m_querystring(querystring), m_web_request_factory(web_request_factory), m_transport_factory(transport_factory)
+        : m_base_uri(url), m_querystring(querystring), m_web_request_factory(web_request_factory),
+        m_transport_factory(transport_factory), m_connection_state(connection_state::disconnected)
     { }
 
     pplx::task<void> connection_impl::start()
     {
         return pplx::task_from_result();
+    }
+
+    connection_state connection_impl::get_connection_state() const
+    {
+        return m_connection_state;
     }
 }

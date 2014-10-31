@@ -6,6 +6,7 @@
 #include <cpprest\http_client.h>
 #include "signalrclient\web_request_factory.h"
 #include "signalrclient\transport_factory.h"
+#include "signalrclient\connection_state.h"
 
 namespace signalr
 {
@@ -23,9 +24,12 @@ namespace signalr
 
         pplx::task<void> start();
 
+        connection_state get_connection_state() const;
+
     private:
         web::uri m_base_uri;
         utility::string_t m_querystring;
+        connection_state m_connection_state;
 
         web_request_factory &m_web_request_factory;
         transport_factory& m_transport_factory;

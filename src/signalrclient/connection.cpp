@@ -24,5 +24,10 @@ namespace signalr
     {
         return m_pImpl->start();
     }
+
+    connection_state connection::get_connection_state() const
+    {
+        return m_pImpl->get_connection_state();
+    }
 }
 

@@ -92,6 +92,7 @@
     <ClInclude Include="..\..\web_request_stub.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\connection_impl_tests.cpp" />
     <ClCompile Include="..\..\http_sender_tests.cpp" />
     <ClCompile Include="..\..\request_sender_tests.cpp" />
     <ClCompile Include="..\..\signalrclienttests.cpp" />

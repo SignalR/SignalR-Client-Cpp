@@ -8,6 +8,7 @@
 #include "transport_type.h"
 #include "web_request_factory.h"
 #include "transport_factory.h"
+#include "connection_state.h"
 
 namespace signalr
 {
@@ -25,6 +26,8 @@ namespace signalr
         ~connection();
 
         SIGNALRCLIENT_API pplx::task<void> start();
+
+        SIGNALRCLIENT_API connection_state get_connection_state() const;
 
     private:
         web_request_factory m_web_request_factory;
