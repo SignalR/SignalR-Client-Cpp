@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <cpprest\http_client.h>
 #include "signalrclient\web_request_factory.h"
 #include "signalrclient\transport_factory.h"
@@ -29,9 +30,11 @@ namespace signalr
     private:
         web::uri m_base_uri;
         utility::string_t m_querystring;
-        connection_state m_connection_state;
+        std::atomic<connection_state> m_connection_state;
 
         web_request_factory &m_web_request_factory;
         transport_factory& m_transport_factory;
+
+        bool change_state(connection_state old_state, connection_state new_state);
     };
 }
