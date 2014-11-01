@@ -25,7 +25,7 @@ TEST(http_sender_get_response, exception_thrown_if_status_code_not_200)
     try
     {
         http_sender::get(request).get();
-        ASSERT_TRUE(false); // exception not thrown 
+        ASSERT_TRUE(false); // exception not thrown
     }
     catch (const web_exception &e)
     {

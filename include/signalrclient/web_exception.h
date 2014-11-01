@@ -12,7 +12,7 @@ namespace signalr
     class web_exception : public std::runtime_error
     {
     public:
-        explicit web_exception(const utility::string_t &what) 
+        explicit web_exception(const utility::string_t &what)
             : runtime_error(utility::conversions::to_utf8string(what))
         {}
     };
