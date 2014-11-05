@@ -11,7 +11,7 @@ namespace signalr
     {
         if (transport_type == transport_type::websockets)
         {
-            return std::make_unique<websocket_transport<>>();
+            return std::make_unique<websocket_transport>(std::make_unique<default_websocket_client>());
         }
 
         throw std::exception("not implemented");
