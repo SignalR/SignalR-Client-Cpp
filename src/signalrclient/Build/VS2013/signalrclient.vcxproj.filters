@@ -75,6 +75,12 @@
     <ClInclude Include="..\..\..\..\include\signalrclient\connection_state.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\websocket_client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\default_websocket_client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\stdafx.cpp">
@@ -102,6 +108,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\web_request_factory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\default_websocket_client.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\websocket_transport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

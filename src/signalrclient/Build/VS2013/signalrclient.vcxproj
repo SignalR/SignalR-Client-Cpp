@@ -101,12 +101,14 @@
     <ClInclude Include="..\..\..\..\include\signalrclient\_exports.h" />
     <ClInclude Include="..\..\connection_impl.h" />
     <ClInclude Include="..\..\constants.h" />
+    <ClInclude Include="..\..\default_websocket_client.h" />
     <ClInclude Include="..\..\http_sender.h" />
     <ClInclude Include="..\..\negotiation_response.h" />
     <ClInclude Include="..\..\request_sender.h" />
     <ClInclude Include="..\..\stdafx.h" />
     <ClInclude Include="..\..\targetver.h" />
     <ClInclude Include="..\..\url_builder.h" />
+    <ClInclude Include="..\..\websocket_client.h" />
     <ClInclude Include="..\..\websocket_transport.h" />
   </ItemGroup>
   <ItemGroup>
@@ -120,6 +122,8 @@
     </ClCompile>
     <ClCompile Include="..\..\transport_factory.cpp" />
     <ClCompile Include="..\..\url_builder.cpp" />
+    <ClCompile Include="..\..\default_websocket_client.cpp" />
+    <ClCompile Include="..\..\websocket_transport.cpp" />
     <ClCompile Include="..\..\web_request.cpp" />
     <ClCompile Include="..\..\web_request_factory.cpp" />
   </ItemGroup>

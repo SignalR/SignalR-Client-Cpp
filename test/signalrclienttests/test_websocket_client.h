@@ -4,37 +4,37 @@
 #pragma once
 
 #include <functional>
-#include <cpprest\ws_client.h>
+#include "websocket_client.h"
 
-using namespace web::experimental;
+using namespace signalr;
 
-class test_websocket_client
+class test_websocket_client : public websocket_client
 {
 public:
     test_websocket_client();
 
-    pplx::task<void> connect(const web::uri &url);
+    pplx::task<void> connect(const web::uri &url) override;
 
-    pplx::task<void> send(web_sockets::client::websocket_outgoing_message msg);
+    pplx::task<void> send(const utility::string_t& msg) override;
 
-    pplx::task<web_sockets::client::websocket_incoming_message> receive();
+    pplx::task<std::string> receive() override;
 
-    pplx::task<void> close();
+    pplx::task<void> close() override;
 
     void set_connect_function(std::function<pplx::task<void>(const web::uri &url)> connect_function);
 
-    void set_send_function(std::function<pplx::task<void>(web_sockets::client::websocket_outgoing_message)> send_function);
+    void set_send_function(std::function<pplx::task<void>(const utility::string_t& msg)> send_function);
 
-    void set_receive_function(std::function<pplx::task<web_sockets::client::websocket_incoming_message>()> receive_function);
+    void set_receive_function(std::function<pplx::task<std::string>()> receive_function);
 
     void set_close_function(std::function<pplx::task<void>()> close_function);
 
 private:
     std::function<pplx::task<void>(const web::uri &url)> m_connect_function;
 
-    std::function<pplx::task<void>(web_sockets::client::websocket_outgoing_message)> m_send_function;
+    std::function<pplx::task<void>(const utility::string_t&)> m_send_function;
 
-    std::function<pplx::task<web_sockets::client::websocket_incoming_message>()> m_receive_function;
+    std::function<pplx::task<std::string>()> m_receive_function;
 
     std::function<pplx::task<void>()> m_close_function;
 };
