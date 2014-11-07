@@ -14,7 +14,9 @@ namespace signalr
     {
     public:
 
-        websocket_transport(std::unique_ptr<websocket_client> websocket_client);
+        websocket_transport(std::shared_ptr<websocket_client> websocket_client);
+
+        ~websocket_transport();
 
         websocket_transport(const websocket_transport&) = delete;
 
@@ -27,10 +29,8 @@ namespace signalr
         pplx::task<void> disconnect() override;
 
     private:
-        std::unique_ptr<websocket_client> m_websocket_client;
+        std::shared_ptr<websocket_client> m_websocket_client;
 
-        pplx::task_completion_event<void> m_connect_tce;
-
-        void receive_loop();
+        pplx::cancellation_token_source m_receive_loop_cts;
     };
 }
