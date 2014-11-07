@@ -6,29 +6,62 @@
 
 namespace signalr
 {
-    websocket_transport::websocket_transport(std::unique_ptr<websocket_client> websocket_client)
-        : m_websocket_client(std::move(websocket_client))
-    {}
+    namespace
+    {
+        void receive_loop(std::shared_ptr<websocket_client> websocket_client, pplx::cancellation_token_source cts);
+    }
+
+    websocket_transport::websocket_transport(std::shared_ptr<websocket_client> websocket_client)
+        : m_websocket_client(websocket_client)
+    {
+        // we use this cts to check if the receive loop is running so it should be 
+        // initially cancelled to indicate that the receive loop is not running
+        m_receive_loop_cts.cancel();
+    }
+
+    websocket_transport::~websocket_transport()
+    {
+        try
+        {
+            disconnect().get();
+        }
+        catch (...) // must not throw from the destructor
+        {}
+    }
 
     pplx::task<void> websocket_transport::connect(const web::uri &url) 
     {
+        if (!m_receive_loop_cts.get_token().is_canceled())
+        {
+            throw std::runtime_error(utility::conversions::to_utf8string(
+                _XPLATSTR("transport already connected")));
+        }
+
         // TODO: prepare request (websocket_client_config)
+        pplx::cancellation_token_source receive_loop_cts;
+        std::shared_ptr<websocket_client> websocket_client(m_websocket_client);
+        pplx::task_completion_event<void> connect_tce;
 
         m_websocket_client->connect(url)
-            .then([this](pplx::task<void> connect_task){
+            .then([websocket_client, connect_tce, receive_loop_cts](pplx::task<void> connect_task)
+        {
             try
             {
-                connect_task.wait();
-                receive_loop();
-                this->m_connect_tce.set();
+                connect_task.get();
+                receive_loop(websocket_client, receive_loop_cts);
+                connect_tce.set();
             }
             catch (const std::exception &e)
             {
-                this->m_connect_tce.set_exception(e);
+                // TODO: logging, on error(?) - see what we do in the .net client
+                receive_loop_cts.cancel();
+                connect_tce.set_exception(e);
             }
         });
 
-        return pplx::create_task(m_connect_tce);
+        m_receive_loop_cts = receive_loop_cts;
+
+        return pplx::create_task(connect_tce);
     }
 
     pplx::task<void> websocket_transport::send(const utility::string_t &data)
@@ -39,32 +72,59 @@ namespace signalr
 
     pplx::task<void> websocket_transport::disconnect()
     {
-        return m_websocket_client->close();
+        m_receive_loop_cts.cancel();
+
+        return m_websocket_client->close()
+            .then([](pplx::task<void> close_task)
+            {
+                try
+                {
+                    close_task.get();
+                }
+                catch (const std::exception &)
+                {
+                    // TODO:log
+                }
+            });
     }
 
-
-    void websocket_transport::receive_loop()
+    // unnamed namespace makes this function invisible for other translation units 
+    namespace
     {
-        // TODO: there is a race where m_websocket_client is destroyed in the destructor
-        // but the receive loop is not yet stopped since it is running on a different thread
-        // in which case we crash when try calling m_websocket_client->receive()
-        m_websocket_client->receive().then([this](pplx::task<std::string> receive_task)
+        void receive_loop(std::shared_ptr<websocket_client> websocket_client, pplx::cancellation_token_source cts)
         {
-            try
+            websocket_client->receive()
+                .then([websocket_client, cts](pplx::task<std::string> receive_task)
             {
-                auto msg_body = receive_task.get();
-                receive_loop();
-            }
-            catch (web_sockets::client::websocket_exception &)
-            {
-                // TODO: should close the websocket?
-                // TODO: report error
-            }
-            catch (std::exception &)
-            {
-                // TODO: should close the websocket?
-                // TODO: report error
-            }
-        });
+                try
+                {
+                    auto msg_body = receive_task.get();
+
+                    // TODO: process message
+
+                    if (!pplx::is_task_cancellation_requested())
+                    {
+                        receive_loop(websocket_client, cts);
+                    }
+                }
+
+                // TODO: log, report error, close websocket (when appropriate)
+                catch (const web_sockets::client::websocket_exception&)
+                {
+                }
+                catch (const pplx::task_canceled &)
+                {
+                }
+                catch (const std::exception&)
+                {
+                }
+                catch (...)
+                {
+                }
+
+                cts.cancel();
+
+            }, cts.get_token());
+        }
     }
 }
