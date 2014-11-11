@@ -85,6 +85,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\memory_log_writer.h" />
     <ClInclude Include="..\..\stdafx.h" />
     <ClInclude Include="..\..\targetver.h" />
     <ClInclude Include="..\..\test_websocket_client.h" />
@@ -94,6 +95,8 @@
   <ItemGroup>
     <ClCompile Include="..\..\connection_impl_tests.cpp" />
     <ClCompile Include="..\..\http_sender_tests.cpp" />
+    <ClCompile Include="..\..\logger_tests.cpp" />
+    <ClCompile Include="..\..\memory_log_writer.cpp" />
     <ClCompile Include="..\..\request_sender_tests.cpp" />
     <ClCompile Include="..\..\signalrclienttests.cpp" />
     <ClCompile Include="..\..\stdafx.cpp">

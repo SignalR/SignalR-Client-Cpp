@@ -90,7 +90,9 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\signalrclient\connection.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\connection_state.h" />
+    <ClInclude Include="..\..\..\..\include\signalrclient\log_writer.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\trace_level.h" />
+    <ClInclude Include="..\..\..\..\include\signalrclient\trace_log_writer.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\transport.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\transport_factory.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\transport_type.h" />
@@ -103,6 +105,7 @@
     <ClInclude Include="..\..\constants.h" />
     <ClInclude Include="..\..\default_websocket_client.h" />
     <ClInclude Include="..\..\http_sender.h" />
+    <ClInclude Include="..\..\logger.h" />
     <ClInclude Include="..\..\negotiation_response.h" />
     <ClInclude Include="..\..\request_sender.h" />
     <ClInclude Include="..\..\stdafx.h" />
@@ -115,6 +118,7 @@
     <ClCompile Include="..\..\connection.cpp" />
     <ClCompile Include="..\..\connection_impl.cpp" />
     <ClCompile Include="..\..\http_sender.cpp" />
+    <ClCompile Include="..\..\logger.cpp" />
     <ClCompile Include="..\..\request_sender.cpp" />
     <ClCompile Include="..\..\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -5,12 +5,22 @@
 
 namespace signalr
 {
-    enum class trace_level
+    enum class trace_level : int
     {
-        none,
-        messages,
-        events,
-        state_changes,
+        none = 0,
+        messages = 1,
+        events = 2,
+        state_changes = 4,
         all = messages | events | state_changes
     };
+
+    inline trace_level operator|(trace_level lhs, trace_level rhs)
+    {
+        return static_cast<trace_level>(static_cast<int>(lhs) | static_cast<int>(rhs));
+    }
+
+    inline trace_level operator&(trace_level lhs, trace_level rhs)
+    {
+        return static_cast<trace_level>(static_cast<int>(lhs) & static_cast<int>(rhs));
+    }
 }
