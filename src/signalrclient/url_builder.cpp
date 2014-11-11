@@ -21,7 +21,7 @@ namespace signalr
 
         void append_transport(web::uri_builder &builder, transport_type transport)
         {
-            if (transport > (transport_type)-1)
+            if (transport > static_cast<transport_type>(-1))
             {
                 builder.append_query(_XPLATSTR("transport"), get_transport_name(transport));
             }
@@ -65,10 +65,10 @@ namespace signalr
 
         web::uri build_negotiate(const web::uri &base_url, const utility::string_t &query_string)
         {
-            auto test = build_uri(base_url, _XPLATSTR("negotiate"), (transport_type)-1,
+            auto test = build_uri(base_url, _XPLATSTR("negotiate"), static_cast<transport_type>(-1),
                 /*connection_token*/ _XPLATSTR(""), query_string).to_uri();
 
-            return build_uri(base_url, _XPLATSTR("negotiate"), (transport_type)-1,
+            return build_uri(base_url, _XPLATSTR("negotiate"), static_cast<transport_type>(-1),
                 /*connection_token*/ _XPLATSTR(""), query_string).to_uri();
         }
 
