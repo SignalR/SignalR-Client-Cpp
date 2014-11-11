@@ -7,6 +7,9 @@
 #include "_exports.h"
 #include "transport_type.h"
 #include "connection_state.h"
+#include "trace_level.h"
+#include "log_writer.h"
+#include "trace_log_writer.h"
 
 namespace signalr
 {
@@ -15,7 +18,8 @@ namespace signalr
     class connection
     {
     public:
-        explicit connection(const utility::string_t& url, const utility::string_t& querystring = U(""));
+        explicit connection(const utility::string_t& url, const utility::string_t& querystring = U(""), 
+            trace_level trace_level = trace_level::all, std::shared_ptr<log_writer> log_writer = std::make_shared<trace_log_writer>());
 
         // TODO: consider making connection class copyable to enable passing by value
         connection(const connection&) = delete;

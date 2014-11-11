@@ -16,9 +16,21 @@ namespace signalr
     {
         if ((level & m_trace_level) != trace_level::none)
         {
-            utility::ostringstream_t os;
-            os << utility::datetime::utc_now().to_string(utility::datetime::date_format::ISO_8601) << _XPLATSTR(" ") << entry << std::endl;
-            m_log_writer->write(os.str());
+            try
+            {
+                utility::ostringstream_t os;
+                os << utility::datetime::utc_now().to_string(utility::datetime::date_format::ISO_8601) << _XPLATSTR(" ") << entry << std::endl;
+                m_log_writer->write(os.str());
+            }
+            catch (const std::exception &e)
+            {
+                ucerr << _XPLATSTR("error occurred when logging: ") << utility::conversions::to_string_t(e.what()) 
+                    << std::endl << _XPLATSTR("    entry: ") << entry << std::endl;
+            }
+            catch (...)
+            {
+                ucerr << _XPLATSTR("unknown error occurred when logging") << std::endl << _XPLATSTR("    entry: ") << entry << std::endl;
+            }
         }
     }
 }

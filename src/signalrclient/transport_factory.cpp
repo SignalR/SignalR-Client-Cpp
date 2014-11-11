@@ -4,14 +4,15 @@
 #include "stdafx.h"
 #include "transport_factory.h"
 #include "websocket_transport.h"
+#include "connection_impl.h"
 
 namespace signalr
 {
-    std::unique_ptr<transport> transport_factory::create_transport(transport_type transport_type)
+    std::unique_ptr<transport> transport_factory::create_transport(transport_type transport_type, std::shared_ptr<connection_impl> connection)
     {
         if (transport_type == transport_type::websockets)
         {
-            return std::make_unique<websocket_transport>(std::make_unique<default_websocket_client>());
+            return std::make_unique<websocket_transport>(std::make_unique<default_websocket_client>(), connection);
         }
 
         throw std::exception("not implemented");

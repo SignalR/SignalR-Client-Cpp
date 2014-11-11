@@ -9,10 +9,12 @@
 
 namespace signalr
 {
+    class connection_impl;
+
     class transport_factory
     {
     public:
-        std::unique_ptr<transport> virtual create_transport(transport_type transport_type);
+        virtual std::unique_ptr<transport> create_transport(transport_type transport_type, std::shared_ptr<connection_impl> connection);
 
         virtual ~transport_factory();
     };

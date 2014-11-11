@@ -21,10 +21,11 @@ namespace signalr
     class connection_impl : public std::enable_shared_from_this<connection_impl>
     {
     public:
-        static std::shared_ptr<connection_impl> create(const utility::string_t& url, const utility::string_t& querystring);
+        static std::shared_ptr<connection_impl> create(const utility::string_t& url, const utility::string_t& querystring, 
+            trace_level trace_level, std::shared_ptr<log_writer> log_writer);
 
-        static std::shared_ptr<connection_impl> create(const utility::string_t& url, const utility::string_t& querystring,
-            std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);
+        static std::shared_ptr<connection_impl> create(const utility::string_t& url, const utility::string_t& querystring, trace_level trace_level, 
+            std::shared_ptr<log_writer> log_writer, std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);
 
         connection_impl(const connection_impl&) = delete;
 
@@ -34,17 +35,21 @@ namespace signalr
 
         connection_state get_connection_state() const;
 
+        logger get_logger() const;
+
     private:
         web::uri m_base_uri;
         utility::string_t m_querystring;
         std::atomic<connection_state> m_connection_state;
+        logger m_logger;
 
         std::unique_ptr<web_request_factory> m_web_request_factory;
         std::unique_ptr<transport_factory> m_transport_factory;
 
-        connection_impl(const utility::string_t& url, const utility::string_t& querystring,
+        connection_impl(const utility::string_t& url, const utility::string_t& querystring, trace_level trace_level, std::shared_ptr<log_writer> log_writer,
             std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);
 
         bool change_state(connection_state old_state, connection_state new_state);
+        utility::string_t translate_connection_state(connection_state state);
     };
 }

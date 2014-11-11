@@ -8,14 +8,14 @@
 #include "transport.h"
 #include "logger.h"
 #include "default_websocket_client.h"
+#include "connection_impl.h"
 
 namespace signalr
 {
     class websocket_transport : public transport
     {
     public:
-
-        websocket_transport(std::shared_ptr<websocket_client> websocket_client);
+        websocket_transport(std::shared_ptr<websocket_client> websocket_client, std::shared_ptr<connection_impl> connection);
 
         ~websocket_transport();
 
@@ -31,6 +31,7 @@ namespace signalr
 
     private:
         std::shared_ptr<websocket_client> m_websocket_client;
+        std::shared_ptr<connection_impl> m_connection;
 
         pplx::cancellation_token_source m_receive_loop_cts;
     };

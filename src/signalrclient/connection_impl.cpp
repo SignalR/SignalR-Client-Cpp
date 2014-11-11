@@ -8,20 +8,21 @@
 
 namespace signalr
 {
-    std::shared_ptr<connection_impl> connection_impl::create(const utility::string_t& url, const utility::string_t& querystring)
+    std::shared_ptr<connection_impl> connection_impl::create(const utility::string_t& url, const utility::string_t& querystring, 
+        trace_level trace_level, std::shared_ptr<log_writer> log_writer)
     {
-        return connection_impl::create(url, querystring, std::make_unique<web_request_factory>(), std::make_unique<transport_factory>());
+        return connection_impl::create(url, querystring, trace_level, log_writer, std::make_unique<web_request_factory>(), std::make_unique<transport_factory>());
     }
 
-    std::shared_ptr<connection_impl> connection_impl::create(const utility::string_t& url, const utility::string_t& querystring,
-        std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory)
+    std::shared_ptr<connection_impl> connection_impl::create(const utility::string_t& url, const utility::string_t& querystring, trace_level trace_level, 
+        std::shared_ptr<log_writer> log_writer, std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory)
     {
-        return std::shared_ptr<connection_impl>(new connection_impl(url, querystring, std::move(web_request_factory), std::move(transport_factory)));
+        return std::shared_ptr<connection_impl>(new connection_impl(url, querystring, trace_level, log_writer, std::move(web_request_factory), std::move(transport_factory)));
     }
 
-    connection_impl::connection_impl(const utility::string_t& url, const utility::string_t& querystring,
+    connection_impl::connection_impl(const utility::string_t& url, const utility::string_t& querystring, trace_level trace_level, std::shared_ptr<log_writer> log_writer,
         std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory)
-        : m_base_uri(url), m_querystring(querystring), m_web_request_factory(std::move(web_request_factory)), 
+        : m_base_uri(url), m_querystring(querystring), m_logger(log_writer, trace_level), m_web_request_factory(std::move(web_request_factory)), 
         m_transport_factory(std::move(transport_factory)), m_connection_state(std::move(connection_state::disconnected))
     { }
 
@@ -41,17 +42,47 @@ namespace signalr
         return m_connection_state.load();
     }
 
+    logger connection_impl::get_logger() const
+    {
+        return m_logger;
+    }
+
     bool connection_impl::change_state(connection_state old_state, connection_state new_state)
     {
         connection_state expected_state{ old_state };
 
-        if (!m_connection_state.compare_exchange_strong(expected_state, new_state, std::memory_order_seq_cst))
+        if (m_connection_state.compare_exchange_strong(expected_state, new_state, std::memory_order_seq_cst))
         {
-            // TODO: add logging
+            m_logger.log(
+                trace_level::state_changes,
+                utility::string_t(_XPLATSTR("state changed: "))
+                .append(translate_connection_state(old_state))
+                .append(_XPLATSTR(" -> "))
+                .append(translate_connection_state(new_state)));
+
             // TODO: invoke state_changed callback
-            return false;
+
+            return true;
         }
 
-        return true;
+        return false;
+    }
+
+    utility::string_t connection_impl::translate_connection_state(connection_state state)
+    {
+        switch (state)
+        {
+        case connection_state::connecting:
+            return _XPLATSTR("connecting");
+        case connection_state::connected:
+            return _XPLATSTR("connected");
+        case connection_state::reconnecting:
+            return _XPLATSTR("reconnecting");
+        case connection_state::disconnected:
+            return _XPLATSTR("disconnected");
+        default:
+            _ASSERTE(false);
+            return _XPLATSTR("(unknown)");
+        }
     }
 }
