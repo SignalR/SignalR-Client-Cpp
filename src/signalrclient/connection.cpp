@@ -9,14 +9,12 @@
 namespace signalr
 {
     connection::connection(const utility::string_t& url, const utility::string_t& querystring)
-    {
-        m_pImpl = new connection_impl(url, querystring);
-    }
+        : m_pImpl(connection_impl::create(url, querystring))
+    {}
 
-    connection::~connection()
-    {
-        delete m_pImpl;
-    }
+    // Do NOT remove this destructor. Letting the compiler generate and inline the default dtor may lead to
+    // undefinded behavior since we are using an incomplete type. More details here:  http://herbsutter.com/gotw/_100/ 
+    connection::~connection() = default;
 
     pplx::task<void> connection::start()
     {

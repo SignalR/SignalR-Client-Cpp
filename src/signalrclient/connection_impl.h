@@ -13,12 +13,17 @@
 
 namespace signalr
 {
-    class connection_impl
+    // Note:
+    // Factory methods and private constructors prevent from using this class incorrectly. Because this class 
+    // derives from `std::enable_shared_from_this` the instance has to be owned by a `std::shared_ptr` whenever
+    // a member method calls `std::shared_from_this()` otherwise the behavior is undefined. Therefore constructors
+    // are private to disallow creating instances directly and factory methods return `std::shared_ptr<connection_impl>`.
+    class connection_impl : public std::enable_shared_from_this<connection_impl>
     {
     public:
-        connection_impl(const utility::string_t& url, const utility::string_t& querystring);
+        static std::shared_ptr<connection_impl> create(const utility::string_t& url, const utility::string_t& querystring);
 
-        connection_impl(const utility::string_t& url, const utility::string_t& querystring,
+        static std::shared_ptr<connection_impl> create(const utility::string_t& url, const utility::string_t& querystring,
             std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);
 
         connection_impl(const connection_impl&) = delete;
@@ -36,6 +41,9 @@ namespace signalr
 
         std::unique_ptr<web_request_factory> m_web_request_factory;
         std::unique_ptr<transport_factory> m_transport_factory;
+
+        connection_impl(const utility::string_t& url, const utility::string_t& querystring,
+            std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);
 
         bool change_state(connection_state old_state, connection_state new_state);
     };

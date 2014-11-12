@@ -13,18 +13,19 @@ using namespace signalr;
 
 TEST(connection_impl_connection_state, initial_connection_state_is_disconnected)
 {
-    connection_impl connection{ _XPLATSTR("url"), _XPLATSTR("") };
-    ASSERT_EQ(connection_state::disconnected, connection.get_connection_state());
+    auto connection = connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""));
+
+    ASSERT_EQ(connection_state::disconnected, connection->get_connection_state());
 }
 
 TEST(connection_impl_start, cannot_start_non_disconnected_exception)
 {
-    connection_impl connection{ _XPLATSTR("url"), _XPLATSTR("") };
-    connection.start().wait();
+    auto connection = connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""));
+    connection->start().wait();
 
     try
     {
-        connection.start().wait();
+        connection->start().wait();
         ASSERT_TRUE(false); // exception not thrown
     }
     catch (const std::runtime_error& e)
@@ -37,8 +38,8 @@ TEST(connection_impl_start, cannot_start_non_disconnected_exception)
 
 TEST(connection_impl_start, connection_state_is_connecting_when_connection_is_being_started)
 {
-    connection_impl connection{ _XPLATSTR("url"), _XPLATSTR(""), };
+    auto connection = connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""));
 
-    connection.start().wait();
-    ASSERT_EQ(connection.get_connection_state(), connection_state::connecting);
+    connection->start().wait();
+    ASSERT_EQ(connection->get_connection_state(), connection_state::connecting);
 }

@@ -8,9 +8,16 @@
 
 namespace signalr
 {
-    connection_impl::connection_impl(const utility::string_t& url, const utility::string_t& querystring)
-        : connection_impl(url, querystring, std::make_unique<web_request_factory>(), std::make_unique<transport_factory>())
-    { }
+    std::shared_ptr<connection_impl> connection_impl::create(const utility::string_t& url, const utility::string_t& querystring)
+    {
+        return connection_impl::create(url, querystring, std::make_unique<web_request_factory>(), std::make_unique<transport_factory>());
+    }
+
+    std::shared_ptr<connection_impl> connection_impl::create(const utility::string_t& url, const utility::string_t& querystring,
+        std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory)
+    {
+        return std::shared_ptr<connection_impl>(new connection_impl(url, querystring, std::move(web_request_factory), std::move(transport_factory)));
+    }
 
     connection_impl::connection_impl(const utility::string_t& url, const utility::string_t& querystring,
         std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory)
