@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 #include "stdafx.h"
-#include "signalrclient\transport_factory.h"
+#include "transport_factory.h"
 #include "websocket_transport.h"
 
 namespace signalr

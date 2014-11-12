@@ -8,10 +8,14 @@
 
 namespace signalr
 {
+    connection_impl::connection_impl(const utility::string_t& url, const utility::string_t& querystring)
+        : connection_impl(url, querystring, std::make_unique<web_request_factory>(), std::make_unique<transport_factory>())
+    { }
+
     connection_impl::connection_impl(const utility::string_t& url, const utility::string_t& querystring,
-        web_request_factory& web_request_factory, transport_factory& transport_factory)
-        : m_base_uri(url), m_querystring(querystring), m_web_request_factory(web_request_factory),
-        m_transport_factory(transport_factory), m_connection_state(connection_state::disconnected)
+        std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory)
+        : m_base_uri(url), m_querystring(querystring), m_web_request_factory(std::move(web_request_factory)), 
+        m_transport_factory(std::move(transport_factory)), m_connection_state(std::move(connection_state::disconnected))
     { }
 
     pplx::task<void> connection_impl::start()

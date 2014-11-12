@@ -4,7 +4,7 @@
 #pragma once
 
 #include <cpprest\base_uri.h>
-#include "signalrclient\web_request_factory.h"
+#include "web_request_factory.h"
 #include "negotiation_response.h"
 
 namespace signalr

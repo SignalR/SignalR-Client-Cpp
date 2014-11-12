@@ -6,7 +6,7 @@
 #include <ppl.h>
 #include <cpprest\basic_types.h>
 
-#include "signalrclient\web_request.h"
+#include "web_request.h"
 
 namespace pplx = concurrency;
 

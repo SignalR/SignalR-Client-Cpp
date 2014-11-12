@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "signalrclient\web_request.h"
-#include "signalrclient\web_response.h"
+#include "web_request.h"
+#include "web_response.h"
 
 using namespace signalr;
 

@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 #include "stdafx.h"
-#include "signalrclient\web_request_factory.h"
+#include "web_request_factory.h"
 
 namespace signalr
 {

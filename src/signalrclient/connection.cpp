@@ -4,15 +4,13 @@
 #include "stdafx.h"
 #include "signalrclient\connection.h"
 #include "signalrclient\transport_type.h"
-#include "signalrclient\web_request_factory.h"
-#include "signalrclient\transport_factory.h"
 #include "connection_impl.h"
 
 namespace signalr
 {
     connection::connection(const utility::string_t& url, const utility::string_t& querystring)
     {
-        m_pImpl = new connection_impl(url, querystring, m_web_request_factory, m_transport_factory);
+        m_pImpl = new connection_impl(url, querystring);
     }
 
     connection::~connection()

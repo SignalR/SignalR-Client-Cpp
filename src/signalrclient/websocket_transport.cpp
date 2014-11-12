@@ -111,7 +111,6 @@ namespace signalr
 
                     return;
                 }
-
                 // TODO: log, report error, close websocket (when appropriate)
                 catch (const web_sockets::client::websocket_exception&)
                 {
