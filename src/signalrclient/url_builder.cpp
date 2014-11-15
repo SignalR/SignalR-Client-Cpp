@@ -55,7 +55,7 @@ namespace signalr
         web::uri_builder build_uri(const web::uri &base_url, const utility::string_t &command, transport_type transport,
             const utility::string_t &connection_token, const utility::string_t &query_string)
         {
-            web::uri_builder builder(base_url); 
+            web::uri_builder builder(base_url);
             builder.append_path(command);
             append_transport(builder, transport);
             builder.append_query(_XPLATSTR("clientProtocol"), PROTOCOL);

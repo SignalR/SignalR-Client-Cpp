@@ -15,7 +15,7 @@ namespace signalr
     websocket_transport::websocket_transport(std::shared_ptr<websocket_client> websocket_client, std::shared_ptr<connection_impl> connection)
         : m_websocket_client(websocket_client), m_connection(connection)
     {
-        // we use this cts to check if the receive loop is running so it should be 
+        // we use this cts to check if the receive loop is running so it should be
         // initially cancelled to indicate that the receive loop is not running
         m_receive_loop_cts.cancel();
     }
@@ -30,7 +30,7 @@ namespace signalr
         {}
     }
 
-    pplx::task<void> websocket_transport::connect(const web::uri &url) 
+    pplx::task<void> websocket_transport::connect(const web::uri &url)
     {
         if (!m_receive_loop_cts.get_token().is_canceled())
         {
@@ -100,7 +100,7 @@ namespace signalr
             });
     }
 
-    // unnamed namespace makes this function invisible/unusable in other translation units 
+    // unnamed namespace makes this function invisible/unusable in other translation units
     namespace
     {
         void receive_loop(std::shared_ptr<websocket_client> websocket_client, std::shared_ptr<connection_impl> connection, pplx::cancellation_token_source cts)

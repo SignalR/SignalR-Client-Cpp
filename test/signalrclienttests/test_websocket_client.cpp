@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "test_websocket_client.h"
 
-test_websocket_client::test_websocket_client() 
+test_websocket_client::test_websocket_client()
     : m_connect_function([](const web::uri &){ return pplx::task_from_result(); }),
     m_send_function ([](const utility::string_t msg){ return pplx::task_from_result(); }),
     m_receive_function([](){ return pplx::task_from_result<std::string>(""); }),

@@ -21,7 +21,7 @@ namespace signalr
             // OutputDebugString is thread safe
             OutputDebugString(entry.c_str());
 #else
-            // TODO: XPLAT - there is no data race for standard output streams in C++ 11 but the results 
+            // TODO: XPLAT - there is no data race for standard output streams in C++ 11 but the results
             // might be garbled when the method is called concurrently from multiple threads
 #ifdef _UTF16_STRINGS
             std::wclog << entry;

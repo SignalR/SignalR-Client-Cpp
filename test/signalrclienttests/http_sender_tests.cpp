@@ -30,7 +30,7 @@ TEST(http_sender_get_response, exception_thrown_if_status_code_not_200)
     catch (const web_exception &e)
     {
         ASSERT_EQ(
-            _XPLATSTR("web exception: 404 ") + response_phrase,
+            _XPLATSTR("web exception - 404 ") + response_phrase,
             utility::conversions::to_string_t(e.what()));
     }
 }

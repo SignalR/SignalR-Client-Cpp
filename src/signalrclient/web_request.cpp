@@ -31,10 +31,10 @@ namespace signalr
             .then([](web::http::http_response response)
             {
                 return web_response
-                { 
-                    response.status_code(), 
-                    response.reason_phrase(), 
-                    response.extract_string() 
+                {
+                    response.status_code(),
+                    response.reason_phrase(),
+                    response.extract_string()
                 };
             });
     }

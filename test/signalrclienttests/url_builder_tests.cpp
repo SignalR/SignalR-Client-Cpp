@@ -28,7 +28,7 @@ TEST(url_builder_connect_longPolling, url_correct_if_query_string_empty)
 {
     ASSERT_EQ(
         web::uri(_XPLATSTR("http://fake/signalr/connect?transport=longPolling&clientProtocol=1.4&connectionToken=connection%20token")),
-        url_builder::build_connect(web::uri{ _XPLATSTR("http://fake/signalr/") }, 
+        url_builder::build_connect(web::uri{ _XPLATSTR("http://fake/signalr/") },
             transport_type::long_polling, _XPLATSTR("connection token"), _XPLATSTR("")));
 }
 
@@ -36,7 +36,7 @@ TEST(url_builder_connect_longPolling, url_correct_if_query_string_not_empty)
 {
     ASSERT_EQ(
         web::uri(_XPLATSTR("http://fake/signalr/connect?transport=longPolling&clientProtocol=1.4&connectionToken=connection-token&q1=1&q2=2")),
-        url_builder::build_connect(web::uri{ _XPLATSTR("http://fake/signalr/") }, 
+        url_builder::build_connect(web::uri{ _XPLATSTR("http://fake/signalr/") },
             transport_type::long_polling, _XPLATSTR("connection-token"), _XPLATSTR("q1=1&q2=2")));
 
     ASSERT_EQ(

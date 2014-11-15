@@ -13,7 +13,7 @@ namespace signalr
         utility::string_t connection_token;
         int disconnect_timeout; // in milliseconds
         int keep_alive_timeout; // in milliseconds
-        
+
         utility::string_t protocol_version;
         bool try_websockets;
         int transport_connect_timeout; // in milliseconds

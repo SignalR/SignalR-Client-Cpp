@@ -70,7 +70,7 @@ TEST(websocket_transport_connect, connect_logs_exceptions)
 
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
 
-    websocket_transport ws_transport{ client, connection_impl::create(_XPLATSTR("http://fake.uri"), 
+    websocket_transport ws_transport{ client, connection_impl::create(_XPLATSTR("http://fake.uri"),
         _XPLATSTR(""), trace_level::messages, writer) };
 
     try
@@ -120,7 +120,7 @@ TEST(websocket_transport_connect, can_connect_after_disconnecting)
     ws_transport.connect(_XPLATSTR("http://fakeuri.org")).get();
     ws_transport.disconnect().get();
     ws_transport.connect(_XPLATSTR("http://fakeuri.org")).get();
-    // shouldn't throw or crash 
+    // shouldn't throw or crash
 }
 
 TEST(websocket_transport_send, send_creates_and_sends_websocket_messages)
@@ -187,14 +187,14 @@ TEST(websocket_transport_disconnect, disconnect_logs_exceptions)
 
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
 
-    websocket_transport ws_transport{client, connection_impl::create(_XPLATSTR("http://fake.uri"), 
+    websocket_transport ws_transport{client, connection_impl::create(_XPLATSTR("http://fake.uri"),
         _XPLATSTR(""), trace_level::messages, writer)};
 
     try
     {
         ws_transport.disconnect().get();
     }
-    catch (...) 
+    catch (...)
     {}
 
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
@@ -262,7 +262,7 @@ TEST(websocket_transport_receive_loop, receive_loop_logs_if_receive_task_cancell
 TEST(websocket_transport_receive_loop, receive_loop_logs_std_exception)
 {
     receive_loop_logs_exception_runner(
-        std::exception("exception"), 
+        std::exception("exception"),
         _XPLATSTR("[websocket transport] error receiving response from websocket: exception\n"));
 }
 

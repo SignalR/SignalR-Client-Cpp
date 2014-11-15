@@ -5,24 +5,25 @@
 #include <cpprest\asyncrt_utils.h>
 #include "connection_impl.h"
 #include "request_sender.h"
+#include "url_builder.h"
 
 namespace signalr
 {
-    std::shared_ptr<connection_impl> connection_impl::create(const utility::string_t& url, const utility::string_t& querystring, 
+    std::shared_ptr<connection_impl> connection_impl::create(const utility::string_t& url, const utility::string_t& query_string,
         trace_level trace_level, std::shared_ptr<log_writer> log_writer)
     {
-        return connection_impl::create(url, querystring, trace_level, log_writer, std::make_unique<web_request_factory>(), std::make_unique<transport_factory>());
+        return connection_impl::create(url, query_string, trace_level, log_writer, std::make_unique<web_request_factory>(), std::make_unique<transport_factory>());
     }
 
-    std::shared_ptr<connection_impl> connection_impl::create(const utility::string_t& url, const utility::string_t& querystring, trace_level trace_level, 
+    std::shared_ptr<connection_impl> connection_impl::create(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level,
         std::shared_ptr<log_writer> log_writer, std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory)
     {
-        return std::shared_ptr<connection_impl>(new connection_impl(url, querystring, trace_level, log_writer, std::move(web_request_factory), std::move(transport_factory)));
+        return std::shared_ptr<connection_impl>(new connection_impl(url, query_string, trace_level, log_writer, std::move(web_request_factory), std::move(transport_factory)));
     }
 
-    connection_impl::connection_impl(const utility::string_t& url, const utility::string_t& querystring, trace_level trace_level, std::shared_ptr<log_writer> log_writer,
+    connection_impl::connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level, std::shared_ptr<log_writer> log_writer,
         std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory)
-        : m_base_uri(url), m_querystring(querystring), m_logger(log_writer, trace_level), m_web_request_factory(std::move(web_request_factory)), 
+        : m_base_url(url), m_query_string(query_string), m_logger(log_writer, trace_level), m_web_request_factory(std::move(web_request_factory)),
         m_transport_factory(std::move(transport_factory)), m_connection_state(std::move(connection_state::disconnected))
     { }
 
@@ -34,7 +35,35 @@ namespace signalr
                 _XPLATSTR("cannot start a connection that is not in the disconnected state")));
         }
 
-        return pplx::task_from_result();
+        pplx::task_completion_event<void> start_tce;
+        auto connection = shared_from_this();
+
+        request_sender::negotiate(*m_web_request_factory, m_base_url, m_query_string)
+            .then([start_tce, connection](negotiation_response negotiation_response)
+            {
+                // connect request will go here
+            })
+            .then([start_tce, connection](pplx::task<void> previous_task)
+            {
+                try
+                {
+                    previous_task.get();
+                    connection->change_state(connection_state::connecting, connection_state::connected);
+                    start_tce.set();
+                }
+                catch (const std::exception &e)
+                {
+                    connection->get_logger().log(
+                        trace_level::messages,
+                        utility::string_t(_XPLATSTR("connection could not be started due to: "))
+                            .append(utility::conversions::to_string_t(e.what())));
+
+                    connection->change_state(connection_state::connecting, connection_state::disconnected);
+                    start_tce.set_exception(std::current_exception());
+                }
+            });
+
+        return pplx::create_task(start_tce);
     }
 
     connection_state connection_impl::get_connection_state() const

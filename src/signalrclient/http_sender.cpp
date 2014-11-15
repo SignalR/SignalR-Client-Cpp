@@ -23,7 +23,7 @@ namespace signalr
                 if (response.status_code != 200)
                 {
                     utility::ostringstream_t oss;
-                    oss << _XPLATSTR("web exception: ") << response.status_code << _XPLATSTR(" ") << response.reason_phrase;
+                    oss << _XPLATSTR("web exception - ") << response.status_code << _XPLATSTR(" ") << response.reason_phrase;
                     throw web_exception(oss.str());
                 }
 

@@ -18,7 +18,7 @@ namespace signalr
     class connection
     {
     public:
-        explicit connection(const utility::string_t& url, const utility::string_t& querystring = U(""), 
+        explicit connection(const utility::string_t& url, const utility::string_t& querystring = U(""),
             trace_level trace_level = trace_level::all, std::shared_ptr<log_writer> log_writer = std::make_shared<trace_log_writer>());
 
         // TODO: consider making connection class copyable to enable passing by value
@@ -33,9 +33,9 @@ namespace signalr
         SIGNALRCLIENT_API connection_state get_connection_state() const;
 
     private:
-        // The recommended smart pointer to use when doing pImpl is the `std::unique_ptr`. However 
+        // The recommended smart pointer to use when doing pImpl is the `std::unique_ptr`. However
         // we are capturing the m_pImpl instance in the lambdas used by tasks which can outlive
-        // the connection instance. Using `std::shared_ptr` guarantees that we won't be using 
+        // the connection instance. Using `std::shared_ptr` guarantees that we won't be using
         // a deleted object if the task is run after the `connection` instance goes away.
         std::shared_ptr<connection_impl> m_pImpl;
     };

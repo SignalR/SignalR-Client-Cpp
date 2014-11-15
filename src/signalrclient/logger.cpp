@@ -24,7 +24,7 @@ namespace signalr
             }
             catch (const std::exception &e)
             {
-                ucerr << _XPLATSTR("error occurred when logging: ") << utility::conversions::to_string_t(e.what()) 
+                ucerr << _XPLATSTR("error occurred when logging: ") << utility::conversions::to_string_t(e.what())
                     << std::endl << _XPLATSTR("    entry: ") << entry << std::endl;
             }
             catch (...)
