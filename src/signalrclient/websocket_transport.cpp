@@ -56,7 +56,7 @@ namespace signalr
             catch (const std::exception &e)
             {
                 connection->get_logger().log(
-                    trace_level::messages,
+                    trace_level::errors,
                     utility::string_t(_XPLATSTR("[websocket transport] exception when connecting to the server: "))
                         .append(utility::conversions::to_string_t(e.what())));
 
@@ -93,7 +93,7 @@ namespace signalr
                 catch (const std::exception &e)
                 {
                     logger.log(
-                        trace_level::messages,
+                        trace_level::errors,
                         utility::string_t(_XPLATSTR("[websocket transport] exception when closing websocket: "))
                         .append(utility::conversions::to_string_t(e.what())));
                 }
@@ -129,28 +129,28 @@ namespace signalr
                 catch (const web_sockets::client::websocket_exception& e)
                 {
                     connection->get_logger().log(
-                        trace_level::messages,
+                        trace_level::errors,
                         utility::string_t(_XPLATSTR("[websocket transport] websocket exception when receiving data: "))
                         .append(utility::conversions::to_string_t(e.what())));
                 }
                 catch (const pplx::task_canceled& e)
                 {
                     connection->get_logger().log(
-                        trace_level::messages,
+                        trace_level::errors,
                         utility::string_t(_XPLATSTR("[websocket transport] receive task cancelled: "))
                         .append(utility::conversions::to_string_t(e.what())));
                 }
                 catch (const std::exception& e)
                 {
                     connection->get_logger().log(
-                        trace_level::messages,
+                        trace_level::errors,
                         utility::string_t(_XPLATSTR("[websocket transport] error receiving response from websocket: "))
                         .append(utility::conversions::to_string_t(e.what())));
                 }
                 catch (...)
                 {
                     connection->get_logger().log(
-                        trace_level::messages,
+                        trace_level::errors,
                         utility::string_t(_XPLATSTR("[websocket transport] unknown error occurred when receiving response from websocket")));
                 }
 

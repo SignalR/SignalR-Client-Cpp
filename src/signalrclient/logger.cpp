@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "logger.h"
 #include <cpprest\asyncrt_utils.h>
-
+#include <iomanip>
 
 namespace signalr
 {
@@ -19,7 +19,8 @@ namespace signalr
             try
             {
                 utility::ostringstream_t os;
-                os << utility::datetime::utc_now().to_string(utility::datetime::date_format::ISO_8601) << _XPLATSTR(" ") << entry << std::endl;
+                os << utility::datetime::utc_now().to_string(utility::datetime::date_format::ISO_8601) << _XPLATSTR(" [")
+                    << std::left << std::setw(12) << translate_trace_level(level) << "] "<< entry << std::endl;
                 m_log_writer->write(os.str());
             }
             catch (const std::exception &e)
@@ -31,6 +32,24 @@ namespace signalr
             {
                 ucerr << _XPLATSTR("unknown error occurred when logging") << std::endl << _XPLATSTR("    entry: ") << entry << std::endl;
             }
+        }
+    }
+
+    utility::string_t logger::translate_trace_level(trace_level trace_level)
+    {
+        switch (trace_level)
+        {
+        case trace_level::messages:
+            return _XPLATSTR("message");
+        case trace_level::state_changes:
+            return _XPLATSTR("state change");
+        case trace_level::events:
+            return _XPLATSTR("event");
+        case trace_level::errors:
+            return _XPLATSTR("error");
+        default:
+            _ASSERTE(false);
+            return _XPLATSTR("(unknown)");
         }
     }
 }

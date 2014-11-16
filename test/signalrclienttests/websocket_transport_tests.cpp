@@ -71,7 +71,7 @@ TEST(websocket_transport_connect, connect_logs_exceptions)
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
 
     websocket_transport ws_transport{ client, connection_impl::create(_XPLATSTR("http://fake.uri"),
-        _XPLATSTR(""), trace_level::messages, writer) };
+        _XPLATSTR(""), trace_level::errors, writer) };
 
     try
     {
@@ -87,7 +87,7 @@ TEST(websocket_transport_connect, connect_logs_exceptions)
     auto entry = remove_date_from_log_entry(log_entries[0]);
 
     ASSERT_EQ(
-        _XPLATSTR("[websocket transport] exception when connecting to the server: connecting failed\n"),
+        _XPLATSTR("[error       ] [websocket transport] exception when connecting to the server: connecting failed\n"),
         entry);
 }
 
@@ -188,7 +188,7 @@ TEST(websocket_transport_disconnect, disconnect_logs_exceptions)
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
 
     websocket_transport ws_transport{client, connection_impl::create(_XPLATSTR("http://fake.uri"),
-        _XPLATSTR(""), trace_level::messages, writer)};
+        _XPLATSTR(""), trace_level::errors, writer)};
 
     try
     {
@@ -204,7 +204,7 @@ TEST(websocket_transport_disconnect, disconnect_logs_exceptions)
     auto entry = remove_date_from_log_entry(log_entries[0]);
 
     ASSERT_EQ(
-        _XPLATSTR("[websocket transport] exception when closing websocket: connection closing failed\n"),
+        _XPLATSTR("[error       ] [websocket transport] exception when closing websocket: connection closing failed\n"),
         entry);
 }
 
@@ -249,21 +249,21 @@ TEST(websocket_transport_receive_loop, receive_loop_logs_websocket_exceptions)
 {
     receive_loop_logs_exception_runner(
         web_sockets::client::websocket_exception(_XPLATSTR("receive failed")),
-        _XPLATSTR("[websocket transport] websocket exception when receiving data: receive failed\n"));
+        _XPLATSTR("[error       ] [websocket transport] websocket exception when receiving data: receive failed\n"));
 }
 
 TEST(websocket_transport_receive_loop, receive_loop_logs_if_receive_task_cancelled)
 {
     receive_loop_logs_exception_runner(
         pplx::task_canceled("cancelled"),
-        _XPLATSTR("[websocket transport] receive task cancelled: cancelled\n"));
+        _XPLATSTR("[error       ] [websocket transport] receive task cancelled: cancelled\n"));
 }
 
 TEST(websocket_transport_receive_loop, receive_loop_logs_std_exception)
 {
     receive_loop_logs_exception_runner(
         std::exception("exception"),
-        _XPLATSTR("[websocket transport] error receiving response from websocket: exception\n"));
+        _XPLATSTR("[error       ] [websocket transport] error receiving response from websocket: exception\n"));
 }
 
 template<class T>
@@ -281,7 +281,7 @@ void receive_loop_logs_exception_runner(const T& e, const utility::string_t& exp
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
 
     websocket_transport ws_transport{ client, connection_impl::create(_XPLATSTR("http://fake.uri"),
-        _XPLATSTR(""), trace_level::messages, writer) };
+        _XPLATSTR(""), trace_level::errors, writer) };
 
     ws_transport.connect(_XPLATSTR("url"))
         .then([&receive_event]()

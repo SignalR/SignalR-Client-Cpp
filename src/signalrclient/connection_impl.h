@@ -50,6 +50,6 @@ namespace signalr
             std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);
 
         bool change_state(connection_state old_state, connection_state new_state);
-        utility::string_t translate_connection_state(connection_state state);
+        static utility::string_t translate_connection_state(connection_state state);
     };
 }

@@ -124,7 +124,7 @@ TEST(connection_impl_start, start_logs_exceptions)
     });
 
     auto connection =
-        connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""), trace_level::messages, writer,
+        connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""), trace_level::errors, writer,
             std::move(web_request_factory), std::make_unique<transport_factory>());
 
     try
@@ -138,7 +138,7 @@ TEST(connection_impl_start, start_logs_exceptions)
     ASSERT_FALSE(log_entries.empty());
 
     auto entry = remove_date_from_log_entry(log_entries[0]);
-    ASSERT_EQ(_XPLATSTR("connection could not be started due to: web exception - 404 Bad request\n"), entry);
+    ASSERT_EQ(_XPLATSTR("[error       ] connection could not be started due to: web exception - 404 Bad request\n"), entry);
 }
 
 TEST(connection_impl_start, start_propagates_exceptions_from_negotiate)
@@ -186,5 +186,5 @@ TEST(connection_impl_change_state, change_state_logs)
     ASSERT_FALSE(log_entries.empty());
 
     auto entry = remove_date_from_log_entry(log_entries[0]);
-    ASSERT_EQ(_XPLATSTR("state changed: disconnected -> connecting\n"), entry);
+    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), entry);
 }

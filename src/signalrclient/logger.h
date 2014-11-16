@@ -19,5 +19,7 @@ namespace signalr
     private:
         std::shared_ptr<log_writer> m_log_writer;
         trace_level m_trace_level;
+
+        static utility::string_t translate_trace_level(trace_level trace_level);
     };
 }
