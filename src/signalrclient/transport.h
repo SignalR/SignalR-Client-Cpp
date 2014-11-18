@@ -3,10 +3,15 @@
 
 #pragma once;
 
-#include <cpprest/ws_client.h>
+#include <cpprest\base_uri.h>
+#include <ppl.h>
+
+namespace pplx = Concurrency;
 
 namespace signalr
 {
+    class connection_impl;
+
     class transport
     {
     public:
@@ -16,6 +21,16 @@ namespace signalr
 
         virtual pplx::task<void> disconnect() = 0;
 
-        virtual ~transport() {};
+        virtual ~transport();
+
+    protected:
+        transport(std::shared_ptr<connection_impl> connection, std::function<void(const utility::string_t &)> process_response_callback);
+
+        void process_response(const utility::string_t &message);
+
+        std::shared_ptr<connection_impl> m_connection;
+
+    private:
+        std::function<void(const utility::string_t &)> m_process_response_callback;
     };
 }
