@@ -14,7 +14,7 @@ namespace signalr
     class transport_factory
     {
     public:
-        virtual std::unique_ptr<transport> create_transport(transport_type transport_type, std::shared_ptr<connection_impl> connection);
+        virtual std::shared_ptr<transport> create_transport(transport_type transport_type, std::shared_ptr<connection_impl> connection);
 
         virtual ~transport_factory();
     };
