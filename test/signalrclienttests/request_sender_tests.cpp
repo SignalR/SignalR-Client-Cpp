@@ -50,3 +50,26 @@ TEST(request_sender_negotiate, negotiation_request_sent_and_response_serialized)
     ASSERT_TRUE(response.try_websockets);
     ASSERT_EQ(5500, response.transport_connect_timeout);
 }
+
+TEST(request_sender_negotiate, negotiate_can_handle_null_keep_alive_timeout)
+{
+    utility::string_t test_values[] = { _XPLATSTR(""), _XPLATSTR("\"KeepAliveTimeout\" : null, ") };
+
+    for (const auto& keep_alive_timeout : test_values)
+    {
+        auto request_factory = test_web_request_factory([keep_alive_timeout](const web::uri&) -> std::unique_ptr < web_request >
+        {
+            utility::string_t response_body(
+                utility::string_t(_XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", "))
+                .append(keep_alive_timeout)
+                .append(_XPLATSTR("\"KeepAliveTimeout\" : null, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+                _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.5, \"LongPollDelay\" : 0.0}")));
+
+            return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+        });
+
+        auto response = request_sender::negotiate(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") }, _XPLATSTR("")).get();
+
+        ASSERT_EQ(-1, response.keep_alive_timeout);
+    }
+}
