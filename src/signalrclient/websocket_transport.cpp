@@ -7,13 +7,15 @@
 
 namespace signalr
 {
-    std::shared_ptr<transport> websocket_transport::create(std::shared_ptr<websocket_client> websocket_client, std::shared_ptr<connection_impl> connection)
+    std::shared_ptr<transport> websocket_transport::create(std::shared_ptr<websocket_client> websocket_client,
+        std::shared_ptr<connection_impl> connection, std::function<void(const utility::string_t &)> process_message)
     {
-        return std::shared_ptr<transport>(new websocket_transport(websocket_client, connection));
+        return std::shared_ptr<transport>(new websocket_transport(websocket_client, connection, process_message));
     }
 
-    websocket_transport::websocket_transport(std::shared_ptr<websocket_client> websocket_client, std::shared_ptr<connection_impl> connection)
-        : m_websocket_client(websocket_client), m_connection(connection)
+    websocket_transport::websocket_transport(std::shared_ptr<websocket_client> websocket_client,
+        std::shared_ptr<connection_impl> connection, std::function<void(const utility::string_t &)> process_message)
+        : transport(connection, process_message), m_websocket_client(websocket_client)
     {
         // we use this cts to check if the receive loop is running so it should be
         // initially cancelled to indicate that the receive loop is not running
@@ -115,7 +117,7 @@ namespace signalr
             {
                 auto msg_body = receive_task.get();
 
-                // TODO: process message
+                transport->process_message(utility::conversions::to_string_t(msg_body));
 
                 if (!pplx::is_task_cancellation_requested())
                 {

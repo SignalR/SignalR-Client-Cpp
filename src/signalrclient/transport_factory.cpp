@@ -8,11 +8,13 @@
 
 namespace signalr
 {
-    std::shared_ptr<transport> transport_factory::create_transport(transport_type transport_type, std::shared_ptr<connection_impl> connection)
+    std::shared_ptr<transport> transport_factory::create_transport(transport_type transport_type,
+        std::shared_ptr<connection_impl> connection, std::function<void(utility::string_t)> process_message)
     {
         if (transport_type == transport_type::websockets)
         {
-            return websocket_transport::create(std::make_shared<default_websocket_client>(), connection);
+            return websocket_transport::create(
+                std::make_shared<default_websocket_client>(), connection, process_message);
         }
 
         throw std::exception("not implemented");
