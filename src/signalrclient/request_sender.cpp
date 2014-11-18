@@ -23,7 +23,9 @@ namespace signalr
                     negotiation_response_json[_XPLATSTR("ConnectionId")].as_string(),
                     negotiation_response_json[_XPLATSTR("ConnectionToken")].as_string(),
                     (int)(negotiation_response_json[_XPLATSTR("DisconnectTimeout")].as_double() * 1000),
-                    (int)(negotiation_response_json[_XPLATSTR("KeepAliveTimeout")].as_double() * 1000),
+                    !negotiation_response_json[_XPLATSTR("KeepAliveTimeout")].is_null()
+                        ? (int)(negotiation_response_json[_XPLATSTR("KeepAliveTimeout")].as_double() * 1000)
+                        : -1,
                     negotiation_response_json[_XPLATSTR("ProtocolVersion")].as_string(),
                     negotiation_response_json[_XPLATSTR("TryWebSockets")].as_bool(),
                     (int)(negotiation_response_json[_XPLATSTR("TransportConnectTimeout")].as_double() * 1000)
