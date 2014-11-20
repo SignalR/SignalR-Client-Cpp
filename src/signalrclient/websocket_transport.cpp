@@ -34,11 +34,17 @@ namespace signalr
 
     pplx::task<void> websocket_transport::connect(const web::uri &url)
     {
+        _ASSERTE(url.scheme() == _XPLATSTR("ws") || url.scheme() == _XPLATSTR("wss"));
+
         if (!m_receive_loop_cts.get_token().is_canceled())
         {
             throw std::runtime_error(utility::conversions::to_utf8string(
                 _XPLATSTR("transport already connected")));
         }
+
+        m_connection->get_logger().log(trace_level::messages, 
+            utility::string_t(_XPLATSTR("[websocket transport] connecting to: "))
+                .append(url.to_string()));
 
         // TODO: prepare request (websocket_client_config)
         pplx::cancellation_token_source receive_loop_cts;
