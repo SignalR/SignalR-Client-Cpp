@@ -29,8 +29,8 @@ TEST(websocket_transport_connect, connect_connects_and_starts_receive_loop)
         return pplx::task_from_result(std::string(""));
     });
 
-    auto ws_transport = websocket_transport::create(client, connection_impl::create(_XPLATSTR("http://fake.uri"), _XPLATSTR(""),
-        trace_level::none, std::make_shared<trace_log_writer>()), [](const utility::string_t&){});
+    auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
+        [](const utility::string_t&){});
 
     ws_transport->connect(_XPLATSTR("http://fakeuri.org")).get();
 
@@ -46,8 +46,8 @@ TEST(websocket_transport_connect, connect_propagates_exceptions)
         return pplx::task_from_exception<void>(web_sockets::client::websocket_exception(_XPLATSTR("connecting failed")));
     });
 
-    auto ws_transport = websocket_transport::create(client, connection_impl::create(_XPLATSTR("http://fake.uri"),
-        _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>()), [](const utility::string_t&){});
+    auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
+        [](const utility::string_t&){});
 
     try
     {
@@ -69,9 +69,7 @@ TEST(websocket_transport_connect, connect_logs_exceptions)
     });
 
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
-
-    auto ws_transport = websocket_transport::create(client, connection_impl::create(_XPLATSTR("http://fake.uri"),
-        _XPLATSTR(""), trace_level::errors, writer), [](const utility::string_t&){});
+    auto ws_transport = websocket_transport::create(client, logger(writer, trace_level::errors), [](const utility::string_t&){});
 
     try
     {
@@ -94,8 +92,8 @@ TEST(websocket_transport_connect, connect_logs_exceptions)
 TEST(websocket_transport_connect, cannot_call_connect_on_already_connected_transport)
 {
     auto client = std::make_shared<test_websocket_client>();
-    auto ws_transport = websocket_transport::create(client, connection_impl::create(_XPLATSTR("http://fake.uri"),
-        _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>()), [](const utility::string_t&){});
+    auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
+        [](const utility::string_t&){});
 
     ws_transport->connect(_XPLATSTR("http://fakeuri.org")).wait();
 
@@ -113,8 +111,8 @@ TEST(websocket_transport_connect, cannot_call_connect_on_already_connected_trans
 TEST(websocket_transport_connect, can_connect_after_disconnecting)
 {
     auto client = std::make_shared<test_websocket_client>();
-    auto ws_transport = websocket_transport::create(client, connection_impl::create(_XPLATSTR("http://fake.uri"),
-        _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>()), [](const utility::string_t&){});
+    auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
+        [](const utility::string_t&){});
 
     ws_transport->connect(_XPLATSTR("http://fakeuri.org")).get();
     ws_transport->disconnect().get();
@@ -126,8 +124,8 @@ TEST(websocket_transport_connect, transport_destroyed_even_if_disconnect_not_cal
 {
     auto client = std::make_shared<test_websocket_client>();
     {
-        auto ws_transport = websocket_transport::create(client, connection_impl::create(_XPLATSTR("http://fake.uri"),
-            _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>()), [](const utility::string_t&){});
+        auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
+            [](const utility::string_t&){});
 
         ws_transport->connect(_XPLATSTR("http://fakeuri.org")).get();
     }
@@ -153,8 +151,8 @@ TEST(websocket_transport_send, send_creates_and_sends_websocket_messages)
         return pplx::task_from_result();
     });
 
-    auto ws_transport = websocket_transport::create(client, connection_impl::create(_XPLATSTR("http://fake.uri"),
-        _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>()), [](const utility::string_t&){});
+    auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
+        [](const utility::string_t&){});
 
     ws_transport->send(_XPLATSTR("ABC")).wait();
 
@@ -173,8 +171,8 @@ TEST(websocket_transport_disconnect, disconnect_closes_websocket)
         return pplx::task_from_result();
     });
 
-    auto ws_transport = websocket_transport::create(client, connection_impl::create(_XPLATSTR("http://fake.uri"),
-        _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>()), [](const utility::string_t&){});
+    auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
+        [](const utility::string_t&){});
 
     ws_transport->disconnect().get();
 
@@ -190,8 +188,9 @@ TEST(websocket_transport_disconnect, disconnect_does_not_throw)
         return pplx::task_from_exception<void>(std::exception());
     });
 
-    auto ws_transport = websocket_transport::create(client, connection_impl::create(_XPLATSTR("http://fake.uri"),
-        _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>()), [](const utility::string_t&){});
+    auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
+        [](const utility::string_t&){});
+
     ws_transport->disconnect().get();
 }
 
@@ -205,8 +204,7 @@ TEST(websocket_transport_disconnect, disconnect_logs_exceptions)
 
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
 
-    auto ws_transport = websocket_transport::create(client, connection_impl::create(_XPLATSTR("http://fake.uri"),
-        _XPLATSTR(""), trace_level::errors, writer), [](const utility::string_t&){});
+    auto ws_transport = websocket_transport::create(client, logger(writer, trace_level::errors), [](const utility::string_t&){});
 
     try
     {
@@ -247,8 +245,8 @@ TEST(websocket_transport_disconnect, receive_not_called_after_disconnect)
         return pplx::create_task(receive_task_tce);
     });
 
-    auto ws_transport = websocket_transport::create(client, connection_impl::create(_XPLATSTR("http://fake.uri"),
-        _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>()), [](const utility::string_t&){});
+    auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
+        [](const utility::string_t&){});
 
     ws_transport->connect(_XPLATSTR("http://fakeuri.org")).get();
     ws_transport->disconnect().get();
@@ -298,8 +296,7 @@ void receive_loop_logs_exception_runner(const T& e, const utility::string_t& exp
 
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
 
-    auto ws_transport = websocket_transport::create(client, connection_impl::create(_XPLATSTR("http://fake.uri"),
-        _XPLATSTR(""), trace_level::errors, writer), [](const utility::string_t&){});
+    auto ws_transport = websocket_transport::create(client, logger(writer, trace_level::errors), [](const utility::string_t&){});
 
     ws_transport->connect(_XPLATSTR("url"))
         .then([&receive_event]()
@@ -336,8 +333,8 @@ TEST(websocket_transport_receive_loop, process_response_callback_called_when_mes
         process_response_event->set();
     };
 
-    auto ws_transport = websocket_transport::create(client, connection_impl::create(_XPLATSTR("http://fake.uri"),
-        _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>()), process_response);
+    auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
+        process_response);
 
     ws_transport->connect(_XPLATSTR("http://fakeuri.org")).get();
 

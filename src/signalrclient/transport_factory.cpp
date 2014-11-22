@@ -4,17 +4,16 @@
 #include "stdafx.h"
 #include "transport_factory.h"
 #include "websocket_transport.h"
-#include "connection_impl.h"
 
 namespace signalr
 {
     std::shared_ptr<transport> transport_factory::create_transport(transport_type transport_type,
-        std::shared_ptr<connection_impl> connection, std::function<void(utility::string_t)> process_response_callback)
+        logger logger, std::function<void(utility::string_t)> process_response_callback)
     {
         if (transport_type == transport_type::websockets)
         {
             return websocket_transport::create(
-                std::make_shared<default_websocket_client>(), connection, process_response_callback);
+                std::make_shared<default_websocket_client>(), logger, process_response_callback);
         }
 
         throw std::exception("not implemented");

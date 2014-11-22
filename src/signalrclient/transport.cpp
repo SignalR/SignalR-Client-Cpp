@@ -7,8 +7,8 @@
 
 namespace signalr
 {
-    transport::transport(std::shared_ptr<connection_impl> connection, std::function<void(const utility::string_t&)> process_response_callback)
-        : m_connection(connection), m_process_response_callback(process_response_callback)
+    transport::transport(logger logger, std::function<void(const utility::string_t&)> process_response_callback)
+        : m_logger(logger), m_process_response_callback(process_response_callback)
     {}
 
     // Do NOT remove this destructor. Letting the compiler generate and inline the default dtor may lead to

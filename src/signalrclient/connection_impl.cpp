@@ -53,7 +53,7 @@ namespace signalr
                 }
                 catch (const std::exception &e)
                 {
-                    connection->get_logger().log(
+                    connection->m_logger.log(
                         trace_level::errors,
                         utility::string_t(_XPLATSTR("connection could not be started due to: "))
                             .append(utility::conversions::to_string_t(e.what())));
@@ -69,11 +69,6 @@ namespace signalr
     connection_state connection_impl::get_connection_state() const
     {
         return m_connection_state.load();
-    }
-
-    logger connection_impl::get_logger() const
-    {
-        return m_logger;
     }
 
     bool connection_impl::change_state(connection_state old_state, connection_state new_state)

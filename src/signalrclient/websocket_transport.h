@@ -16,7 +16,7 @@ namespace signalr
     {
     public:
         static std::shared_ptr<transport> create(std::shared_ptr<websocket_client> websocket_client,
-            std::shared_ptr<connection_impl> connection, std::function<void(const utility::string_t&)> process_response_callback);
+            logger logger, std::function<void(const utility::string_t&)> process_response_callback);
 
         ~websocket_transport();
 
@@ -31,8 +31,8 @@ namespace signalr
         pplx::task<void> disconnect() override;
 
     private:
-        websocket_transport(std::shared_ptr<websocket_client> websocket_client,
-            std::shared_ptr<connection_impl> connection, std::function<void(const utility::string_t &)> process_response_callback);
+        websocket_transport(std::shared_ptr<websocket_client> websocket_client, logger logger,
+            std::function<void(const utility::string_t &)> process_response_callback);
 
         std::shared_ptr<websocket_client> m_websocket_client;
 

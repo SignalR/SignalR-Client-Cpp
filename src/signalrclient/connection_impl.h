@@ -35,8 +35,6 @@ namespace signalr
 
         connection_state get_connection_state() const;
 
-        logger get_logger() const;
-
     private:
         web::uri m_base_url;
         utility::string_t m_query_string;

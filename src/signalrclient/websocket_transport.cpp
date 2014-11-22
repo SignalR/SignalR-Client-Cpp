@@ -8,14 +8,14 @@
 namespace signalr
 {
     std::shared_ptr<transport> websocket_transport::create(std::shared_ptr<websocket_client> websocket_client,
-        std::shared_ptr<connection_impl> connection, std::function<void(const utility::string_t &)> process_response_callback)
+        logger logger, std::function<void(const utility::string_t &)> process_response_callback)
     {
-        return std::shared_ptr<transport>(new websocket_transport(websocket_client, connection, process_response_callback));
+        return std::shared_ptr<transport>(new websocket_transport(websocket_client, logger, process_response_callback));
     }
 
     websocket_transport::websocket_transport(std::shared_ptr<websocket_client> websocket_client,
-        std::shared_ptr<connection_impl> connection, std::function<void(const utility::string_t &)> process_response_callback)
-        : transport(connection, process_response_callback), m_websocket_client(websocket_client)
+        logger logger, std::function<void(const utility::string_t &)> process_response_callback)
+        : transport(logger, process_response_callback), m_websocket_client(websocket_client)
     {
         // we use this cts to check if the receive loop is running so it should be
         // initially cancelled to indicate that the receive loop is not running
@@ -57,7 +57,7 @@ namespace signalr
             }
             catch (const std::exception &e)
             {
-                transport->m_connection->get_logger().log(
+                transport->m_logger.log(
                     trace_level::errors,
                     utility::string_t(_XPLATSTR("[websocket transport] exception when connecting to the server: "))
                         .append(utility::conversions::to_string_t(e.what())));
@@ -83,7 +83,7 @@ namespace signalr
     {
         m_receive_loop_cts.cancel();
 
-        auto logger = m_connection->get_logger();
+        auto logger = m_logger;
 
         return m_websocket_client->close()
             .then([logger](pplx::task<void> close_task)
@@ -138,28 +138,28 @@ namespace signalr
                 // TODO: report error, close websocket (when appropriate)
                 catch (const web_sockets::client::websocket_exception& e)
                 {
-                    transport->m_connection->get_logger().log(
+                    transport->m_logger.log(
                         trace_level::errors,
                         utility::string_t(_XPLATSTR("[websocket transport] websocket exception when receiving data: "))
                         .append(utility::conversions::to_string_t(e.what())));
                 }
                 catch (const pplx::task_canceled& e)
                 {
-                    transport->m_connection->get_logger().log(
+                    transport->m_logger.log(
                         trace_level::errors,
                         utility::string_t(_XPLATSTR("[websocket transport] receive task cancelled: "))
                         .append(utility::conversions::to_string_t(e.what())));
                 }
                 catch (const std::exception& e)
                 {
-                    transport->m_connection->get_logger().log(
+                    transport->m_logger.log(
                         trace_level::errors,
                         utility::string_t(_XPLATSTR("[websocket transport] error receiving response from websocket: "))
                         .append(utility::conversions::to_string_t(e.what())));
                 }
                 catch (...)
                 {
-                    transport->m_connection->get_logger().log(
+                    transport->m_logger.log(
                         trace_level::errors,
                         utility::string_t(_XPLATSTR("[websocket transport] unknown error occurred when receiving response from websocket")));
                 }

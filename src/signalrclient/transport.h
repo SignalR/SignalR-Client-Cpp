@@ -5,6 +5,7 @@
 
 #include <cpprest\base_uri.h>
 #include <ppl.h>
+#include "logger.h"
 
 namespace pplx = Concurrency;
 
@@ -24,11 +25,11 @@ namespace signalr
         virtual ~transport();
 
     protected:
-        transport(std::shared_ptr<connection_impl> connection, std::function<void(const utility::string_t &)> process_response_callback);
+        transport(logger logger, std::function<void(const utility::string_t &)> process_response_callback);
 
         void process_response(const utility::string_t &message);
 
-        std::shared_ptr<connection_impl> m_connection;
+        logger m_logger;
 
     private:
         std::function<void(const utility::string_t &)> m_process_response_callback;
