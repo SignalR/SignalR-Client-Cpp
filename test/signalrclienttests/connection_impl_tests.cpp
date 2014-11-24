@@ -79,7 +79,19 @@ TEST(connection_impl_start, connection_state_is_connecting_when_connection_is_be
         std::move(web_request_factory), std::make_unique<transport_factory>());
 
     // TODO: this can be flake'y - we probably should use state_changed handler to test this once we have one
-    connection->start();
+    connection->start()
+        // this test is not set up to connect successfully so we have to observe exceptions otherwise
+        // other tests may fail due to an unobserved exception from the outstanding start task
+        .then([](pplx::task<void> start_task)
+        {
+            try
+            {
+                start_task.get();
+            }
+            catch (...)
+            { }
+        });
+
     ASSERT_EQ(connection->get_connection_state(), connection_state::connecting);
 }
 

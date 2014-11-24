@@ -86,7 +86,11 @@ namespace signalr
 
     pplx::task<void> websocket_transport::disconnect()
     {
-        // TODO: disconnect should be a no-op if the transport is already disconnected (i.e. cancellation token is cancelled)
+        if (m_receive_loop_cts.get_token().is_canceled())
+        {
+            return pplx::task_from_result();
+        }
+
         m_receive_loop_cts.cancel();
 
         auto logger = m_logger;
