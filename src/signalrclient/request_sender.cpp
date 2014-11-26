@@ -10,7 +10,7 @@ namespace signalr
 {
     namespace request_sender
     {
-        pplx::task<negotiation_response> negotiate(web_request_factory &request_factory, const web::uri &base_url, const utility::string_t &query_string)
+        pplx::task<negotiation_response> negotiate(web_request_factory& request_factory, const web::uri& base_url, const utility::string_t& query_string)
         {
             auto negotiate_url = url_builder::build_negotiate(base_url, query_string);
             auto request = request_factory.create_web_request(negotiate_url);
@@ -32,6 +32,21 @@ namespace signalr
                 };
 
                 return response;
+            });
+        }
+
+        pplx::task<bool> start(web_request_factory& request_factory, const web::uri &base_url, transport_type transport,
+            const utility::string_t& connection_token, const utility::string_t &query_string)
+        {
+            auto start_url = url_builder::build_start(base_url, transport, connection_token, query_string);
+            auto request = request_factory.create_web_request(start_url);
+
+            return http_sender::get(*request)
+                .then([](utility::string_t body)
+            {
+                auto start_response_json = web::json::value::parse(body);
+                return !start_response_json[_XPLATSTR("Response")].is_null() &&
+                    start_response_json[_XPLATSTR("Response")].as_string() == _XPLATSTR("started");
             });
         }
     }
