@@ -182,7 +182,11 @@ TEST(websocket_transport_disconnect, disconnect_closes_websocket)
     auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
         [](const utility::string_t&){});
 
-    ws_transport->disconnect().get();
+    ws_transport->connect(_XPLATSTR("ws://url"))
+        .then([ws_transport]()
+        {
+            return ws_transport->disconnect();
+        }).get();
 
     ASSERT_TRUE(close_called);
 }
@@ -191,15 +195,23 @@ TEST(websocket_transport_disconnect, disconnect_does_not_throw)
 {
     auto client = std::make_shared<test_websocket_client>();
 
-    client->set_close_function([]() -> pplx::task<void>
+    bool close_called = false;
+    client->set_close_function([&close_called]() -> pplx::task<void>
     {
+        close_called = true;
         return pplx::task_from_exception<void>(std::exception());
     });
 
     auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
         [](const utility::string_t&){});
 
-    ws_transport->disconnect().get();
+    ws_transport->connect(_XPLATSTR("ws://url"))
+        .then([ws_transport]()
+    {
+        return ws_transport->disconnect();
+    }).get();
+
+    ASSERT_TRUE(close_called);
 }
 
 TEST(websocket_transport_disconnect, disconnect_logs_exceptions)
@@ -214,12 +226,11 @@ TEST(websocket_transport_disconnect, disconnect_logs_exceptions)
 
     auto ws_transport = websocket_transport::create(client, logger(writer, trace_level::errors), [](const utility::string_t&){});
 
-    try
-    {
-        ws_transport->disconnect().get();
-    }
-    catch (...)
-    {}
+    ws_transport->connect(_XPLATSTR("ws://url"))
+        .then([ws_transport]()
+        {
+            return ws_transport->disconnect();
+        }).get();
 
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
 
@@ -267,6 +278,26 @@ TEST(websocket_transport_disconnect, receive_not_called_after_disconnect)
     ws_transport->disconnect().get();
 
     ASSERT_EQ(2, num_called);
+}
+
+TEST(websocket_transport_disconnect, disconnect_is_no_op_if_transport_not_started)
+{
+    auto client = std::make_shared<test_websocket_client>();
+
+    auto close_called = false;
+
+    client->set_close_function([&close_called]()
+    {
+        close_called = true;
+        return pplx::task_from_result();
+    });
+
+    auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
+        [](const utility::string_t&){});
+
+    ws_transport->disconnect().get();
+
+    ASSERT_FALSE(close_called);
 }
 
 template<class T>
