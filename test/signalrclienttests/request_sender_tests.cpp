@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include <cpprest\basic_types.h>
+#include "signalrclient\web_exception.h"
 #include "request_sender.h"
 #include "web_request_stub.h"
 #include "test_web_request_factory.h"
@@ -71,5 +72,66 @@ TEST(request_sender_negotiate, negotiate_can_handle_null_keep_alive_timeout)
         auto response = request_sender::negotiate(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") }, _XPLATSTR("")).get();
 
         ASSERT_EQ(-1, response.keep_alive_timeout);
+    }
+}
+
+TEST(request_sender_start, start_returns_true_if_transport_started)
+{
+    auto request_factory = test_web_request_factory([](const web::uri&)
+    {
+        utility::string_t response_body(_XPLATSTR("{\"Response\":\"started\" }"));
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    ASSERT_TRUE(request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
+        transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get());
+}
+
+TEST(request_sender_start, start_request_returns_false_if_response_is_not_started_literal)
+{
+    auto request_factory = test_web_request_factory([](const web::uri&)
+    {
+        utility::string_t response_body(_XPLATSTR("{\"Response\":\"42\" }"));
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    ASSERT_FALSE(request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
+        transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get());
+}
+
+TEST(request_sender_start, start_request_returns_false_if_response_missing)
+{
+    auto request_factory = test_web_request_factory([](const web::uri&)
+    {
+        utility::string_t response_body(_XPLATSTR("{}"));
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    ASSERT_FALSE(request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
+        transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get());
+}
+
+TEST(request_sender_start, start_propagates_exceptions)
+{
+    auto request_factory = test_web_request_factory([](const web::uri&)
+    {
+        utility::string_t response_body(_XPLATSTR(""));
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)503, _XPLATSTR("Server unavailable"), response_body));
+    });
+
+    try
+    {
+        request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
+            transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get();
+
+        ASSERT_TRUE(false); // exception not thrown
+    }
+    catch (const web_exception& e)
+    {
+        ASSERT_EQ(_XPLATSTR("web exception - 503 Server unavailable"), utility::conversions::to_string_t(e.what()));
     }
 }
