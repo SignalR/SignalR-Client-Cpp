@@ -38,12 +38,11 @@ namespace signalr
         // there should not be any active transport at this point
         _ASSERTE(!m_transport);
 
-        auto process_response_fn = &connection_impl::process_response;
         pplx::task_completion_event<void> start_tce;
         auto connection = shared_from_this();
 
         request_sender::negotiate(*m_web_request_factory, m_base_url, m_query_string)
-            .then([start_tce, connection, process_response_fn](negotiation_response negotiation_response)
+            .then([start_tce, connection](negotiation_response negotiation_response)
             {
                 if (!negotiation_response.try_websockets)
                 {
@@ -51,8 +50,15 @@ namespace signalr
                         _XPLATSTR("websockets not supported on the server and there is no fallback transport"))));
                 }
 
-                auto process_response_callback =
-                    std::bind(process_response_fn, connection, std::placeholders::_1);
+                auto weak_connection = std::weak_ptr<connection_impl>(connection);
+                auto process_response_callback = [weak_connection](utility::string_t response)
+                {
+                    auto connection = weak_connection.lock();
+                    if (connection)
+                    {
+                        connection->process_response(response);
+                    }
+                };
 
                 connection->m_transport = connection->m_transport_factory->create_transport(
                     transport_type::websockets, connection->m_logger, process_response_callback);
