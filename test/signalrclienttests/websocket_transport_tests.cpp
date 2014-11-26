@@ -29,13 +29,21 @@ TEST(websocket_transport_connect, connect_connects_and_starts_receive_loop)
         return pplx::task_from_result(std::string(""));
     });
 
-    auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+
+    auto ws_transport = websocket_transport::create(client, logger(writer, trace_level::messages),
         [](const utility::string_t&){});
 
-    ws_transport->connect(_XPLATSTR("http://fakeuri.org")).get();
+    ws_transport->connect(_XPLATSTR("ws://fakeuri.org/connect?param=42")).get();
 
     ASSERT_TRUE(connect_called);
     ASSERT_TRUE(*receive_called);
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_FALSE(log_entries.empty());
+
+    auto entry = remove_date_from_log_entry(log_entries[0]);
+    ASSERT_EQ(_XPLATSTR("[message     ] [websocket transport] connecting to: ws://fakeuri.org/connect?param=42\n"), entry);
 }
 
 TEST(websocket_transport_connect, connect_propagates_exceptions)
@@ -51,7 +59,7 @@ TEST(websocket_transport_connect, connect_propagates_exceptions)
 
     try
     {
-        ws_transport->connect(_XPLATSTR("http://fakeuri.org")).get();
+        ws_transport->connect(_XPLATSTR("ws://fakeuri.org")).get();
         ASSERT_TRUE(false); // exception not thrown
     }
     catch (const std::exception &e)
@@ -73,7 +81,7 @@ TEST(websocket_transport_connect, connect_logs_exceptions)
 
     try
     {
-        ws_transport->connect(_XPLATSTR("http://fakeuri.org")).wait();
+        ws_transport->connect(_XPLATSTR("ws://fakeuri.org")).wait();
     }
     catch (...)
     { }
@@ -95,11 +103,11 @@ TEST(websocket_transport_connect, cannot_call_connect_on_already_connected_trans
     auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
         [](const utility::string_t&){});
 
-    ws_transport->connect(_XPLATSTR("http://fakeuri.org")).wait();
+    ws_transport->connect(_XPLATSTR("ws://fakeuri.org")).wait();
 
     try
     {
-        ws_transport->connect(_XPLATSTR("http://fakeuri.org")).wait();
+        ws_transport->connect(_XPLATSTR("ws://fakeuri.org")).wait();
         ASSERT_TRUE(false); // exception not thrown
     }
     catch (const std::exception &e)
@@ -114,9 +122,9 @@ TEST(websocket_transport_connect, can_connect_after_disconnecting)
     auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
         [](const utility::string_t&){});
 
-    ws_transport->connect(_XPLATSTR("http://fakeuri.org")).get();
+    ws_transport->connect(_XPLATSTR("ws://fakeuri.org")).get();
     ws_transport->disconnect().get();
-    ws_transport->connect(_XPLATSTR("http://fakeuri.org")).get();
+    ws_transport->connect(_XPLATSTR("ws://fakeuri.org")).get();
     // shouldn't throw or crash
 }
 
@@ -127,7 +135,7 @@ TEST(websocket_transport_connect, transport_destroyed_even_if_disconnect_not_cal
         auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
             [](const utility::string_t&){});
 
-        ws_transport->connect(_XPLATSTR("http://fakeuri.org")).get();
+        ws_transport->connect(_XPLATSTR("ws://fakeuri.org")).get();
     }
 
     // TODO: once we have a timer we should replace this with a task
@@ -230,6 +238,9 @@ TEST(websocket_transport_disconnect, receive_not_called_after_disconnect)
 
     pplx::task_completion_event<std::string> receive_task_tce;
 
+    // receive_task_tce is captured by reference since we assign it a new value after the first disconnect. This is
+    // safe here because we are blocking on disconnect and therefore we won't get into a state were we would be using
+    // an invalid reference because the tce went out of scope and was destroyed.
     client->set_close_function([&receive_task_tce]()
     {
         // unblock receive
@@ -248,11 +259,11 @@ TEST(websocket_transport_disconnect, receive_not_called_after_disconnect)
     auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
         [](const utility::string_t&){});
 
-    ws_transport->connect(_XPLATSTR("http://fakeuri.org")).get();
+    ws_transport->connect(_XPLATSTR("ws://fakeuri.org")).get();
     ws_transport->disconnect().get();
 
     receive_task_tce = pplx::task_completion_event<std::string>();
-    ws_transport->connect(_XPLATSTR("http://fakeuri.org")).get();
+    ws_transport->connect(_XPLATSTR("ws://fakeuri.org")).get();
     ws_transport->disconnect().get();
 
     ASSERT_EQ(2, num_called);
@@ -298,7 +309,7 @@ void receive_loop_logs_exception_runner(const T& e, const utility::string_t& exp
 
     auto ws_transport = websocket_transport::create(client, logger(writer, trace_level::errors), [](const utility::string_t&){});
 
-    ws_transport->connect(_XPLATSTR("url"))
+    ws_transport->connect(_XPLATSTR("ws://url"))
         .then([&receive_event]()
     {
         receive_event.wait();
@@ -336,7 +347,7 @@ TEST(websocket_transport_receive_loop, process_response_callback_called_when_mes
     auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
         process_response);
 
-    ws_transport->connect(_XPLATSTR("http://fakeuri.org")).get();
+    ws_transport->connect(_XPLATSTR("ws://fakeuri.org")).get();
 
     process_response_event->wait(1000);
 

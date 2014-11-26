@@ -40,12 +40,18 @@ namespace signalr
         utility::string_t m_query_string;
         std::atomic<connection_state> m_connection_state;
         logger m_logger;
-
+        std::shared_ptr<transport> m_transport;
         std::unique_ptr<web_request_factory> m_web_request_factory;
         std::unique_ptr<transport_factory> m_transport_factory;
 
+        pplx::task_completion_event<void> m_connect_request_tce;
+
         connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level, std::shared_ptr<log_writer> log_writer,
             std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);
+
+        pplx::task<void> send_connect_request(const utility::string_t& connection_token);
+
+        void process_response(const utility::string_t& response);
 
         bool change_state(connection_state old_state, connection_state new_state);
         static utility::string_t translate_connection_state(connection_state state);

@@ -23,25 +23,41 @@ namespace signalr
 
     connection_impl::connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level, std::shared_ptr<log_writer> log_writer,
         std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory)
-        : m_base_url(url), m_query_string(query_string), m_logger(log_writer, trace_level), m_web_request_factory(std::move(web_request_factory)),
-        m_transport_factory(std::move(transport_factory)), m_connection_state(std::move(connection_state::disconnected))
+        : m_base_url(url), m_query_string(query_string), m_connection_state(connection_state::disconnected),
+        m_logger(log_writer, trace_level), m_transport(nullptr), m_web_request_factory(std::move(web_request_factory)),
+        m_transport_factory(std::move(transport_factory))
     { }
 
     pplx::task<void> connection_impl::start()
     {
         if (!change_state(connection_state::disconnected, connection_state::connecting))
         {
-            throw std::runtime_error(utility::conversions::to_utf8string(
-                _XPLATSTR("cannot start a connection that is not in the disconnected state")));
+            throw std::runtime_error("cannot start a connection that is not in the disconnected state");
         }
 
+        // there should not be any active transport at this point
+        _ASSERTE(!m_transport);
+
+        auto process_response_fn = &connection_impl::process_response;
         pplx::task_completion_event<void> start_tce;
         auto connection = shared_from_this();
 
         request_sender::negotiate(*m_web_request_factory, m_base_url, m_query_string)
-            .then([start_tce, connection](negotiation_response negotiation_response)
+            .then([start_tce, connection, process_response_fn](negotiation_response negotiation_response)
             {
-                // connect request will go here
+                if (!negotiation_response.try_websockets)
+                {
+                    return pplx::task_from_exception<void>(std::runtime_error(utility::conversions::to_utf8string(
+                        _XPLATSTR("websockets not supported on the server and there is no fallback transport"))));
+                }
+
+                auto process_response_callback =
+                    std::bind(process_response_fn, connection, std::placeholders::_1);
+
+                connection->m_transport = connection->m_transport_factory->create_transport(
+                    transport_type::websockets, connection->m_logger, process_response_callback);
+
+                return connection->send_connect_request(negotiation_response.connection_token);
             })
             .then([start_tce, connection](pplx::task<void> previous_task)
             {
@@ -58,12 +74,76 @@ namespace signalr
                         utility::string_t(_XPLATSTR("connection could not be started due to: "))
                             .append(utility::conversions::to_string_t(e.what())));
 
+                    connection->m_transport.reset();
                     connection->change_state(connection_state::connecting, connection_state::disconnected);
                     start_tce.set_exception(std::current_exception());
                 }
             });
 
         return pplx::create_task(start_tce);
+    }
+
+    pplx::task<void> connection_impl::send_connect_request(const utility::string_t& connection_token)
+    {
+        auto connect_url = url_builder::build_connect(m_base_url, transport_type::websockets,
+            connection_token, m_query_string);
+
+        pplx::task_completion_event<void> connect_request_tce;
+        m_connect_request_tce = connect_request_tce;
+
+        auto connection = shared_from_this();
+
+        m_transport->connect(connect_url)
+            .then([connection](pplx::task<void> connect_task)
+            {
+                try
+                {
+                    connect_task.get();
+                }
+                catch (const std::exception& e)
+                {
+                    connection->m_logger.log(
+                        trace_level::errors,
+                        utility::string_t(_XPLATSTR("transport could not connect due to: "))
+                            .append(utility::conversions::to_string_t(e.what())));
+
+                    connection->m_connect_request_tce.set_exception(std::current_exception());
+                }
+            });
+
+        return pplx::create_task(m_connect_request_tce);
+    }
+
+    void connection_impl::process_response(const utility::string_t& response)
+    {
+        m_logger.log(trace_level::messages,
+            utility::string_t(_XPLATSTR("processing message: ")).append(response));
+
+        try
+        {
+            // TODO: note to self - the response can be an empty string in case of KeepAlive messages sent
+            // by the server for the long polling transport in which case we should not try to parse it.
+
+            auto result = web::json::value::parse(response);
+
+            auto messages = result[_XPLATSTR("M")];
+            if (!messages.is_null() && messages.is_array())
+            {
+                if (result[_XPLATSTR("S")].is_integer() && result[_XPLATSTR("S")].as_integer() == 1)
+                {
+                    m_connect_request_tce.set();
+                }
+            }
+        }
+        catch (const std::exception &e)
+        {
+            // TODO: add a test once we can receive regular messages
+            utility::ostringstream_t oss;
+            oss << _XPLATSTR("error occured when parsing response: ") << utility::conversions::to_string_t(e.what())
+                << std::endl << "    reponse: " << response;
+
+            m_logger.log(trace_level::errors, oss.str());
+        }
     }
 
     connection_state connection_impl::get_connection_state() const
