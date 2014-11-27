@@ -75,7 +75,7 @@ TEST(request_sender_negotiate, negotiate_can_handle_null_keep_alive_timeout)
     }
 }
 
-TEST(request_sender_start, start_returns_true_if_transport_started)
+TEST(request_sender_start, start_does_not_throw_if_transport_started_successfully)
 {
     auto request_factory = test_web_request_factory([](const web::uri&)
     {
@@ -84,7 +84,7 @@ TEST(request_sender_start, start_returns_true_if_transport_started)
         return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
     });
 
-    ASSERT_TRUE(request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
+    ASSERT_NO_THROW(request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
         transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get());
 }
 
@@ -97,8 +97,17 @@ TEST(request_sender_start, start_request_returns_false_if_response_is_not_starte
         return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
     });
 
-    ASSERT_FALSE(request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
-        transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get());
+    try
+    {
+        request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
+            transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get();
+
+        ASSERT_TRUE(false); // exception not thrown
+    }
+    catch (const std::runtime_error& e)
+    {
+        ASSERT_STREQ("start request failed due to unexpected response from the server: {\"Response\":\"42\" }", e.what());
+    }
 }
 
 TEST(request_sender_start, start_request_returns_false_if_response_missing)
@@ -110,8 +119,17 @@ TEST(request_sender_start, start_request_returns_false_if_response_missing)
         return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
     });
 
-    ASSERT_FALSE(request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
-        transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get());
+    try
+    {
+        request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
+            transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get();
+
+        ASSERT_TRUE(false); // exception not thrown
+    }
+    catch (const std::runtime_error& e)
+    {
+        ASSERT_STREQ("start request failed due to unexpected response from the server: {}", e.what());
+    }
 }
 
 TEST(request_sender_start, start_propagates_exceptions)

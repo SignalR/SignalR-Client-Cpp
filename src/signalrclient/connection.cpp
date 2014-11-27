@@ -26,4 +26,3 @@ namespace signalr
         return m_pImpl->get_connection_state();
     }
 }
-

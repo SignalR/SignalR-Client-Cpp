@@ -27,12 +27,14 @@ TEST(connection_impl_connection_state, initial_connection_state_is_disconnected)
 
 TEST(connection_impl_start, cannot_start_non_disconnected_exception)
 {
-    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri &) -> std::unique_ptr<web_request>
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
     {
-        utility::string_t response_body(
-            _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
             _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
-            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}"));
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : _XPLATSTR("{\"Response\":\"started\" }");
 
         return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
     });
@@ -44,7 +46,7 @@ TEST(connection_impl_start, cannot_start_non_disconnected_exception)
     });
 
     auto connection =
-        connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>(),
+        connection_impl::create(_XPLATSTR("http://fakeuri/"), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>(),
         std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
 
     connection->start().wait();
@@ -97,12 +99,14 @@ TEST(connection_impl_start, connection_state_is_connecting_when_connection_is_be
 
 TEST(connection_impl_start, connection_state_is_connected_when_connection_established_succesfully)
 {
-    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri &) -> std::unique_ptr<web_request>
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
     {
-        utility::string_t response_body(
-            _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
             _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
-            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}"));
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : _XPLATSTR("{\"Response\":\"started\" }");
 
         return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
     });
@@ -114,7 +118,7 @@ TEST(connection_impl_start, connection_state_is_connected_when_connection_establ
     });
 
     auto connection =
-        connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>(),
+        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>(),
         std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
 
     connection->start().get();
@@ -261,16 +265,18 @@ TEST(connection_impl_start, start_fails_if_TryWebsockets_false_and_no_fallback_t
     }
 }
 
-TEST(connection_impl_process_response, process_response_logs_messages)
+TEST(connection_impl_start, start_fails_if_start_request_fails)
 {
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
 
-    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri &) -> std::unique_ptr<web_request>
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
     {
-        utility::string_t response_body(
-            _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
             _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
-            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}"));
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : _XPLATSTR("{ }");
 
         return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
     });
@@ -282,7 +288,44 @@ TEST(connection_impl_process_response, process_response_logs_messages)
     });
 
     auto connection =
-        connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""), trace_level::messages, writer,
+        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::messages, writer,
+        std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
+
+    try
+    {
+        connection->start().get();
+        ASSERT_TRUE(false); // exception not thrown
+    }
+    catch (const std::runtime_error &e)
+    {
+        ASSERT_STREQ("start request failed due to unexpected response from the server: { }", e.what());
+    }
+}
+
+TEST(connection_impl_process_response, process_response_logs_messages)
+{
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
+    {
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : _XPLATSTR("{\"Response\":\"started\" }");
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    auto websocket_client = std::make_shared<test_websocket_client>();
+    websocket_client->set_receive_function([]()->pplx::task<std::string>
+    {
+        return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }"));
+    });
+
+    auto connection =
+        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::messages, writer,
         std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
 
     connection->start().get();
@@ -297,12 +340,14 @@ TEST(connection_impl_process_response, process_response_logs_messages)
 TEST(connection_impl_change_state, change_state_logs)
 {
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
-    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri &) -> std::unique_ptr<web_request>
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
     {
-        utility::string_t response_body(
-            _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
             _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
-            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}"));
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : _XPLATSTR("{\"Response\":\"started\" }");
 
         return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
     });
@@ -314,7 +359,7 @@ TEST(connection_impl_change_state, change_state_logs)
     });
 
     auto connection =
-        connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""), trace_level::state_changes, writer,
+        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::state_changes, writer,
         std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
 
     connection->start().wait();

@@ -42,13 +42,15 @@ namespace signalr
         auto connection = shared_from_this();
 
         request_sender::negotiate(*m_web_request_factory, m_base_url, m_query_string)
-            .then([start_tce, connection](negotiation_response negotiation_response)
+            .then([connection](negotiation_response negotiation_response)
             {
                 if (!negotiation_response.try_websockets)
                 {
                     return pplx::task_from_exception<void>(std::runtime_error(utility::conversions::to_utf8string(
                         _XPLATSTR("websockets not supported on the server and there is no fallback transport"))));
                 }
+
+                connection->m_connection_token = negotiation_response.connection_token;
 
                 auto weak_connection = std::weak_ptr<connection_impl>(connection);
                 auto process_response_callback = [weak_connection](utility::string_t response)
@@ -64,6 +66,11 @@ namespace signalr
                     transport_type::websockets, connection->m_logger, process_response_callback);
 
                 return connection->send_connect_request(negotiation_response.connection_token);
+            })
+            .then([connection]()
+            {
+                return request_sender::start(*connection->m_web_request_factory, connection->m_base_url,
+                    connection->m_transport->get_transport_type(), connection->m_connection_token, connection->m_query_string);
             })
             .then([start_tce, connection](pplx::task<void> previous_task)
             {

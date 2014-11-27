@@ -35,7 +35,7 @@ namespace signalr
             });
         }
 
-        pplx::task<bool> start(web_request_factory& request_factory, const web::uri &base_url, transport_type transport,
+        pplx::task<void> start(web_request_factory& request_factory, const web::uri &base_url, transport_type transport,
             const utility::string_t& connection_token, const utility::string_t &query_string)
         {
             auto start_url = url_builder::build_start(base_url, transport, connection_token, query_string);
@@ -45,8 +45,13 @@ namespace signalr
                 .then([](utility::string_t body)
             {
                 auto start_response_json = web::json::value::parse(body);
-                return !start_response_json[_XPLATSTR("Response")].is_null() &&
-                    start_response_json[_XPLATSTR("Response")].as_string() == _XPLATSTR("started");
+
+                if (start_response_json[_XPLATSTR("Response")].is_null() ||
+                    start_response_json[_XPLATSTR("Response")].as_string() != _XPLATSTR("started"))
+                {
+                    throw std::runtime_error(std::string("start request failed due to unexpected response from the server: ")
+                            .append(utility::conversions::to_utf8string(body)));
+                }
             });
         }
     }

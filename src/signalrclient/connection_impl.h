@@ -45,6 +45,7 @@ namespace signalr
         std::unique_ptr<transport_factory> m_transport_factory;
 
         pplx::task_completion_event<void> m_connect_request_tce;
+        utility::string_t m_connection_token;
 
         connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level, std::shared_ptr<log_writer> log_writer,
             std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);
