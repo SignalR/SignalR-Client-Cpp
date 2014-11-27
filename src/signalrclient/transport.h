@@ -5,6 +5,7 @@
 
 #include <cpprest\base_uri.h>
 #include <ppl.h>
+#include "signalrclient\transport_type.h"
 #include "logger.h"
 
 namespace pplx = Concurrency;
@@ -21,6 +22,8 @@ namespace signalr
         virtual pplx::task<void> send(const utility::string_t &data) = 0;
 
         virtual pplx::task<void> disconnect() = 0;
+
+        virtual transport_type get_transport_type() const = 0;
 
         virtual ~transport();
 

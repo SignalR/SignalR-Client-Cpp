@@ -367,7 +367,7 @@ TEST(websocket_transport_receive_loop, process_response_callback_called_when_mes
     });
 
     auto process_response_event = std::make_shared<pplx::event>();
-    auto msg = std::make_shared<utility::string_t>(); 
+    auto msg = std::make_shared<utility::string_t>();
 
     auto process_response = [msg, process_response_event](const utility::string_t& message)
     {
@@ -383,4 +383,12 @@ TEST(websocket_transport_receive_loop, process_response_callback_called_when_mes
     process_response_event->wait(1000);
 
     ASSERT_EQ(_XPLATSTR("msg"), *msg);
+}
+
+TEST(websocket_transport_get_transport_type, get_transport_type_returns_websockets)
+{
+    auto ws_transport = websocket_transport::create(std::make_shared<default_websocket_client>(),
+        logger(std::make_shared<trace_log_writer>(), trace_level::none), [](const utility::string_t&){});
+
+    ASSERT_EQ(transport_type::websockets, ws_transport->get_transport_type());
 }

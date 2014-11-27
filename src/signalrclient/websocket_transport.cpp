@@ -32,6 +32,11 @@ namespace signalr
         {}
     }
 
+    transport_type websocket_transport::get_transport_type() const
+    {
+        return transport_type::websockets;
+    }
+
     pplx::task<void> websocket_transport::connect(const web::uri &url)
     {
         _ASSERTE(url.scheme() == _XPLATSTR("ws") || url.scheme() == _XPLATSTR("wss"));

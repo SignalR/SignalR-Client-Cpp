@@ -91,13 +91,13 @@ namespace signalr
 
     pplx::task<void> connection_impl::send_connect_request(const utility::string_t& connection_token)
     {
-        auto connect_url = url_builder::build_connect(m_base_url, transport_type::websockets,
+        auto connection = shared_from_this();
+
+        auto connect_url = url_builder::build_connect(m_base_url, connection->m_transport->get_transport_type(),
             connection_token, m_query_string);
 
         pplx::task_completion_event<void> connect_request_tce;
         m_connect_request_tce = connect_request_tce;
-
-        auto connection = shared_from_this();
 
         m_transport->connect(connect_url)
             .then([connection](pplx::task<void> connect_task)

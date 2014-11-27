@@ -12,7 +12,7 @@ namespace signalr
     {}
 
     // Do NOT remove this destructor. Letting the compiler generate and inline the default dtor may lead to
-    // undefinded behavior since we are using an incomplete type. More details here:  http://herbsutter.com/gotw/_100/ 
+    // undefinded behavior since we are using an incomplete type. More details here:  http://herbsutter.com/gotw/_100/
     transport::~transport()
     { }
 
