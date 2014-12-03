@@ -236,11 +236,15 @@ TEST(websocket_transport_disconnect, disconnect_logs_exceptions)
 
     ASSERT_FALSE(log_entries.empty());
 
-    auto entry = remove_date_from_log_entry(log_entries[0]);
-
-    ASSERT_EQ(
-        _XPLATSTR("[error       ] [websocket transport] exception when closing websocket: connection closing failed\n"),
-        entry);
+    // disconnect cancels the receive loop by setting the cancellation token source to cancelled which results in writing
+    // to the log. Exceptions from close are also logged but this happens on a different thread. As a result the order
+    // of messages in the log is not deterministic and therefore we just use the "contains" idiom to find the message.
+    ASSERT_NE(std::find_if(log_entries.begin(), log_entries.end(), [](utility::string_t entry)
+        {
+            return remove_date_from_log_entry(entry) ==
+                _XPLATSTR("[error       ] [websocket transport] exception when closing websocket: connection closing failed\n");
+        }),
+        log_entries.end());
 }
 
 TEST(websocket_transport_disconnect, receive_not_called_after_disconnect)
@@ -298,6 +302,31 @@ TEST(websocket_transport_disconnect, disconnect_is_no_op_if_transport_not_starte
     ws_transport->disconnect().get();
 
     ASSERT_FALSE(close_called);
+}
+
+TEST(websocket_transport_disconnect, exceptions_from_outstanding_receive_task_observed_after_websocket_transport_disconnected)
+{
+    auto client = std::make_shared<test_websocket_client>();
+
+    auto receive_event = std::make_shared<pplx::event>();
+    client->set_receive_function([receive_event]()
+    {
+        return pplx::create_task([receive_event]()
+        {
+            receive_event->wait();
+            return pplx::task_from_exception<std::string>(std::exception("exception from receive"));
+        });
+    });
+
+    auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
+        [](const utility::string_t&){});
+
+    ws_transport->connect(_XPLATSTR("ws://fakeuri.org")).get();
+    ws_transport->disconnect().get();
+
+    // at this point the cancellation token that closes the receive loop is set to cancelled so
+    // we can unblock the the receive task which throws an exception that should be observed otwherwise the test will crash
+    receive_event->set();
 }
 
 template<class T>

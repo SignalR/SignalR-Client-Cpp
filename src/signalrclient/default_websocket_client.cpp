@@ -20,6 +20,7 @@ namespace signalr
 
     pplx::task<std::string> default_websocket_client::receive()
     {
+        // the caller is responsible for observing exceptions
         return m_underlying_client.receive()
             .then([](web_sockets::client::websocket_incoming_message msg)
             {
