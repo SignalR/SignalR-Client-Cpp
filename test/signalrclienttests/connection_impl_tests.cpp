@@ -58,9 +58,7 @@ TEST(connection_impl_start, cannot_start_non_disconnected_exception)
     }
     catch (const std::runtime_error& e)
     {
-        ASSERT_EQ(
-            _XPLATSTR("cannot start a connection that is not in the disconnected state"),
-            utility::conversions::to_string_t(e.what()));
+        ASSERT_STREQ("cannot start a connection that is not in the disconnected state", e.what());
     }
 }
 
@@ -335,6 +333,119 @@ TEST(connection_impl_process_response, process_response_logs_messages)
 
     auto entry = remove_date_from_log_entry(log_entries[1]);
     ASSERT_EQ(_XPLATSTR("[message     ] processing message: {\"S\":1, \"M\":[] }\n"), entry);
+}
+
+TEST(connection_impl_send, message_sent)
+{
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
+    {
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : _XPLATSTR("{\"Response\":\"started\" }");
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    auto websocket_client = std::make_shared<test_websocket_client>();
+    websocket_client->set_receive_function([]()->pplx::task<std::string>
+    {
+        return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }"));
+    });
+
+    utility::string_t actual_message;
+    websocket_client->set_send_function([&actual_message](utility::string_t message)
+    {
+        actual_message = message;
+        return pplx::task_from_result();
+    });
+
+    auto connection =
+        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>(),
+        std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
+
+    const utility::string_t message{ _XPLATSTR("Test message") };
+
+    connection->start()
+        .then([connection, message]()
+        {
+            return connection->send(message);
+        }).get();
+
+    ASSERT_EQ(message, actual_message);
+}
+
+TEST(connection_impl_send, send_throws_if_connection_not_connected)
+{
+    auto connection =
+        connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>());
+
+    try
+    {
+        connection->send(_XPLATSTR("whatever")).get();
+        ASSERT_TRUE(false); // exception expected but not thrown
+    }
+    catch (const std::runtime_error &e)
+    {
+        ASSERT_STREQ("cannot send data when the connection is not in the connected state. current connection state: disconnected", e.what());
+    }
+}
+
+TEST(connection_impl_send, exceptions_from_send_logged_and_propagated)
+{
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
+    {
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : _XPLATSTR("{\"Response\":\"started\" }");
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    auto websocket_client = std::make_shared<test_websocket_client>();
+    websocket_client->set_receive_function([]()->pplx::task<std::string>
+    {
+        return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }"));
+    });
+
+    websocket_client->set_send_function([](utility::string_t message)
+    {
+        return pplx::task_from_exception<void>(std::runtime_error("error"));
+    });
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+
+    auto connection =
+        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::errors, writer,
+        std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
+
+    const utility::string_t message{ _XPLATSTR("Test message") };
+
+    try
+    {
+        connection->start()
+            .then([connection, message]()
+        {
+            return connection->send(message);
+        }).get();
+
+        ASSERT_TRUE(false); // exception expected but not thrown
+    }
+    catch (const std::runtime_error &e)
+    {
+        ASSERT_STREQ("error", e.what());
+    }
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_FALSE(log_entries.empty());
+
+    auto entry = remove_date_from_log_entry(log_entries[0]);
+    ASSERT_EQ(_XPLATSTR("[error       ] error sending data: error\n"), entry);
 }
 
 TEST(connection_impl_change_state, change_state_logs)

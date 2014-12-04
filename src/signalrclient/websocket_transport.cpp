@@ -85,7 +85,7 @@ namespace signalr
 
     pplx::task<void> websocket_transport::send(const utility::string_t &data)
     {
-        // send will throw if client not connected
+        // send will return a faulted task if client not connected
         return m_websocket_client->send(data);
     }
 

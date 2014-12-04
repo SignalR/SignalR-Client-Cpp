@@ -30,6 +30,8 @@ namespace signalr
 
         SIGNALRCLIENT_API pplx::task<void> start();
 
+        SIGNALRCLIENT_API pplx::task<void> send(utility::string_t data);
+
         SIGNALRCLIENT_API connection_state get_connection_state() const;
 
     private:

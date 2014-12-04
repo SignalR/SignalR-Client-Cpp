@@ -138,9 +138,14 @@ TEST(websocket_transport_connect, transport_destroyed_even_if_disconnect_not_cal
         ws_transport->connect(_XPLATSTR("ws://fakeuri.org")).get();
     }
 
-    // TODO: once we have a timer we should replace this with a task
-    // that is being set to complete in `client.close()` or times out
-    pplx::wait(100);
+    // The receive loop may still run even if the transport goes out of scope above. Since the receive loop may hold
+    // on to the websocket_transport instance by using a shared_ptr the actual instance may not be released even though
+    // the ws_transport variable goes out of scope. Therefore we need to wait for the receive loop to finish but we
+    // don't have any indicator when it happens since it is running on a separate and unsychnronized thread.
+    for (int wait_time_ms = 10; wait_time_ms < 5000 && client.use_count() > 1; wait_time_ms <<= 1)
+    {
+        pplx::wait(wait_time_ms);
+    }
 
     // the idea is that if the transport is not destroyed it will hold a reference
     // to the client and therefore the `use_count()` will be greater than 1

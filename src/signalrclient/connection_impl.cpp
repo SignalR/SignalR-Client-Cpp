@@ -46,8 +46,8 @@ namespace signalr
             {
                 if (!negotiation_response.try_websockets)
                 {
-                    return pplx::task_from_exception<void>(std::runtime_error(utility::conversions::to_utf8string(
-                        _XPLATSTR("websockets not supported on the server and there is no fallback transport"))));
+                    return pplx::task_from_exception<void>(
+                        std::runtime_error("websockets not supported on the server and there is no fallback transport"));
                 }
 
                 connection->m_connection_token = negotiation_response.connection_token;
@@ -157,6 +157,38 @@ namespace signalr
 
             m_logger.log(trace_level::errors, oss.str());
         }
+    }
+
+    pplx::task<void> connection_impl::send(utility::string_t data)
+    {
+        auto connection_state = get_connection_state();
+        if (connection_state != connection_state::connected)
+        {
+            return pplx::task_from_exception<void>(std::runtime_error(
+                std::string{ "cannot send data when the connection is not in the connected state. current connection state: " }
+                    .append(utility::conversions::to_utf8string(translate_connection_state(connection_state)))));
+        }
+
+        auto logger = m_logger;
+
+        return m_transport->send(data)
+            .then([logger](pplx::task<void> send_task)
+            mutable {
+                try
+                {
+                    send_task.get();
+                }
+                catch (const std::exception &e)
+                {
+                    // TODO: call on error callback?
+                    logger.log(
+                        trace_level::errors,
+                        utility::string_t(_XPLATSTR("error sending data: "))
+                        .append(utility::conversions::to_string_t(e.what())));
+
+                    throw;
+                }
+            });
     }
 
     connection_state connection_impl::get_connection_state() const

@@ -13,7 +13,7 @@ class memory_log_writer : public log_writer
 {
 public:
     void write(const utility::string_t &entry) override;
-    std::vector<utility::string_t> get_log_entries() const;
+    std::vector<utility::string_t> get_log_entries();
 
 private:
     std::vector<utility::string_t> m_log_entries;

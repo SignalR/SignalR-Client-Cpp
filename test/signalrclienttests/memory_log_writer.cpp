@@ -10,7 +10,8 @@ void memory_log_writer::write(const utility::string_t& entry)
     m_log_entries.push_back(entry);
 }
 
-std::vector<utility::string_t> memory_log_writer::get_log_entries() const
+std::vector<utility::string_t> memory_log_writer::get_log_entries()
 {
+    std::lock_guard<std::mutex> lock(m_entries_lock);
     return m_log_entries;
 }
