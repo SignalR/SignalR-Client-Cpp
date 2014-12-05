@@ -15,5 +15,7 @@ namespace signalr
             const utility::string_t &connection_token, const utility::string_t &query_string);
         web::uri build_start(const web::uri &base_url, transport_type transport,
             const utility::string_t &connection_token, const utility::string_t &query_string);
+        web::uri build_abort(const web::uri &base_url, transport_type transport,
+            const utility::string_t &connection_token, const utility::string_t &query_string);
     }
 }

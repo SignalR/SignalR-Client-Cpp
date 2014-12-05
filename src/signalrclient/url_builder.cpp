@@ -84,5 +84,11 @@ namespace signalr
         {
             return build_uri(base_url, _XPLATSTR("start"), transport, connection_token, query_string).to_uri();
         }
+
+        web::uri build_abort(const web::uri &base_url, transport_type transport,
+            const utility::string_t &connection_token, const utility::string_t &query_string)
+        {
+            return build_uri(base_url, _XPLATSTR("abort"), transport, connection_token, query_string).to_uri();
+        }
     }
 }
