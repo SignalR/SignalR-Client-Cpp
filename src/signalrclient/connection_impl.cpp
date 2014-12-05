@@ -25,7 +25,7 @@ namespace signalr
         std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory)
         : m_base_url(url), m_query_string(query_string), m_connection_state(connection_state::disconnected),
         m_logger(log_writer, trace_level), m_transport(nullptr), m_web_request_factory(std::move(web_request_factory)),
-        m_transport_factory(std::move(transport_factory))
+        m_transport_factory(std::move(transport_factory)), m_message_received([](const utility::string_t&){})
     { }
 
     pplx::task<void> connection_impl::start()
@@ -134,9 +134,6 @@ namespace signalr
 
         try
         {
-            // TODO: note to self - the response can be an empty string in case of KeepAlive messages sent
-            // by the server for the long polling transport in which case we should not try to parse it.
-
             auto result = web::json::value::parse(response);
 
             auto messages = result[_XPLATSTR("M")];
@@ -146,16 +143,39 @@ namespace signalr
                 {
                     m_connect_request_tce.set();
                 }
+
+                for (auto& m : messages.as_array())
+                {
+                    try
+                    {
+                        m_message_received(m.serialize());
+                    }
+                    catch (const std::exception &e)
+                    {
+                        m_logger.log(
+                            trace_level::errors,
+                            utility::string_t(_XPLATSTR("message_received callback threw an exception: "))
+                                .append(utility::conversions::to_string_t(e.what())));
+
+                        // TODO: call on error callback
+                    }
+                    catch (...)
+                    {
+                        m_logger.log(
+                            trace_level::errors,
+                            utility::string_t(_XPLATSTR("message_received callback threw an unknown exception.")));
+
+                        // TODO: call on error callback
+                    }
+                }
             }
         }
         catch (const std::exception &e)
         {
-            // TODO: add a test once we can receive regular messages
-            utility::ostringstream_t oss;
-            oss << _XPLATSTR("error occured when parsing response: ") << utility::conversions::to_string_t(e.what())
-                << std::endl << "    reponse: " << response;
-
-            m_logger.log(trace_level::errors, oss.str());
+            m_logger.log(trace_level::errors, utility::string_t(_XPLATSTR("error occured when parsing response: "))
+                .append(utility::conversions::to_string_t(e.what()))
+                .append(_XPLATSTR(". response: "))
+                .append(response));
         }
     }
 
@@ -194,6 +214,19 @@ namespace signalr
     connection_state connection_impl::get_connection_state() const
     {
         return m_connection_state.load();
+    }
+
+    void connection_impl::set_message_received(const std::function<void(const utility::string_t&)>& message_received)
+    {
+        auto connection_state = get_connection_state();
+        if (connection_state != connection_state::disconnected)
+        {
+            throw std::runtime_error(
+                std::string{ "cannot set the callback when the connection is not in the disconnected state. current connection state: " }
+            .append(utility::conversions::to_utf8string(translate_connection_state(connection_state))));
+        }
+
+        m_message_received = message_received;
     }
 
     bool connection_impl::change_state(connection_state old_state, connection_state new_state)

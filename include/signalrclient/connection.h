@@ -17,6 +17,8 @@ namespace signalr
 
     class connection
     {
+        typedef std::function<void(const utility::string_t&)> message_received;
+
     public:
         explicit connection(const utility::string_t& url, const utility::string_t& querystring = U(""),
             trace_level trace_level = trace_level::all, std::shared_ptr<log_writer> log_writer = std::make_shared<trace_log_writer>());
@@ -31,6 +33,8 @@ namespace signalr
         SIGNALRCLIENT_API pplx::task<void> start();
 
         SIGNALRCLIENT_API pplx::task<void> send(utility::string_t data);
+
+        SIGNALRCLIENT_API void set_message_received(const message_received& message_received_callback);
 
         SIGNALRCLIENT_API connection_state get_connection_state() const;
 
