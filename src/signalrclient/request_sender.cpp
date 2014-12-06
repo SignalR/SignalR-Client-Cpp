@@ -54,5 +54,14 @@ namespace signalr
                 }
             });
         }
+
+        pplx::task<utility::string_t> abort(web_request_factory& request_factory, const web::uri &base_url, transport_type transport,
+            const utility::string_t& connection_token, const utility::string_t &query_string)
+        {
+            auto abort_url = url_builder::build_abort(base_url, transport, connection_token, query_string);
+            auto request = request_factory.create_web_request(abort_url);
+
+            return http_sender::get(*request);
+        }
     }
 }

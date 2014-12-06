@@ -136,14 +136,47 @@ TEST(request_sender_start, start_propagates_exceptions)
 {
     auto request_factory = test_web_request_factory([](const web::uri&)
     {
-        utility::string_t response_body(_XPLATSTR(""));
-
-        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)503, _XPLATSTR("Server unavailable"), response_body));
+        return std::unique_ptr<web_request>(
+            new web_request_stub((unsigned short)503, _XPLATSTR("Server unavailable"), _XPLATSTR("")));
     });
 
     try
     {
         request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
+            transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get();
+
+        ASSERT_TRUE(false); // exception not thrown
+    }
+    catch (const web_exception& e)
+    {
+        ASSERT_EQ(_XPLATSTR("web exception - 503 Server unavailable"), utility::conversions::to_string_t(e.what()));
+    }
+}
+
+TEST(request_sender_abort, request_sent_with_correct_url)
+{
+    auto request_factory = test_web_request_factory([](const web::uri& url)
+    {
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), url.to_string()));
+    });
+
+    auto actual_url = request_sender::abort(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
+        transport_type::websockets, _XPLATSTR("abc"), _XPLATSTR("")).get();
+
+    ASSERT_EQ(_XPLATSTR("http://fake/signalr/abort?transport=webSockets&clientProtocol=1.4&connectionToken=abc"), actual_url);
+}
+
+TEST(request_sender_abort, abort_propagates_exceptions)
+{
+    auto request_factory = test_web_request_factory([](const web::uri&)
+    {
+        return std::unique_ptr<web_request>(
+            new web_request_stub((unsigned short)503, _XPLATSTR("Server unavailable"), _XPLATSTR("")));
+    });
+
+    try
+    {
+        request_sender::abort(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
             transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get();
 
         ASSERT_TRUE(false); // exception not thrown
