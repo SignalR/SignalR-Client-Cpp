@@ -309,7 +309,7 @@ TEST(connection_impl_send, message_sent)
 
     auto websocket_client = create_test_websocket_client(
         /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); },
-        /* send function */ [&actual_message](utility::string_t message)
+        /* send function */ [&actual_message](const utility::string_t& message)
     {
         actual_message = message;
         return pplx::task_from_result();
@@ -350,7 +350,7 @@ TEST(connection_impl_send, exceptions_from_send_logged_and_propagated)
 
     auto websocket_client = create_test_websocket_client(
         /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); },
-        /* send function */ [](utility::string_t message){ return pplx::task_from_exception<void>(std::runtime_error("error")); });
+        /* send function */ [](const utility::string_t&){ return pplx::task_from_exception<void>(std::runtime_error("error")); });
 
     auto connection = create_connection(websocket_client, writer, trace_level::errors);
 

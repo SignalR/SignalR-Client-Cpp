@@ -8,7 +8,7 @@
 namespace signalr
 {
     std::shared_ptr<transport> transport_factory::create_transport(transport_type transport_type,
-        logger logger, std::function<void(utility::string_t)> process_response_callback)
+        const logger& logger, std::function<void(const utility::string_t&)> process_response_callback)
     {
         if (transport_type == transport_type::websockets)
         {

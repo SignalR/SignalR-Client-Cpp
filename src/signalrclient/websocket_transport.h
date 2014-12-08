@@ -15,8 +15,8 @@ namespace signalr
     class websocket_transport : public transport, public std::enable_shared_from_this<websocket_transport>
     {
     public:
-        static std::shared_ptr<transport> create(std::shared_ptr<websocket_client> websocket_client,
-            logger logger, std::function<void(const utility::string_t&)> process_response_callback);
+        static std::shared_ptr<transport> create(const std::shared_ptr<websocket_client>& websocket_client,
+            const logger& logger, const std::function<void(const utility::string_t&)>& process_response_callback);
 
         ~websocket_transport();
 
@@ -33,8 +33,8 @@ namespace signalr
         transport_type get_transport_type() const override;
 
     private:
-        websocket_transport(std::shared_ptr<websocket_client> websocket_client, logger logger,
-            std::function<void(const utility::string_t &)> process_response_callback);
+        websocket_transport(const std::shared_ptr<websocket_client>& websocket_client, const logger& logger,
+            const std::function<void(const utility::string_t &)>& process_response_callback);
 
         std::shared_ptr<websocket_client> m_websocket_client;
 

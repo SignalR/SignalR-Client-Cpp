@@ -5,12 +5,12 @@
 #include "test_transport_factory.h"
 #include "websocket_transport.h"
 
-test_transport_factory::test_transport_factory(std::shared_ptr<websocket_client> websocket_client)
+test_transport_factory::test_transport_factory(const std::shared_ptr<websocket_client>& websocket_client)
     : m_websocket_client(websocket_client)
 { }
 
 std::shared_ptr<transport> test_transport_factory::create_transport(transport_type transport_type,
-    logger logger, std::function<void(utility::string_t)> process_message)
+    const logger& logger, std::function<void(const utility::string_t&)> process_message)
 {
     if (transport_type == transport_type::websockets)
     {

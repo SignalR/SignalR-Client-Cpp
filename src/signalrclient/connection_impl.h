@@ -23,10 +23,10 @@ namespace signalr
     {
     public:
         static std::shared_ptr<connection_impl> create(const utility::string_t& url, const utility::string_t& query_string,
-            trace_level trace_level, std::shared_ptr<log_writer> log_writer);
+            trace_level trace_level, const std::shared_ptr<log_writer>& log_writer);
 
         static std::shared_ptr<connection_impl> create(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level,
-            std::shared_ptr<log_writer> log_writer, std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);
+            const std::shared_ptr<log_writer>& log_writer, std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);
 
         connection_impl(const connection_impl&) = delete;
 
@@ -35,7 +35,7 @@ namespace signalr
         ~connection_impl();
 
         pplx::task<void> start();
-        pplx::task<void> send(utility::string_t data);
+        pplx::task<void> send(const utility::string_t &data);
         pplx::task<void> stop();
 
         connection_state get_connection_state() const;
@@ -59,7 +59,7 @@ namespace signalr
         pplx::event m_start_completed_event;
         utility::string_t m_connection_token;
 
-        connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level, std::shared_ptr<log_writer> log_writer,
+        connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level, const std::shared_ptr<log_writer>& log_writer,
             std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);
 
         pplx::task<void> send_connect_request(const utility::string_t& connection_token);

@@ -9,7 +9,7 @@
 namespace signalr
 {
     connection::connection(const utility::string_t& url, const utility::string_t& querystring, trace_level trace_level, std::shared_ptr<log_writer> log_writer)
-        : m_pImpl(connection_impl::create(url, querystring, trace_level, log_writer))
+        : m_pImpl(connection_impl::create(url, querystring, trace_level, std::move(log_writer)))
     {}
 
     // Do NOT remove this destructor. Letting the compiler generate and inline the default dtor may lead to
@@ -21,7 +21,7 @@ namespace signalr
         return m_pImpl->start();
     }
 
-    pplx::task<void> connection::send(utility::string_t data)
+    pplx::task<void> connection::send(const utility::string_t& data)
     {
         return m_pImpl->send(data);
     }

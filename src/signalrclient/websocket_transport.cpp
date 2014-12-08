@@ -7,14 +7,14 @@
 
 namespace signalr
 {
-    std::shared_ptr<transport> websocket_transport::create(std::shared_ptr<websocket_client> websocket_client,
-        logger logger, std::function<void(const utility::string_t &)> process_response_callback)
+    std::shared_ptr<transport> websocket_transport::create(const std::shared_ptr<websocket_client>& websocket_client,
+        const logger& logger, const std::function<void(const utility::string_t &)>& process_response_callback)
     {
         return std::shared_ptr<transport>(new websocket_transport(websocket_client, logger, process_response_callback));
     }
 
-    websocket_transport::websocket_transport(std::shared_ptr<websocket_client> websocket_client,
-        logger logger, std::function<void(const utility::string_t &)> process_response_callback)
+    websocket_transport::websocket_transport(const std::shared_ptr<websocket_client>& websocket_client,
+        const logger& logger, const std::function<void(const utility::string_t &)>& process_response_callback)
         : transport(logger, process_response_callback), m_websocket_client(websocket_client)
     {
         // we use this cts to check if the receive loop is running so it should be

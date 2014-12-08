@@ -28,7 +28,7 @@ namespace signalr
         virtual ~transport();
 
     protected:
-        transport(logger logger, std::function<void(const utility::string_t &)> process_response_callback);
+        transport(const logger& logger, const std::function<void(const utility::string_t &)>& process_response_callback);
 
         void process_response(const utility::string_t &message);
 

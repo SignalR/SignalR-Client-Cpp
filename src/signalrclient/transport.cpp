@@ -7,7 +7,7 @@
 
 namespace signalr
 {
-    transport::transport(logger logger, std::function<void(const utility::string_t&)> process_response_callback)
+    transport::transport(const logger& logger, const std::function<void(const utility::string_t&)>& process_response_callback)
         : m_logger(logger), m_process_response_callback(process_response_callback)
     {}
 

@@ -244,7 +244,7 @@ TEST(websocket_transport_disconnect, disconnect_logs_exceptions)
     // disconnect cancels the receive loop by setting the cancellation token source to cancelled which results in writing
     // to the log. Exceptions from close are also logged but this happens on a different thread. As a result the order
     // of messages in the log is not deterministic and therefore we just use the "contains" idiom to find the message.
-    ASSERT_NE(std::find_if(log_entries.begin(), log_entries.end(), [](utility::string_t entry)
+    ASSERT_NE(std::find_if(log_entries.begin(), log_entries.end(), [](const utility::string_t& entry)
         {
             return remove_date_from_log_entry(entry) ==
                 _XPLATSTR("[error       ] [websocket transport] exception when closing websocket: connection closing failed\n");

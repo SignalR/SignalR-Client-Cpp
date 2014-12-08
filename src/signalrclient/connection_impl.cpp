@@ -10,18 +10,18 @@
 namespace signalr
 {
     std::shared_ptr<connection_impl> connection_impl::create(const utility::string_t& url, const utility::string_t& query_string,
-        trace_level trace_level, std::shared_ptr<log_writer> log_writer)
+        trace_level trace_level, const std::shared_ptr<log_writer>& log_writer)
     {
         return connection_impl::create(url, query_string, trace_level, log_writer, std::make_unique<web_request_factory>(), std::make_unique<transport_factory>());
     }
 
     std::shared_ptr<connection_impl> connection_impl::create(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level,
-        std::shared_ptr<log_writer> log_writer, std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory)
+        const std::shared_ptr<log_writer>& log_writer, std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory)
     {
         return std::shared_ptr<connection_impl>(new connection_impl(url, query_string, trace_level, log_writer, std::move(web_request_factory), std::move(transport_factory)));
     }
 
-    connection_impl::connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level, std::shared_ptr<log_writer> log_writer,
+    connection_impl::connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level, const std::shared_ptr<log_writer>& log_writer,
         std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory)
         : m_base_url(url), m_query_string(query_string), m_connection_state(connection_state::disconnected),
         m_logger(log_writer, trace_level), m_transport(nullptr), m_web_request_factory(std::move(web_request_factory)),
@@ -85,7 +85,7 @@ namespace signalr
                 connection->m_connection_token = negotiation_response.connection_token;
 
                 auto weak_connection = std::weak_ptr<connection_impl>(connection);
-                auto process_response_callback = [weak_connection](utility::string_t response)
+                auto process_response_callback = [weak_connection](const utility::string_t& response)
                 {
                     auto connection = weak_connection.lock();
                     if (connection)
@@ -229,7 +229,7 @@ namespace signalr
         }
     }
 
-    pplx::task<void> connection_impl::send(utility::string_t data)
+    pplx::task<void> connection_impl::send(const utility::string_t& data)
     {
         auto connection_state = get_connection_state();
         if (connection_state != connection_state::connected)
