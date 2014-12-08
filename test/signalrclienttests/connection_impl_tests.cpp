@@ -448,6 +448,224 @@ TEST(connection_impl_send, exceptions_from_send_logged_and_propagated)
     ASSERT_EQ(_XPLATSTR("[error       ] error sending data: error\n"), entry);
 }
 
+TEST(connection_impl_set_message_received, callback_invoked_when_message_received)
+{
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
+    {
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : _XPLATSTR("{\"Response\":\"started\" }");
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    auto websocket_client = std::make_shared<test_websocket_client>();
+    int call_number = -1;
+    websocket_client->set_receive_function([call_number]()
+    mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+            "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"Test\"] }",
+            "{}"
+        };
+
+        call_number = min(call_number + 1, 2);
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    auto connection =
+        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>(),
+        std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
+
+    auto message = std::make_shared<utility::string_t>();
+    connection->set_message_received([message](const utility::string_t &m){ *message = m; });
+
+    connection->start().get();
+
+    ASSERT_EQ(_XPLATSTR("\"Test\""), *message);
+}
+
+TEST(connection_impl_set_message_received, exception_from_callback_caught_and_logged)
+{
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
+    {
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : _XPLATSTR("{\"Response\":\"started\" }");
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    auto websocket_client = std::make_shared<test_websocket_client>();
+    int call_number = -1;
+    websocket_client->set_receive_function([call_number]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+            "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"Test\"] }",
+            "{}"
+        };
+
+        call_number = min(call_number + 1, 2);
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    auto connection =
+        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::errors, writer,
+        std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
+
+    connection->set_message_received([](const utility::string_t &){ throw std::runtime_error("oops"); });
+
+    connection->start().get();
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_FALSE(log_entries.empty());
+
+    auto entry = remove_date_from_log_entry(log_entries[0]);
+    ASSERT_EQ(_XPLATSTR("[error       ] message_received callback threw an exception: oops\n"), entry);
+}
+
+TEST(connection_impl_set_message_received, non_std_exception_from_callback_caught_and_logged)
+{
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
+    {
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : _XPLATSTR("{\"Response\":\"started\" }");
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    auto websocket_client = std::make_shared<test_websocket_client>();
+    int call_number = -1;
+    websocket_client->set_receive_function([call_number]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+                "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"Test\"] }",
+                "{}"
+        };
+
+        call_number = min(call_number + 1, 2);
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    auto connection =
+        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::errors, writer,
+        std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
+
+    connection->set_message_received([](const utility::string_t &){ throw 42; });
+
+    connection->start().get();
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_FALSE(log_entries.empty());
+
+    auto entry = remove_date_from_log_entry(log_entries[0]);
+    ASSERT_EQ(_XPLATSTR("[error       ] message_received callback threw an unknown exception.\n"), entry);
+}
+
+TEST(connection_impl_set_message_received, error_logged_for_malformed_payload)
+{
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
+    {
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : _XPLATSTR("{\"Response\":\"started\" }");
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    auto websocket_client = std::make_shared<test_websocket_client>();
+    int call_number = -1;
+    websocket_client->set_receive_function([call_number]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+                "42",
+                "{}"
+        };
+
+        call_number = min(call_number + 1, 2);
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    auto connection =
+        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::errors, writer,
+        std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
+
+    connection->start().get();
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_FALSE(log_entries.empty());
+
+    auto entry = remove_date_from_log_entry(log_entries[0]);
+    ASSERT_EQ(_XPLATSTR("[error       ] error occured when parsing response: not an object. response: 42\n"), entry);
+}
+
+TEST(connection_impl_set_message_received, callback_can_be_set_only_in_disconnected_state)
+{
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
+    {
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : _XPLATSTR("{\"Response\":\"started\" }");
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    auto websocket_client = std::make_shared<test_websocket_client>();
+    websocket_client->set_receive_function([]()->pplx::task<std::string>
+    {
+        return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }"));
+    });
+
+    auto connection =
+        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>(),
+        std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
+
+    connection->start().get();
+
+    try
+    {
+        connection->set_message_received([](const utility::string_t&){});
+        ASSERT_TRUE(false); // exception expected but not thrown
+    }
+    catch (const std::runtime_error &e)
+    {
+        ASSERT_STREQ("cannot set the callback when the connection is not in the disconnected state. current connection state: connected", e.what());
+    }
+}
+
 TEST(connection_impl_change_state, change_state_logs)
 {
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());

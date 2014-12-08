@@ -36,6 +36,8 @@ namespace signalr
 
         connection_state get_connection_state() const;
 
+        void set_message_received(const std::function<void(const utility::string_t&)>& message_received);
+
     private:
         web::uri m_base_url;
         utility::string_t m_query_string;
@@ -44,6 +46,8 @@ namespace signalr
         std::shared_ptr<transport> m_transport;
         std::unique_ptr<web_request_factory> m_web_request_factory;
         std::unique_ptr<transport_factory> m_transport_factory;
+
+        std::function<void(const utility::string_t&)> m_message_received;
 
         pplx::task_completion_event<void> m_connect_request_tce;
         utility::string_t m_connection_token;
