@@ -518,10 +518,11 @@ TEST(connection_impl_set_message_received, error_logged_for_malformed_payload)
         {
             "{\"S\":1, \"M\":[] }",
             "42",
+            "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"release\"] }",
             "{}"
         };
 
-        call_number = min(call_number + 1, 2);
+        call_number = min(call_number + 1, 3);
 
         return pplx::task_from_result(responses[call_number]);
     });
@@ -529,7 +530,16 @@ TEST(connection_impl_set_message_received, error_logged_for_malformed_payload)
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
     auto connection = create_connection(websocket_client, writer, trace_level::errors);
 
+    auto message_received_event = std::make_shared<pplx::event>();
+    connection->set_message_received([message_received_event](const utility::string_t&)
+    {
+        // this is called only once because we have just one response with a message
+        message_received_event->set();
+    });
+
     connection->start().get();
+
+    ASSERT_FALSE(message_received_event->wait(5000));
 
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
     ASSERT_FALSE(log_entries.empty());
