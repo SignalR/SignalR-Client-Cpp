@@ -47,6 +47,8 @@ namespace signalr
             return _XPLATSTR("event");
         case trace_level::errors:
             return _XPLATSTR("error");
+        case trace_level::info:
+            return _XPLATSTR("info");
         default:
             _ASSERTE(false);
             return _XPLATSTR("(unknown)");

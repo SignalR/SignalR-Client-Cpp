@@ -28,20 +28,52 @@ namespace signalr
         m_transport_factory(std::move(transport_factory)), m_message_received([](const utility::string_t&){})
     { }
 
+    connection_impl::~connection_impl()
+    {
+        try
+        {
+            shutdown().get();
+        }
+        catch (const pplx::task_canceled&)
+        {
+            // because we are in the dtor and the `connection_imp` is ref counted we should not get the `task_canceled`
+            // exception because it would indicate that some other thread/task still holds reference to this instance
+            // so how come we are in the dtor?
+            _ASSERTE(false);
+            return;
+        }
+        catch (...) // must not throw from destructors
+        { }
+
+        m_transport = nullptr;
+        change_state(connection_state::disconnected);
+    }
+
     pplx::task<void> connection_impl::start()
     {
-        if (!change_state(connection_state::disconnected, connection_state::connecting))
         {
-            throw std::runtime_error("cannot start a connection that is not in the disconnected state");
-        }
+            std::lock_guard<std::mutex> lock(m_stop_lock);
+            if (!change_state(connection_state::disconnected, connection_state::connecting))
+            {
+                return pplx::task_from_exception<void>(
+                    std::runtime_error("cannot start a connection that is not in the disconnected state"));
+            }
 
-        // there should not be any active transport at this point
-        _ASSERTE(!m_transport);
+            // there should not be any active transport at this point
+            _ASSERTE(!m_transport);
+
+            m_disconnect_cts = pplx::cancellation_token_source();
+            m_start_completed_event.reset();
+        }
 
         pplx::task_completion_event<void> start_tce;
         auto connection = shared_from_this();
 
-        request_sender::negotiate(*m_web_request_factory, m_base_url, m_query_string)
+        pplx::task_from_result()
+            .then([connection]()
+            {
+                return request_sender::negotiate(*connection->m_web_request_factory, connection->m_base_url, connection->m_query_string);
+            }, m_disconnect_cts.get_token())
             .then([connection](negotiation_response negotiation_response)
             {
                 if (!negotiation_response.try_websockets)
@@ -66,29 +98,47 @@ namespace signalr
                     transport_type::websockets, connection->m_logger, process_response_callback);
 
                 return connection->send_connect_request(negotiation_response.connection_token);
-            })
+            }, m_disconnect_cts.get_token())
             .then([connection]()
             {
                 return request_sender::start(*connection->m_web_request_factory, connection->m_base_url,
                     connection->m_transport->get_transport_type(), connection->m_connection_token, connection->m_query_string);
-            })
+            }, m_disconnect_cts.get_token())
             .then([start_tce, connection](pplx::task<void> previous_task)
             {
                 try
                 {
                     previous_task.get();
-                    connection->change_state(connection_state::connecting, connection_state::connected);
+                    if (!connection->change_state(connection_state::connecting, connection_state::connected))
+                    {
+                        connection->m_logger.log(trace_level::errors,
+                            utility::string_t(_XPLATSTR("internal error - transition from an unexpected state. expected state: connecting, actual state: "))
+                            .append(translate_connection_state(connection->get_connection_state())));
+
+                        _ASSERTE(false);
+                    }
+
+                    connection->m_start_completed_event.set();
                     start_tce.set();
                 }
                 catch (const std::exception &e)
                 {
-                    connection->m_logger.log(
-                        trace_level::errors,
-                        utility::string_t(_XPLATSTR("connection could not be started due to: "))
+                    auto task_canceled_exception = dynamic_cast<const pplx::task_canceled *>(&e);
+                    if (task_canceled_exception)
+                    {
+                        connection->m_logger.log(trace_level::info,
+                            _XPLATSTR("starting the connection has been cancelled."));
+                    }
+                    else
+                    {
+                        connection->m_logger.log(trace_level::errors,
+                            utility::string_t(_XPLATSTR("connection could not be started due to: "))
                             .append(utility::conversions::to_string_t(e.what())));
+                    }
 
-                    connection->m_transport.reset();
-                    connection->change_state(connection_state::connecting, connection_state::disconnected);
+                    connection->m_transport = nullptr;
+                    connection->change_state(connection_state::disconnected);
+                    connection->m_start_completed_event.set();
                     start_tce.set_exception(std::current_exception());
                 }
             });
@@ -211,6 +261,74 @@ namespace signalr
             });
     }
 
+    pplx::task<void> connection_impl::stop()
+    {
+        auto connection = shared_from_this();
+        return shutdown()
+            .then([connection]()
+            {
+                // we do let the exception through (especially the task_canceled exception)
+                connection->m_transport = nullptr;
+                connection->change_state(connection_state::disconnected);
+            });
+    }
+
+    // This function is called from the dtor so you must not use `shared_from_this` here (it will throw).
+    pplx::task<void> connection_impl::shutdown()
+    {
+        {
+            std::lock_guard<std::mutex> lock(m_stop_lock);
+            auto current_state = get_connection_state();
+            if (current_state == connection_state::disconnected)
+            {
+                return pplx::task_from_result();
+            }
+
+            if (current_state == connection_state::disconnecting)
+            {
+                // cancelled task will be returned if `stop` was called while another `stop` was already in progress.
+                // This is to prevent from resetting the `m_transport` in the upstream callers because doing so might
+                // affect the other invocation which is using it.
+                auto cts = pplx::cancellation_token_source();
+                cts.cancel();
+                return pplx::create_task([](){}, cts.get_token());
+            }
+
+            // we request a cancellation of the ongoing start request (if any) and wait until it is cancelled
+            m_disconnect_cts.cancel();
+
+            while (m_start_completed_event.wait(60000) != 0)
+            {
+                m_logger.log(trace_level::errors,
+                    utility::string_t(_XPLATSTR("internal error - stopping the connection is still waiting for the start operation to finish which should have already finished or timed out")));
+            }
+
+            // at this point we are either in the connected or disconnected state. If we are in the disconnected state
+            // we must break because the transport have already been nulled out.
+            if (!change_state(connection_state::connected, connection_state::disconnecting))
+            {
+                return pplx::task_from_result();
+            }
+        }
+
+        // This is fire and forget because we don't really care about the result
+        request_sender::abort(*m_web_request_factory, m_base_url, m_transport->get_transport_type(), m_connection_token, m_query_string)
+            .then([](pplx::task<utility::string_t> abort_task)
+            {
+                try
+                {
+                    abort_task.get();
+                }
+                catch (...)
+                {
+                    // We don't care about the result and even if the request failed there is not much we can do. We do
+                    // need to observe the exception though to prevent from crash due to unobserved exception exception.
+                }
+            });
+
+        return m_transport->disconnect();
+    }
+
     connection_state connection_impl::get_connection_state() const
     {
         return m_connection_state.load();
@@ -231,22 +349,39 @@ namespace signalr
 
     bool connection_impl::change_state(connection_state old_state, connection_state new_state)
     {
-        connection_state expected_state{ old_state };
-
-        if (m_connection_state.compare_exchange_strong(expected_state, new_state, std::memory_order_seq_cst))
+        if (m_connection_state.compare_exchange_strong(old_state, new_state, std::memory_order_seq_cst))
         {
-            m_logger.log(
-                trace_level::state_changes,
-                translate_connection_state(old_state)
-                .append(_XPLATSTR(" -> "))
-                .append(translate_connection_state(new_state)));
-
-            // TODO: invoke state_changed callback
-
+            handle_connection_state_change(old_state, new_state);
             return true;
         }
 
         return false;
+    }
+
+    connection_state connection_impl::change_state(connection_state new_state)
+    {
+        auto old_state = m_connection_state.exchange(new_state);
+        if (old_state != new_state)
+        {
+            handle_connection_state_change(old_state, new_state);
+        }
+
+        return old_state;
+    }
+
+    void connection_impl::handle_connection_state_change(connection_state old_state, connection_state new_state)
+    {
+        m_logger.log(
+            trace_level::state_changes,
+            translate_connection_state(old_state)
+            .append(_XPLATSTR(" -> "))
+            .append(translate_connection_state(new_state)));
+
+        // TODO: invoke state_changed callback
+        // Words of wisdom:
+        // "Be extra careful when you add this callback, because this is sometimes being called with the m_stop_lock.
+        // This could lead to interesting problems.For example, you could run into a segfault if the connection is
+        // stopped while / after transitioning into the connecting state."
     }
 
     utility::string_t connection_impl::translate_connection_state(connection_state state)
@@ -259,6 +394,8 @@ namespace signalr
             return _XPLATSTR("connected");
         case connection_state::reconnecting:
             return _XPLATSTR("reconnecting");
+        case connection_state::disconnecting:
+            return _XPLATSTR("disconnecting");
         case connection_state::disconnected:
             return _XPLATSTR("disconnected");
         default:

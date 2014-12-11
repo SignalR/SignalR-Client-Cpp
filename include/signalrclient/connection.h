@@ -36,6 +36,8 @@ namespace signalr
 
         SIGNALRCLIENT_API void set_message_received(const message_received& message_received_callback);
 
+        SIGNALRCLIENT_API pplx::task<void> stop();
+
         SIGNALRCLIENT_API connection_state get_connection_state() const;
 
     private:

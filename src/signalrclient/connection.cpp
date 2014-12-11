@@ -31,6 +31,11 @@ namespace signalr
         m_pImpl->set_message_received(message_received_callback);
     }
 
+    pplx::task<void> connection::stop()
+    {
+        return m_pImpl->stop();
+    }
+
     connection_state connection::get_connection_state() const
     {
         return m_pImpl->get_connection_state();

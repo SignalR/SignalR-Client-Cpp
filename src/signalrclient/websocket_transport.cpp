@@ -46,7 +46,7 @@ namespace signalr
             throw std::runtime_error("transport already connected");
         }
 
-        m_logger.log(trace_level::messages,
+        m_logger.log(trace_level::info,
             utility::string_t(_XPLATSTR("[websocket transport] connecting to: "))
                 .append(url.to_string()));
 
@@ -154,7 +154,7 @@ namespace signalr
                 {
                     task.get();
                 }
-                // TODO: report error, close websocket (when appropriate)
+                // TODO: report error, close websocket (when appropriate), collapse handlers for websocket_exception and std::exception?
                 catch (const web_sockets::client::websocket_exception& e)
                 {
                     cts.cancel();
@@ -164,14 +164,12 @@ namespace signalr
                         utility::string_t(_XPLATSTR("[websocket transport] websocket exception when receiving data: "))
                         .append(utility::conversions::to_string_t(e.what())));
                 }
-                catch (const pplx::task_canceled& e)
+                catch (const pplx::task_canceled&)
                 {
                     cts.cancel();
 
-                    logger.log(
-                        trace_level::errors,
-                        utility::string_t(_XPLATSTR("[websocket transport] receive task cancelled: "))
-                        .append(utility::conversions::to_string_t(e.what())));
+                    logger.log(trace_level::info,
+                        utility::string_t(_XPLATSTR("[websocket transport] receive task cancelled.")));
                 }
                 catch (const std::exception& e)
                 {

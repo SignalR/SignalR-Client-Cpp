@@ -12,7 +12,8 @@ namespace signalr
         events = 2,
         state_changes = 4,
         errors = 8,
-        all = messages | events | state_changes | errors
+        info = 16,
+        all = messages | events | state_changes | errors | info
     };
 
     inline trace_level operator|(trace_level lhs, trace_level rhs)

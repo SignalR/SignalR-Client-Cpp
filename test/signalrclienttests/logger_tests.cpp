@@ -37,15 +37,16 @@ TEST(logger_write, entries_added_for_combined_trace_level)
 {
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
 
-    logger l(writer, trace_level::messages | trace_level::state_changes | trace_level::events | trace_level::errors);
+    logger l(writer, trace_level::messages | trace_level::state_changes | trace_level::events | trace_level::errors | trace_level::info);
     l.log(trace_level::messages, _XPLATSTR("message"));
     l.log(trace_level::events, _XPLATSTR("event"));
     l.log(trace_level::state_changes, _XPLATSTR("state_change"));
     l.log(trace_level::errors, _XPLATSTR("error"));
+    l.log(trace_level::info, _XPLATSTR("info"));
 
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
 
-    ASSERT_EQ(4, log_entries.size());
+    ASSERT_EQ(5, log_entries.size());
 }
 
 TEST(logger_write, entries_formatted_correctly)

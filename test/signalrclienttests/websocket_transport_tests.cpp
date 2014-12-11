@@ -31,7 +31,7 @@ TEST(websocket_transport_connect, connect_connects_and_starts_receive_loop)
 
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
 
-    auto ws_transport = websocket_transport::create(client, logger(writer, trace_level::messages),
+    auto ws_transport = websocket_transport::create(client, logger(writer, trace_level::info),
         [](const utility::string_t&){});
 
     ws_transport->connect(_XPLATSTR("ws://fakeuri.org/connect?param=42")).get();
@@ -43,7 +43,7 @@ TEST(websocket_transport_connect, connect_connects_and_starts_receive_loop)
     ASSERT_FALSE(log_entries.empty());
 
     auto entry = remove_date_from_log_entry(log_entries[0]);
-    ASSERT_EQ(_XPLATSTR("[message     ] [websocket transport] connecting to: ws://fakeuri.org/connect?param=42\n"), entry);
+    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://fakeuri.org/connect?param=42\n"), entry);
 }
 
 TEST(websocket_transport_connect, connect_propagates_exceptions)
@@ -335,31 +335,34 @@ TEST(websocket_transport_disconnect, exceptions_from_outstanding_receive_task_ob
 }
 
 template<class T>
-void receive_loop_logs_exception_runner(const T& e, const utility::string_t& expected_message);
+void receive_loop_logs_exception_runner(const T& e, const utility::string_t& expected_message, trace_level trace_level);
 
 TEST(websocket_transport_receive_loop, receive_loop_logs_websocket_exceptions)
 {
     receive_loop_logs_exception_runner(
         web_sockets::client::websocket_exception(_XPLATSTR("receive failed")),
-        _XPLATSTR("[error       ] [websocket transport] websocket exception when receiving data: receive failed\n"));
+        _XPLATSTR("[error       ] [websocket transport] websocket exception when receiving data: receive failed\n"),
+        trace_level::errors);
 }
 
 TEST(websocket_transport_receive_loop, receive_loop_logs_if_receive_task_cancelled)
 {
     receive_loop_logs_exception_runner(
         pplx::task_canceled("cancelled"),
-        _XPLATSTR("[error       ] [websocket transport] receive task cancelled: cancelled\n"));
+        _XPLATSTR("[info        ] [websocket transport] receive task cancelled.\n"),
+        trace_level::info);
 }
 
 TEST(websocket_transport_receive_loop, receive_loop_logs_std_exception)
 {
     receive_loop_logs_exception_runner(
         std::exception("exception"),
-        _XPLATSTR("[error       ] [websocket transport] error receiving response from websocket: exception\n"));
+        _XPLATSTR("[error       ] [websocket transport] error receiving response from websocket: exception\n"),
+        trace_level::errors);
 }
 
 template<class T>
-void receive_loop_logs_exception_runner(const T& e, const utility::string_t& expected_message)
+void receive_loop_logs_exception_runner(const T& e, const utility::string_t& expected_message, trace_level trace_level)
 {
     pplx::event receive_event;
     auto client = std::make_shared<test_websocket_client>();
@@ -372,7 +375,7 @@ void receive_loop_logs_exception_runner(const T& e, const utility::string_t& exp
 
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
 
-    auto ws_transport = websocket_transport::create(client, logger(writer, trace_level::errors), [](const utility::string_t&){});
+    auto ws_transport = websocket_transport::create(client, logger(writer, trace_level), [](const utility::string_t&){});
 
     ws_transport->connect(_XPLATSTR("ws://url"))
         .then([&receive_event]()
@@ -385,11 +388,9 @@ void receive_loop_logs_exception_runner(const T& e, const utility::string_t& exp
 
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
 
-    ASSERT_FALSE(log_entries.empty());
-
-    auto entry = remove_date_from_log_entry(log_entries[0]);
-
-    ASSERT_EQ(expected_message, entry);
+    ASSERT_NE(std::find_if(log_entries.begin(), log_entries.end(),
+        [&expected_message](utility::string_t entry) { return remove_date_from_log_entry(entry) == expected_message; }),
+        log_entries.end());
 }
 
 TEST(websocket_transport_receive_loop, process_response_callback_called_when_message_received)
