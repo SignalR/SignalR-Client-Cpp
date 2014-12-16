@@ -20,10 +20,10 @@ namespace signalr
         typedef std::function<void(const utility::string_t&)> message_received;
 
     public:
-        explicit connection(const utility::string_t& url, const utility::string_t& querystring = U(""),
+        SIGNALRCLIENT_API explicit connection(const utility::string_t& url, const utility::string_t& querystring = U(""),
             trace_level trace_level = trace_level::all, std::shared_ptr<log_writer> log_writer = std::make_shared<trace_log_writer>());
 
-        ~connection();
+        SIGNALRCLIENT_API ~connection();
 
         SIGNALRCLIENT_API pplx::task<void> start();
 

@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\packages\cpprestsdk.2.2.0\build\native\cpprestsdk.props" Condition="Exists('..\..\..\..\packages\cpprestsdk.2.2.0\build\native\cpprestsdk.props')" />
   <Import Project="..\..\..\..\Build\signalrclient.build.settings" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{18377AE8-E372-40CE-94FD-7F65008D39A3}</ProjectGuid>
@@ -9,6 +10,8 @@
     <TargetName>$(SignalrClientTargetName)</TargetName>
     <OutDir>$(SolutionDir)$(Configuration)\dll\</OutDir>
     <IntDir>$(Configuration)\dll\</IntDir>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -43,7 +46,9 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="UserMacros">
+    <NuGetPackageImportStamp>39f37add</NuGetPackageImportStamp>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
@@ -55,8 +60,9 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SIGNALRCLIENTDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SIGNALRCLIENT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\packages\cpprestsdk.2.2.0\build\native\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -81,10 +87,50 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\stdafx.h" />
+    <ClInclude Include="..\..\..\..\include\signalrclient\connection.h" />
+    <ClInclude Include="..\..\..\..\include\signalrclient\connection_state.h" />
+    <ClInclude Include="..\..\..\..\include\signalrclient\log_writer.h" />
+    <ClInclude Include="..\..\..\..\include\signalrclient\trace_level.h" />
+    <ClInclude Include="..\..\..\..\include\signalrclient\trace_log_writer.h" />
+    <ClInclude Include="..\..\..\..\include\signalrclient\transport_type.h" />
+    <ClInclude Include="..\..\..\..\include\signalrclient\web_exception.h" />
+    <ClInclude Include="..\..\..\..\include\signalrclient\_exports.h" />
+    <ClInclude Include="..\..\..\signalrclient\connection_impl.h" />
+    <ClInclude Include="..\..\..\signalrclient\constants.h" />
+    <ClInclude Include="..\..\..\signalrclient\default_websocket_client.h" />
+    <ClInclude Include="..\..\..\signalrclient\http_sender.h" />
+    <ClInclude Include="..\..\..\signalrclient\logger.h" />
+    <ClInclude Include="..\..\..\signalrclient\negotiation_response.h" />
+    <ClInclude Include="..\..\..\signalrclient\request_sender.h" />
+    <ClInclude Include="..\..\..\signalrclient\stdafx.h" />
+    <ClInclude Include="..\..\..\signalrclient\targetver.h" />
+    <ClInclude Include="..\..\..\signalrclient\transport.h" />
+    <ClInclude Include="..\..\..\signalrclient\transport_factory.h" />
+    <ClInclude Include="..\..\..\signalrclient\url_builder.h" />
+    <ClInclude Include="..\..\..\signalrclient\websocket_client.h" />
+    <ClInclude Include="..\..\..\signalrclient\websocket_transport.h" />
+    <ClInclude Include="..\..\..\signalrclient\web_request.h" />
+    <ClInclude Include="..\..\..\signalrclient\web_request_factory.h" />
+    <ClInclude Include="..\..\..\signalrclient\web_response.h" />
     <ClInclude Include="..\..\targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\signalrclient\connection.cpp" />
+    <ClCompile Include="..\..\..\signalrclient\connection_impl.cpp" />
+    <ClCompile Include="..\..\..\signalrclient\default_websocket_client.cpp" />
+    <ClCompile Include="..\..\..\signalrclient\http_sender.cpp" />
+    <ClCompile Include="..\..\..\signalrclient\logger.cpp" />
+    <ClCompile Include="..\..\..\signalrclient\request_sender.cpp" />
+    <ClCompile Include="..\..\..\signalrclient\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>       
+    <ClCompile Include="..\..\..\signalrclient\transport.cpp" />
+    <ClCompile Include="..\..\..\signalrclient\transport_factory.cpp" />
+    <ClCompile Include="..\..\..\signalrclient\url_builder.cpp" />
+    <ClCompile Include="..\..\..\signalrclient\websocket_transport.cpp" />
+    <ClCompile Include="..\..\..\signalrclient\web_request.cpp" />
+    <ClCompile Include="..\..\..\signalrclient\web_request_factory.cpp" />
     <ClCompile Include="..\..\dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -95,11 +141,19 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\signalrclient\Build\VS2013\signalrclient.vcxproj">
-      <Project>{87ed3ad4-d820-48cd-8382-a12564213a12}</Project>
-    </ProjectReference>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+    <Import Project="..\..\..\..\packages\cpprestsdk.2.2.0\build\native\cpprestsdk.targets" Condition="Exists('..\..\..\..\packages\cpprestsdk.2.2.0\build\native\cpprestsdk.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+    <Error Condition="!Exists('..\..\..\..\packages\cpprestsdk.2.2.0\build\native\cpprestsdk.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\packages\cpprestsdk.2.2.0\build\native\cpprestsdk.props'))" />
+    <Error Condition="!Exists('..\..\..\..\packages\cpprestsdk.2.2.0\build\native\cpprestsdk.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\packages\cpprestsdk.2.2.0\build\native\cpprestsdk.targets'))" />
+  </Target>
 </Project>

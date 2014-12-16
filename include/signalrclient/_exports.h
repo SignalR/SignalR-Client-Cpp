@@ -3,8 +3,12 @@
 
 #pragma once
 
+#ifdef NO_SIGNALRCLIENT_EXPORTS
+#define SIGNALRCLIENT_API
+#else
 #ifdef SIGNALRCLIENT_EXPORTS
 #define SIGNALRCLIENT_API __declspec(dllexport)
 #else
 #define SIGNALRCLIENT_API __declspec(dllimport)
-#endif
+#endif // SIGNALRCLIENT_EXPORTS
+#endif // NO_SIGNALRCLIENT_EXPORTS

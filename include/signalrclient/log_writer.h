@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "_exports.h"
 #include <cpprest\basic_types.h>
 
 namespace signalr
@@ -11,6 +12,6 @@ namespace signalr
     {
     public:
         // NOTE: the caller does not enforce thread safety of this call
-        virtual void write(const utility::string_t &entry) = 0;
+        SIGNALRCLIENT_API virtual void write(const utility::string_t &entry) = 0;
     };
 }
