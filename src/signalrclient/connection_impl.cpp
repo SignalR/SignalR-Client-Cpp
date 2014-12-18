@@ -267,9 +267,15 @@ namespace signalr
         return shutdown()
             .then([connection]()
             {
-                // we do let the exception through (especially the task_canceled exception)
-                connection->m_transport = nullptr;
-                connection->change_state(connection_state::disconnected);
+                // the lock prevents a race where the user calls `stop` on a disconnected connection and calls `start`
+                // on a different thread at the same time. In this case we must not null out the transport if we are
+                // not in the `disconnecting` state to not affect the 'start' invocation.
+                std::lock_guard<std::mutex> lock(connection->m_stop_lock);
+                if (connection->change_state(connection_state::disconnecting, connection_state::disconnected))
+                {
+                    // we do let the exception through (especially the task_canceled exception)
+                    connection->m_transport = nullptr;
+                }
             });
     }
 
