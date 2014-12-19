@@ -67,6 +67,7 @@ namespace signalr
         }
 
         pplx::task_completion_event<void> start_tce;
+
         auto connection = shared_from_this();
 
         pplx::task_from_result()
@@ -84,20 +85,22 @@ namespace signalr
 
                 connection->m_connection_token = negotiation_response.connection_token;
 
+                pplx::task_completion_event<void> connect_request_tce;
+
                 auto weak_connection = std::weak_ptr<connection_impl>(connection);
-                auto process_response_callback = [weak_connection](const utility::string_t& response)
+                auto process_response_callback = [weak_connection, connect_request_tce](const utility::string_t& response)
                 {
                     auto connection = weak_connection.lock();
                     if (connection)
                     {
-                        connection->process_response(response);
+                        connection->process_response(response, connect_request_tce);
                     }
                 };
 
                 connection->m_transport = connection->m_transport_factory->create_transport(
                     transport_type::websockets, connection->m_logger, process_response_callback);
 
-                return connection->send_connect_request(negotiation_response.connection_token);
+                return connection->send_connect_request(negotiation_response.connection_token, connect_request_tce);
             }, m_disconnect_cts.get_token())
             .then([connection]()
             {
@@ -146,38 +149,35 @@ namespace signalr
         return pplx::create_task(start_tce);
     }
 
-    pplx::task<void> connection_impl::send_connect_request(const utility::string_t& connection_token)
+    pplx::task<void> connection_impl::send_connect_request(const utility::string_t& connection_token, const pplx::task_completion_event<void>& connect_request_tce)
     {
-        auto connection = shared_from_this();
+        auto logger = m_logger;
 
-        auto connect_url = url_builder::build_connect(m_base_url, connection->m_transport->get_transport_type(),
+        auto connect_url = url_builder::build_connect(m_base_url, m_transport->get_transport_type(),
             connection_token, m_query_string);
 
-        pplx::task_completion_event<void> connect_request_tce;
-        m_connect_request_tce = connect_request_tce;
-
         m_transport->connect(connect_url)
-            .then([connection](pplx::task<void> connect_task)
-            {
+            .then([connect_request_tce, logger](pplx::task<void> connect_task)
+            mutable {
                 try
                 {
                     connect_task.get();
                 }
                 catch (const std::exception& e)
                 {
-                    connection->m_logger.log(
+                    logger.log(
                         trace_level::errors,
                         utility::string_t(_XPLATSTR("transport could not connect due to: "))
                             .append(utility::conversions::to_string_t(e.what())));
 
-                    connection->m_connect_request_tce.set_exception(std::current_exception());
+                    connect_request_tce.set_exception(std::current_exception());
                 }
             });
 
-        return pplx::create_task(m_connect_request_tce);
+        return pplx::create_task(connect_request_tce);
     }
 
-    void connection_impl::process_response(const utility::string_t& response)
+    void connection_impl::process_response(const utility::string_t& response, const pplx::task_completion_event<void>& connect_request_tce)
     {
         m_logger.log(trace_level::messages,
             utility::string_t(_XPLATSTR("processing message: ")).append(response));
@@ -191,7 +191,7 @@ namespace signalr
             {
                 if (result[_XPLATSTR("S")].is_integer() && result[_XPLATSTR("S")].as_integer() == 1)
                 {
-                    m_connect_request_tce.set();
+                    connect_request_tce.set();
                 }
 
                 for (auto& m : messages.as_array())

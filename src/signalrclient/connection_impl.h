@@ -53,7 +53,6 @@ namespace signalr
 
         std::function<void(const utility::string_t&)> m_message_received;
 
-        pplx::task_completion_event<void> m_connect_request_tce;
         pplx::cancellation_token_source m_disconnect_cts;
         std::mutex m_stop_lock;
         pplx::event m_start_completed_event;
@@ -62,9 +61,9 @@ namespace signalr
         connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level, const std::shared_ptr<log_writer>& log_writer,
             std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);
 
-        pplx::task<void> send_connect_request(const utility::string_t& connection_token);
+        pplx::task<void> send_connect_request(const utility::string_t& connection_token, const pplx::task_completion_event<void>& connect_request_tce);
 
-        void process_response(const utility::string_t& response);
+        void process_response(const utility::string_t& response, const pplx::task_completion_event<void>& connect_request_tce);
 
         pplx::task<void> shutdown();
 
