@@ -231,8 +231,13 @@ namespace signalr
 
     pplx::task<void> connection_impl::send(const utility::string_t& data)
     {
+        // To prevent an (unlikely) condition where the transport is nulled out after we checked the connection_state
+        // and before sending data we store the pointer in the local variable. In this case `send()` will throw but
+        // we won't crash.
+        auto transport = m_transport;
+
         auto connection_state = get_connection_state();
-        if (connection_state != connection_state::connected)
+        if (connection_state != connection_state::connected || !transport)
         {
             return pplx::task_from_exception<void>(std::runtime_error(
                 std::string{ "cannot send data when the connection is not in the connected state. current connection state: " }
@@ -241,7 +246,7 @@ namespace signalr
 
         auto logger = m_logger;
 
-        return m_transport->send(data)
+        return transport->send(data)
             .then([logger](pplx::task<void> send_task)
             mutable {
                 try
