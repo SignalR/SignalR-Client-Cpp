@@ -28,13 +28,17 @@ namespace signalr
         virtual ~transport();
 
     protected:
-        transport(const logger& logger, const std::function<void(const utility::string_t &)>& process_response_callback);
+        transport(const logger& logger, const std::function<void(const utility::string_t &)>& process_response_callback,
+            std::function<void(const std::exception&)> error_callback);
 
         void process_response(const utility::string_t &message);
+        void error(const std::exception &e);
 
         logger m_logger;
 
     private:
         std::function<void(const utility::string_t &)> m_process_response_callback;
+
+        std::function<void(const std::exception&)> m_error_callback;
     };
 }

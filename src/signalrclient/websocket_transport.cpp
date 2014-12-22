@@ -8,14 +8,17 @@
 namespace signalr
 {
     std::shared_ptr<transport> websocket_transport::create(const std::shared_ptr<websocket_client>& websocket_client,
-        const logger& logger, const std::function<void(const utility::string_t &)>& process_response_callback)
+        const logger& logger, const std::function<void(const utility::string_t &)>& process_response_callback,
+        std::function<void(const std::exception&)> error_callback)
     {
-        return std::shared_ptr<transport>(new websocket_transport(websocket_client, logger, process_response_callback));
+        return std::shared_ptr<transport>(
+            new websocket_transport(websocket_client, logger, process_response_callback, error_callback));
     }
 
     websocket_transport::websocket_transport(const std::shared_ptr<websocket_client>& websocket_client,
-        const logger& logger, const std::function<void(const utility::string_t &)>& process_response_callback)
-        : transport(logger, process_response_callback), m_websocket_client(websocket_client)
+        const logger& logger, const std::function<void(const utility::string_t &)>& process_response_callback,
+        std::function<void(const std::exception&)> error_callback)
+        : transport(logger, process_response_callback, error_callback), m_websocket_client(websocket_client)
     {
         // we use this cts to check if the receive loop is running so it should be
         // initially cancelled to indicate that the receive loop is not running
@@ -72,7 +75,6 @@ namespace signalr
                     utility::string_t(_XPLATSTR("[websocket transport] exception when connecting to the server: "))
                         .append(utility::conversions::to_string_t(e.what())));
 
-                // TODO: on error(?) - see what we do in the .net client
                 receive_loop_cts.cancel();
                 connect_tce.set_exception(std::current_exception());
             }
@@ -148,21 +150,11 @@ namespace signalr
             }, cts.get_token())
             // this continuation is used to observe exceptions from the previous tasks. It will run always - even if one of
             // the previous continuations throws or was not scheduled due to the cancellation token being set to cancelled
-            .then([logger, cts](pplx::task<void> task)
+            .then([weak_transport, logger, cts](pplx::task<void> task)
             mutable {
                 try
                 {
                     task.get();
-                }
-                // TODO: report error, close websocket (when appropriate), collapse handlers for websocket_exception and std::exception?
-                catch (const web_sockets::client::websocket_exception& e)
-                {
-                    cts.cancel();
-
-                    logger.log(
-                        trace_level::errors,
-                        utility::string_t(_XPLATSTR("[websocket transport] websocket exception when receiving data: "))
-                        .append(utility::conversions::to_string_t(e.what())));
                 }
                 catch (const pplx::task_canceled&)
                 {
@@ -179,6 +171,19 @@ namespace signalr
                         trace_level::errors,
                         utility::string_t(_XPLATSTR("[websocket transport] error receiving response from websocket: "))
                         .append(utility::conversions::to_string_t(e.what())));
+
+                    auto transport = weak_transport.lock();
+                    if (transport)
+                    {
+                        transport->m_websocket_client->close()
+                            .then([](pplx::task<void> task)
+                            {
+                                try { task.get(); }
+                                catch (...) {}
+                            });
+
+                        transport->error(e);
+                    }
                 }
                 catch (...)
                 {
@@ -187,6 +192,19 @@ namespace signalr
                     logger.log(
                         trace_level::errors,
                         utility::string_t(_XPLATSTR("[websocket transport] unknown error occurred when receiving response from websocket")));
+
+                    auto transport = weak_transport.lock();
+                    if (transport)
+                    {
+                        transport->m_websocket_client->close()
+                            .then([](pplx::task<void> task)
+                        {
+                            try { task.get(); }
+                            catch (...) {}
+                        });
+
+                        transport->error(std::runtime_error("unknown error"));
+                    }
                 }
             });
     }

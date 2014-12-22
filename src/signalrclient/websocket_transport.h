@@ -16,7 +16,8 @@ namespace signalr
     {
     public:
         static std::shared_ptr<transport> create(const std::shared_ptr<websocket_client>& websocket_client,
-            const logger& logger, const std::function<void(const utility::string_t&)>& process_response_callback);
+            const logger& logger, const std::function<void(const utility::string_t&)>& process_response_callback,
+            std::function<void(const std::exception&)> error_callback);
 
         ~websocket_transport();
 
@@ -34,12 +35,16 @@ namespace signalr
 
     private:
         websocket_transport(const std::shared_ptr<websocket_client>& websocket_client, const logger& logger,
-            const std::function<void(const utility::string_t &)>& process_response_callback);
+            const std::function<void(const utility::string_t &)>& process_response_callback,
+            std::function<void(const std::exception&)> error_callback);
 
         std::shared_ptr<websocket_client> m_websocket_client;
 
         pplx::cancellation_token_source m_receive_loop_cts;
 
         void receive_loop(pplx::cancellation_token_source cts);
+
+        void handle_receive_error(const std::exception &e, pplx::cancellation_token_source cts,
+            logger logger, std::weak_ptr<transport> weak_transport);
     };
 }

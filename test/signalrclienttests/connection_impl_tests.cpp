@@ -199,8 +199,7 @@ TEST(connection_impl_start, start_fails_if_transport_connect_throws)
         /* connect function */[](const web::uri&)
         {
             return pplx::task_from_exception<void>(web_sockets::client::websocket_exception(_XPLATSTR("connecting failed")));
-        }
-    );
+        });
 
     auto connection = create_connection(websocket_client, writer, trace_level::errors);
 
@@ -248,6 +247,35 @@ TEST(connection_impl_start, start_fails_if_TryWebsockets_false_and_no_fallback_t
         ASSERT_EQ(_XPLATSTR("websockets not supported on the server and there is no fallback transport"),
             utility::conversions::to_string_t(e.what()));
     }
+}
+
+TEST(connection_impl_start, start_fails_if_transport_fails_when_receiveing_messages)
+{
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ []()
+        {
+            return pplx::task_from_exception<std::string>(std::runtime_error("receive error"));
+        });
+
+    auto connection = create_connection(websocket_client, writer, trace_level::errors);
+
+    try
+    {
+        connection->start().get();
+        ASSERT_TRUE(false); // exception not thrown
+    }
+    catch (const std::exception &e)
+    {
+        ASSERT_EQ(_XPLATSTR("receive error"), utility::conversions::to_string_t(e.what()));
+    }
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_TRUE(log_entries.size() > 1);
+
+    auto entry = remove_date_from_log_entry(log_entries[1]);
+    ASSERT_EQ(_XPLATSTR("[error       ] connection could not be started due to: receive error\n"), entry);
 }
 
 TEST(connection_impl_start, start_fails_if_start_request_fails)

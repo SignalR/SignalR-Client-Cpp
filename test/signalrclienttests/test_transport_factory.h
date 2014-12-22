@@ -14,7 +14,8 @@ public:
     test_transport_factory(const std::shared_ptr<websocket_client>& websocket_client);
 
     std::shared_ptr<transport> create_transport(transport_type transport_type,
-        const logger& logger, std::function<void(const utility::string_t&)> process_message) override;
+        const logger& logger, std::function<void(const utility::string_t&)> process_message_callback,
+        std::function<void(const std::exception&)> error_callback) override;
 
 private:
     std::shared_ptr<websocket_client> m_websocket_client;

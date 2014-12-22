@@ -97,8 +97,13 @@ namespace signalr
                     }
                 };
 
+                auto error_callback = [connect_request_tce](const std::exception &e)
+                {
+                    connect_request_tce.set_exception(e);
+                };
+
                 connection->m_transport = connection->m_transport_factory->create_transport(
-                    transport_type::websockets, connection->m_logger, process_response_callback);
+                    transport_type::websockets, connection->m_logger, process_response_callback, error_callback);
 
                 return connection->send_connect_request(negotiation_response.connection_token, connect_request_tce);
             }, m_disconnect_cts.get_token())
