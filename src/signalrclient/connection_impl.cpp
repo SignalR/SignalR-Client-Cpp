@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include <cpprest\asyncrt_utils.h>
+#include <thread>
 #include "connection_impl.h"
 #include "request_sender.h"
 #include "url_builder.h"
@@ -160,6 +161,12 @@ namespace signalr
 
         auto transport = connection->m_transport_factory->create_transport(
             transport_type::websockets, connection->m_logger, process_response_callback, error_callback);
+
+        pplx::create_task([negotiation_response, connect_request_tce]()
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(negotiation_response.transport_connect_timeout));
+            connect_request_tce.set_exception(std::runtime_error("transport timed out when trying to connect"));
+        });
 
         return connection->send_connect_request(transport, negotiation_response.connection_token, connect_request_tce)
             .then([transport](){ return pplx::task_from_result(transport); });
