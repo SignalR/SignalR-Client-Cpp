@@ -11,6 +11,7 @@
 #include "web_request_factory.h"
 #include "transport_factory.h"
 #include "logger.h"
+#include "negotiation_response.h"
 
 namespace signalr
 {
@@ -61,7 +62,9 @@ namespace signalr
         connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level, const std::shared_ptr<log_writer>& log_writer,
             std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);
 
-        pplx::task<void> send_connect_request(const utility::string_t& connection_token, const pplx::task_completion_event<void>& connect_request_tce);
+        pplx::task<std::shared_ptr<transport>> start_transport(negotiation_response negotiation_response);
+        pplx::task<void> send_connect_request(const std::shared_ptr<transport>& transport, const utility::string_t& connection_token,
+            const pplx::task_completion_event<void>& connect_request_tce);
 
         void process_response(const utility::string_t& response, const pplx::task_completion_event<void>& connect_request_tce);
 

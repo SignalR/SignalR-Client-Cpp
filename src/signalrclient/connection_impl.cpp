@@ -77,35 +77,12 @@ namespace signalr
             }, m_disconnect_cts.get_token())
             .then([connection](negotiation_response negotiation_response)
             {
-                if (!negotiation_response.try_websockets)
-                {
-                    return pplx::task_from_exception<void>(
-                        std::runtime_error("websockets not supported on the server and there is no fallback transport"));
-                }
-
-                connection->m_connection_token = negotiation_response.connection_token;
-
-                pplx::task_completion_event<void> connect_request_tce;
-
-                auto weak_connection = std::weak_ptr<connection_impl>(connection);
-                auto process_response_callback = [weak_connection, connect_request_tce](const utility::string_t& response)
-                {
-                    auto connection = weak_connection.lock();
-                    if (connection)
+                return connection->start_transport(negotiation_response)
+                    .then([connection, negotiation_response](std::shared_ptr<transport> transport)
                     {
-                        connection->process_response(response, connect_request_tce);
-                    }
-                };
-
-                auto error_callback = [connect_request_tce](const std::exception &e)
-                {
-                    connect_request_tce.set_exception(e);
-                };
-
-                connection->m_transport = connection->m_transport_factory->create_transport(
-                    transport_type::websockets, connection->m_logger, process_response_callback, error_callback);
-
-                return connection->send_connect_request(negotiation_response.connection_token, connect_request_tce);
+                        connection->m_transport = transport;
+                        connection->m_connection_token = negotiation_response.connection_token;
+                    });
             }, m_disconnect_cts.get_token())
             .then([connection]()
             {
@@ -154,14 +131,49 @@ namespace signalr
         return pplx::create_task(start_tce);
     }
 
-    pplx::task<void> connection_impl::send_connect_request(const utility::string_t& connection_token, const pplx::task_completion_event<void>& connect_request_tce)
+    pplx::task<std::shared_ptr<transport>> connection_impl::start_transport(negotiation_response negotiation_response)
+    {
+        if (!negotiation_response.try_websockets)
+        {
+            return pplx::task_from_exception<std::shared_ptr<transport>>(
+            std::runtime_error("websockets not supported on the server and there is no fallback transport"));
+        }
+
+        auto connection = shared_from_this();
+
+        pplx::task_completion_event<void> connect_request_tce;
+
+        auto weak_connection = std::weak_ptr<connection_impl>(connection);
+        auto process_response_callback = [weak_connection, connect_request_tce](const utility::string_t& response)
+        {
+            auto connection = weak_connection.lock();
+            if (connection)
+            {
+                connection->process_response(response, connect_request_tce);
+            }
+        };
+
+        auto error_callback = [connect_request_tce](const std::exception &e)
+        {
+            connect_request_tce.set_exception(e);
+        };
+
+        auto transport = connection->m_transport_factory->create_transport(
+            transport_type::websockets, connection->m_logger, process_response_callback, error_callback);
+
+        return connection->send_connect_request(transport, negotiation_response.connection_token, connect_request_tce)
+            .then([transport](){ return pplx::task_from_result(transport); });
+    }
+
+    pplx::task<void> connection_impl::send_connect_request(const std::shared_ptr<transport>& transport,
+        const utility::string_t& connection_token, const pplx::task_completion_event<void>& connect_request_tce)
     {
         auto logger = m_logger;
 
-        auto connect_url = url_builder::build_connect(m_base_url, m_transport->get_transport_type(),
+        auto connect_url = url_builder::build_connect(m_base_url, transport->get_transport_type(),
             connection_token, m_query_string);
 
-        m_transport->connect(connect_url)
+        transport->connect(connect_url)
             .then([connect_request_tce, logger](pplx::task<void> connect_task)
             mutable {
                 try
