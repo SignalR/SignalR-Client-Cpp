@@ -9,48 +9,17 @@
 #include "connection_impl.h"
 #include "signalrclient\trace_level.h"
 #include "signalrclient\trace_log_writer.h"
-#include "web_request_factory.h"
-#include "transport_factory.h"
 #include "memory_log_writer.h"
-#include "cpprest\ws_client.h"
+#include <cpprest\ws_client.h>
 
 using namespace signalr;
 using namespace web::experimental;
 
-static std::shared_ptr<connection_impl> create_connection(std::shared_ptr<websocket_client> websocket_client = std::make_shared<test_websocket_client>(),
+static std::shared_ptr<connection_impl> create_connection(std::shared_ptr<websocket_client> websocket_client = create_test_websocket_client(),
     std::shared_ptr<log_writer> log_writer = std::make_shared<trace_log_writer>(), trace_level trace_level = trace_level::all)
 {
-    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
-    {
-        auto response_body =
-            url.path() == _XPLATSTR("/negotiate")
-            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
-            _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
-            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
-            : url.path() == _XPLATSTR("/start")
-                ? _XPLATSTR("{\"Response\":\"started\" }")
-                : _XPLATSTR("");
-
-        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
-    });
-
     return connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level, log_writer,
-        std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
-}
-
-static std::shared_ptr<websocket_client> create_test_websocket_client(
-    std::function<pplx::task<std::string>()> receive_function = [](){ return pplx::task_from_result<std::string>(""); },
-    std::function<pplx::task<void>(const utility::string_t &msg)> send_function = [](const utility::string_t msg){ return pplx::task_from_result(); },
-    std::function<pplx::task<void>(const web::uri &url)> connect_function = [](const web::uri &){ return pplx::task_from_result(); },
-    std::function<pplx::task<void>()> close_function = [](){ return pplx::task_from_result(); })
-{
-    auto websocket_client = std::make_shared<test_websocket_client>();
-    websocket_client->set_receive_function(receive_function);
-    websocket_client->set_send_function(send_function);
-    websocket_client->set_connect_function(connect_function);
-    websocket_client->set_close_function(close_function);
-
-    return websocket_client;
+        create_test_web_request_factory(), std::make_unique<test_transport_factory>(websocket_client));
 }
 
 TEST(connection_impl_connection_state, initial_connection_state_is_disconnected)
