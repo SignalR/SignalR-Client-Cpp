@@ -39,6 +39,8 @@
   <ItemGroup>
     <ClCompile Include="..\..\connection_impl_tests.cpp" />
     <ClCompile Include="..\..\http_sender_tests.cpp" />
+    <ClCompile Include="..\..\hub_connection_impl_tests.cpp" />
+    <ClCompile Include="..\..\internal_hub_proxy_tests.cpp" />
     <ClCompile Include="..\..\logger_tests.cpp" />
     <ClCompile Include="..\..\memory_log_writer.cpp" />
     <ClCompile Include="..\..\request_sender_tests.cpp" />

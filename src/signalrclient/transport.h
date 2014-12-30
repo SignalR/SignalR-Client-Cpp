@@ -12,8 +12,6 @@ namespace pplx = Concurrency;
 
 namespace signalr
 {
-    class connection_impl;
-
     class transport
     {
     public:

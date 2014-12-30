@@ -39,6 +39,8 @@
     <ClInclude Include="..\..\constants.h" />
     <ClInclude Include="..\..\default_websocket_client.h" />
     <ClInclude Include="..\..\http_sender.h" />
+    <ClInclude Include="..\..\hub_connection_impl.h" />
+    <ClInclude Include="..\..\internal_hub_proxy.h" />
     <ClInclude Include="..\..\logger.h" />
     <ClInclude Include="..\..\negotiation_response.h" />
     <ClInclude Include="..\..\request_sender.h" />
@@ -57,6 +59,8 @@
     <ClCompile Include="..\..\connection.cpp" />
     <ClCompile Include="..\..\connection_impl.cpp" />
     <ClCompile Include="..\..\http_sender.cpp" />
+    <ClCompile Include="..\..\hub_connection_impl.cpp" />
+    <ClCompile Include="..\..\internal_hub_proxy.cpp" />
     <ClCompile Include="..\..\logger.cpp" />
     <ClCompile Include="..\..\request_sender.cpp" />
     <ClCompile Include="..\..\stdafx.cpp">

@@ -29,7 +29,7 @@ namespace signalr
 
         void append_connection_token(web::uri_builder &builder, const utility::string_t &connection_token)
         {
-            if (connection_token != _XPLATSTR(""))
+            if (connection_token.length() > 0)
             {
                 builder.append_query(_XPLATSTR("connectionToken"), connection_token, /* do_encoding */ true);
             }

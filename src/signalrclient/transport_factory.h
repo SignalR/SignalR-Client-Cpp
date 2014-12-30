@@ -9,8 +9,6 @@
 
 namespace signalr
 {
-    class connection_impl;
-
     class transport_factory
     {
     public:
