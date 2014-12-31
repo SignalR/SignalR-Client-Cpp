@@ -4,8 +4,10 @@
 #include "stdafx.h"
 #include "test_utils.h"
 #include "test_transport_factory.h"
+#include "test_web_request_factory.h"
 #include "hub_connection_impl.h"
 #include "signalrclient\trace_log_writer.h"
+#include "memory_log_writer.h"
 
 using namespace signalr;
 
@@ -75,6 +77,49 @@ TEST(start, start_starts_connection)
     hub_connection->start().get();
 
     ASSERT_EQ(connection_state::connected, hub_connection->get_connection_state());
+}
+
+TEST(start, start_sets_connection_data)
+{
+    web::uri requested_url;
+    auto web_request_factory = std::make_unique<test_web_request_factory>([&requested_url](const web::uri &url)
+    {
+        requested_url = url;
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)404, _XPLATSTR("Bad request"), _XPLATSTR("")));
+    });
+
+    hub_connection_impl hub_connection{ _XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>(),
+        std::move(web_request_factory), std::make_unique<test_transport_factory>(create_test_websocket_client()) };
+    hub_connection.create_hub_proxy(_XPLATSTR("my_hub"));
+    hub_connection.create_hub_proxy(_XPLATSTR("your_hub"));
+
+    try
+    {
+        hub_connection.start().get();
+    }
+    catch (...)
+    {
+    }
+
+    ASSERT_EQ(web::uri(_XPLATSTR("http://fakeuri/negotiate?clientProtocol=1.4&connectionData=%5B%7B%22Name%22:%22my_hub%22%7D,%7B%22Name%22:%22your_hub%22%7D%5D")),
+        requested_url);
+}
+
+TEST(start, start_logs_if_no_hub_proxies_exist_for_hub_connection)
+{
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+    auto hub_connection = create_hub_connection(websocket_client, writer, trace_level::info);
+
+    hub_connection->start().get();
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_FALSE(log_entries.empty());
+
+    auto entry = remove_date_from_log_entry(log_entries[0]);
+    ASSERT_EQ(_XPLATSTR("[info        ] no hub proxies exist for this hub connection\n"), entry);
 }
 
 TEST(stop, stop_stops_connection)

@@ -38,6 +38,26 @@ namespace signalr
 
     pplx::task<void> hub_connection_impl::start()
     {
+        if (m_proxies.size() > 0)
+        {
+            json::value connection_data;
+
+            auto index = 0;
+            for (auto kvp : m_proxies)
+            {
+                json::value hub;
+                hub[_XPLATSTR("Name")] = json::value::string(kvp.first);
+
+                connection_data[index++] = hub;
+            }
+
+            m_connection->set_connection_data(connection_data.serialize());
+        }
+        else
+        {
+            m_logger.log(trace_level::info, _XPLATSTR("no hub proxies exist for this hub connection"));
+        }
+
         return m_connection->start();
     }
 

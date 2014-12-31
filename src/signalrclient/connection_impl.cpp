@@ -74,7 +74,8 @@ namespace signalr
         pplx::task_from_result()
             .then([connection]()
             {
-                return request_sender::negotiate(*connection->m_web_request_factory, connection->m_base_url, connection->m_query_string);
+                return request_sender::negotiate(*connection->m_web_request_factory, connection->m_base_url,
+                    connection->m_connection_data, connection->m_query_string);
             }, m_disconnect_cts.get_token())
             .then([connection](negotiation_response negotiation_response)
             {
@@ -88,7 +89,8 @@ namespace signalr
             .then([connection]()
             {
                 return request_sender::start(*connection->m_web_request_factory, connection->m_base_url,
-                    connection->m_transport->get_transport_type(), connection->m_connection_token, connection->m_query_string);
+                    connection->m_transport->get_transport_type(), connection->m_connection_token,
+                    connection->m_connection_data, connection->m_query_string);
             }, m_disconnect_cts.get_token())
             .then([start_tce, connection](pplx::task<void> previous_task)
             {
@@ -176,9 +178,8 @@ namespace signalr
         const utility::string_t& connection_token, const pplx::task_completion_event<void>& connect_request_tce)
     {
         auto logger = m_logger;
-
         auto connect_url = url_builder::build_connect(m_base_url, transport->get_transport_type(),
-            connection_token, m_query_string);
+            connection_token, m_connection_data, m_query_string);
 
         transport->connect(connect_url)
             .then([connect_request_tce, logger](pplx::task<void> connect_task)
@@ -347,7 +348,7 @@ namespace signalr
         }
 
         // This is fire and forget because we don't really care about the result
-        request_sender::abort(*m_web_request_factory, m_base_url, m_transport->get_transport_type(), m_connection_token, m_query_string)
+        request_sender::abort(*m_web_request_factory, m_base_url, m_transport->get_transport_type(), m_connection_token, m_connection_data, m_query_string)
             .then([](pplx::task<utility::string_t> abort_task)
             {
                 try
@@ -380,6 +381,11 @@ namespace signalr
         }
 
         m_message_received = message_received;
+    }
+
+    void connection_impl::set_connection_data(const utility::string_t& connection_data)
+    {
+        m_connection_data = connection_data;
     }
 
     bool connection_impl::change_state(connection_state old_state, connection_state new_state)

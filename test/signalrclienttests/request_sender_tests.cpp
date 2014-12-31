@@ -24,9 +24,9 @@ TEST(request_sender_negotiate, request_created_with_correct_url)
         return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
     });
 
-    request_sender::negotiate(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") }, _XPLATSTR("")).get();
+    request_sender::negotiate(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") }, _XPLATSTR("data"), _XPLATSTR("")).get();
 
-    ASSERT_EQ(web::uri(_XPLATSTR("http://fake/signalr/negotiate?clientProtocol=1.4")), requested_url);
+    ASSERT_EQ(web::uri(_XPLATSTR("http://fake/signalr/negotiate?clientProtocol=1.4&connectionData=data")), requested_url);
 }
 
 TEST(request_sender_negotiate, negotiation_request_sent_and_response_serialized)
@@ -41,7 +41,7 @@ TEST(request_sender_negotiate, negotiation_request_sent_and_response_serialized)
         return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
     });
 
-    auto response = request_sender::negotiate(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") }, _XPLATSTR("")).get();
+    auto response = request_sender::negotiate(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") }, _XPLATSTR(""), _XPLATSTR("")).get();
 
     ASSERT_EQ(_XPLATSTR("f7707523-307d-4cba-9abf-3eef701241e8"), response.connection_id);
     ASSERT_EQ(_XPLATSTR("A=="), response.connection_token);
@@ -69,7 +69,7 @@ TEST(request_sender_negotiate, negotiate_can_handle_null_keep_alive_timeout)
             return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
         });
 
-        auto response = request_sender::negotiate(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") }, _XPLATSTR("")).get();
+        auto response = request_sender::negotiate(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") }, _XPLATSTR(""), _XPLATSTR("")).get();
 
         ASSERT_EQ(-1, response.keep_alive_timeout);
     }
@@ -85,7 +85,7 @@ TEST(request_sender_start, start_does_not_throw_if_transport_started_successfull
     });
 
     ASSERT_NO_THROW(request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
-        transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get());
+        transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR(""), _XPLATSTR("")).get());
 }
 
 TEST(request_sender_start, start_request_returns_false_if_response_is_not_started_literal)
@@ -100,7 +100,7 @@ TEST(request_sender_start, start_request_returns_false_if_response_is_not_starte
     try
     {
         request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
-            transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get();
+            transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR(""), _XPLATSTR("")).get();
 
         ASSERT_TRUE(false); // exception not thrown
     }
@@ -122,7 +122,7 @@ TEST(request_sender_start, start_request_returns_false_if_response_missing)
     try
     {
         request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
-            transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get();
+            transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR(""), _XPLATSTR("")).get();
 
         ASSERT_TRUE(false); // exception not thrown
     }
@@ -143,7 +143,7 @@ TEST(request_sender_start, start_propagates_exceptions)
     try
     {
         request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
-            transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get();
+            transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR(""), _XPLATSTR("")).get();
 
         ASSERT_TRUE(false); // exception not thrown
     }
@@ -161,9 +161,9 @@ TEST(request_sender_abort, request_sent_with_correct_url)
     });
 
     auto actual_url = request_sender::abort(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
-        transport_type::websockets, _XPLATSTR("abc"), _XPLATSTR("")).get();
+        transport_type::websockets, _XPLATSTR("abc"), _XPLATSTR("data"), _XPLATSTR("")).get();
 
-    ASSERT_EQ(_XPLATSTR("http://fake/signalr/abort?transport=webSockets&clientProtocol=1.4&connectionToken=abc"), actual_url);
+    ASSERT_EQ(_XPLATSTR("http://fake/signalr/abort?transport=webSockets&clientProtocol=1.4&connectionToken=abc&connectionData=data"), actual_url);
 }
 
 TEST(request_sender_abort, abort_propagates_exceptions)
@@ -177,7 +177,7 @@ TEST(request_sender_abort, abort_propagates_exceptions)
     try
     {
         request_sender::abort(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
-            transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR("")).get();
+            transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR(""), _XPLATSTR("")).get();
 
         ASSERT_TRUE(false); // exception not thrown
     }

@@ -42,6 +42,7 @@ namespace signalr
         connection_state get_connection_state() const;
 
         void set_message_received(const std::function<void(const utility::string_t&)>& message_received);
+        void set_connection_data(const utility::string_t& connection_data);
 
     private:
         web::uri m_base_url;
@@ -58,6 +59,7 @@ namespace signalr
         std::mutex m_stop_lock;
         pplx::event m_start_completed_event;
         utility::string_t m_connection_token;
+        utility::string_t m_connection_data;
 
         connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level, const std::shared_ptr<log_writer>& log_writer,
             std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);
