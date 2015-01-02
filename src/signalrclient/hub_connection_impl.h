@@ -10,11 +10,16 @@
 
 namespace signalr
 {
-    class hub_connection_impl
+    // Note:
+    // Factory methods and private constructors prevent from using this class incorrectly. Because this class
+    // derives from `std::enable_shared_from_this` the instance has to be owned by a `std::shared_ptr` whenever
+    // a member method calls `std::shared_from_this()` otherwise the behavior is undefined. Therefore constructors
+    // are private to disallow creating instances directly and factory methods return `std::shared_ptr<connection_impl>`.
+    class hub_connection_impl : public std::enable_shared_from_this<hub_connection_impl>
     {
     public:
-        hub_connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level,
-            const std::shared_ptr<log_writer>& log_writer, std::unique_ptr<web_request_factory> web_request_factory,
+        static std::shared_ptr<hub_connection_impl> create(const utility::string_t& url, const utility::string_t& query_string,
+            trace_level trace_level, const std::shared_ptr<log_writer>& log_writer, std::unique_ptr<web_request_factory> web_request_factory,
             std::unique_ptr<transport_factory> transport_factory);
 
         hub_connection_impl(const hub_connection_impl&) = delete;
@@ -30,6 +35,11 @@ namespace signalr
         connection_state get_connection_state() const;
 
     private:
+        hub_connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level,
+            const std::shared_ptr<log_writer>& log_writer, std::unique_ptr<web_request_factory> web_request_factory,
+            std::unique_ptr<transport_factory> transport_factory);
+
+
         //TODO: keep a copy or take from the connection?
         logger m_logger;
 
