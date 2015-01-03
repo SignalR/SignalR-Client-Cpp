@@ -88,6 +88,22 @@ TEST(request_sender_start, start_does_not_throw_if_transport_started_successfull
         transport_type::websockets, _XPLATSTR("connection-token"), _XPLATSTR(""), _XPLATSTR("")).get());
 }
 
+TEST(request_sender_start, request_sent_with_correct_url)
+{
+    utility::string_t actual_url;
+    auto request_factory = test_web_request_factory([&actual_url](const web::uri& url)
+    {
+        actual_url = url.to_string();
+        utility::string_t response_body(_XPLATSTR("{\"Response\":\"started\" }"));
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    request_sender::start(request_factory, web::uri{ _XPLATSTR("http://fake/signalr") },
+        transport_type::websockets, _XPLATSTR("abc"), _XPLATSTR("data"), _XPLATSTR("")).get();
+
+    ASSERT_EQ(_XPLATSTR("http://fake/signalr/start?transport=webSockets&clientProtocol=1.4&connectionToken=abc&connectionData=data"), actual_url);
+}
+
 TEST(request_sender_start, start_request_returns_false_if_response_is_not_started_literal)
 {
     auto request_factory = test_web_request_factory([](const web::uri&)

@@ -37,7 +37,7 @@ namespace signalr
         }
 
         pplx::task<void> start(web_request_factory& request_factory, const web::uri &base_url, transport_type transport,
-            const utility::string_t& connection_data, const utility::string_t& connection_token, const utility::string_t &query_string)
+            const utility::string_t& connection_token, const utility::string_t& connection_data, const utility::string_t &query_string)
         {
             auto start_url = url_builder::build_start(base_url, transport, connection_token, connection_data, query_string);
             auto request = request_factory.create_web_request(start_url);

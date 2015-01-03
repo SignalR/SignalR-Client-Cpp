@@ -133,3 +133,108 @@ TEST(stop, stop_stops_connection)
 
     ASSERT_EQ(connection_state::disconnected, hub_connection->get_connection_state());
 }
+
+TEST(stop, connection_stopped_when_going_out_of_scope)
+{
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+
+    {
+        auto websocket_client = create_test_websocket_client(
+            /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+        auto hub_connection = create_hub_connection(websocket_client, writer, trace_level::state_changes);
+
+        hub_connection->start().get();
+    }
+
+    auto memory_writer = std::dynamic_pointer_cast<memory_log_writer>(writer);
+
+    // The underlying connection_impl will be destroyed when the last reference to shared_ptr holding is released. This can happen
+    // on a different thread in which case the dtor will be invoked on a different thread so we need to wait for this
+    // to happen and if it does not the test will fail. There is nothing we can block on.
+    for (int wait_time_ms = 5; wait_time_ms < 100 && memory_writer->get_log_entries().size() < 4; wait_time_ms <<= 1)
+    {
+        pplx::wait(wait_time_ms);
+    }
+
+    auto log_entries = memory_writer->get_log_entries();
+    ASSERT_EQ(4, log_entries.size());
+    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
+    ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(log_entries[1]));
+    ASSERT_EQ(_XPLATSTR("[state change] connected -> disconnecting\n"), remove_date_from_log_entry(log_entries[2]));
+    ASSERT_EQ(_XPLATSTR("[state change] disconnecting -> disconnected\n"), remove_date_from_log_entry(log_entries[3]));
+}
+
+TEST(hub_invocation, hub_connection_invokes_users_code_on_hub_invocations)
+{
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number]()
+    mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_hub\", \"M\":\"broadcast\", \"A\" : [\"message\", 1]}] }",
+            "{}"
+        };
+
+        call_number = min(call_number + 1, 2);
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    auto hub_connection = create_hub_connection(websocket_client);
+    auto hub_proxy = hub_connection->create_hub_proxy(_XPLATSTR("my_hub"));
+
+    auto payload = std::make_shared<utility::string_t>();
+    auto on_broadcast_event = std::make_shared<pplx::event>();
+    hub_proxy->on(_XPLATSTR("broadcast"), [on_broadcast_event, payload](const json::value& message)
+    {
+        *payload = message.serialize();
+        on_broadcast_event->set();
+    });
+
+    hub_connection->start().get();
+    ASSERT_FALSE(on_broadcast_event->wait(5000));
+
+    ASSERT_EQ(_XPLATSTR("[\"message\",1]"), *payload);
+}
+
+TEST(hub_invocation, hub_connection_logs_if_no_hub_for_invocation)
+{
+    int call_number = -1;
+
+    auto done_event = std::make_shared<pplx::event>();
+
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number, done_event]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_hub\", \"M\":\"broadcast\", \"A\" : [\"message\", 1]}] }",
+            "{}"
+        };
+
+        call_number = min(call_number + 1, 2);
+
+        if (call_number == 2)
+        {
+            done_event->set();
+        }
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+    auto hub_connection = create_hub_connection(websocket_client, writer, trace_level::info);
+
+    auto payload = std::make_shared<utility::string_t>();
+
+    hub_connection->start().get();
+    ASSERT_FALSE(done_event->wait(5000));
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_TRUE(log_entries.size() > 2);
+    auto entry = remove_date_from_log_entry(log_entries[2]);
+    ASSERT_EQ(_XPLATSTR("[info        ] no proxy found for hub invocation. hub: my_hub, method: broadcast\n"), entry);
+}

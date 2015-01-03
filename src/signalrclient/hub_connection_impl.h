@@ -39,12 +39,15 @@ namespace signalr
             const std::shared_ptr<log_writer>& log_writer, std::unique_ptr<web_request_factory> web_request_factory,
             std::unique_ptr<transport_factory> transport_factory);
 
-
         //TODO: keep a copy or take from the connection?
         logger m_logger;
 
         std::shared_ptr<connection_impl> m_connection;
 
         std::unordered_map<utility::string_t, std::shared_ptr<internal_hub_proxy>> m_proxies;
+
+        void initialize();
+
+        void process_message(const utility::string_t& message);
     };
 }
