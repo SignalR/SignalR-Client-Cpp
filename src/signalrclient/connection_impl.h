@@ -41,7 +41,8 @@ namespace signalr
 
         connection_state get_connection_state() const;
 
-        void set_message_received(const std::function<void(const utility::string_t&)>& message_received);
+        void set_message_received_string(const std::function<void(const utility::string_t&)>& message_received);
+        void set_message_received_json(const std::function<void(const web::json::value&)>& message_received);
         void set_connection_data(const utility::string_t& connection_data);
 
     private:
@@ -53,7 +54,7 @@ namespace signalr
         std::unique_ptr<web_request_factory> m_web_request_factory;
         std::unique_ptr<transport_factory> m_transport_factory;
 
-        std::function<void(const utility::string_t&)> m_message_received;
+        std::function<void(const web::json::value&)> m_message_received;
 
         pplx::cancellation_token_source m_disconnect_cts;
         std::mutex m_stop_lock;

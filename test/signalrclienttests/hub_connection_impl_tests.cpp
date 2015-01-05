@@ -199,6 +199,86 @@ TEST(hub_invocation, hub_connection_invokes_users_code_on_hub_invocations)
     ASSERT_EQ(_XPLATSTR("[\"message\",1]"), *payload);
 }
 
+TEST(hub_invocation, hub_connection_invokes_discards_persistent_connection_message_primitive_value)
+{
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+            "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"Test\"] }",
+            "{\"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_hub\", \"M\":\"broadcast\", \"A\" : [\"signal event\", 1]}] }",
+            "{}"
+        };
+
+        call_number = min(call_number + 1, 2);
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+    auto hub_connection = create_hub_connection(websocket_client, writer, trace_level::info);
+    auto hub_proxy = hub_connection->create_hub_proxy(_XPLATSTR("my_hub"));
+
+    auto on_broadcast_event = std::make_shared<pplx::event>();
+    hub_proxy->on(_XPLATSTR("broadcast"), [on_broadcast_event](const json::value&)
+    {
+        on_broadcast_event->set();
+    });
+
+    hub_connection->start().get();
+    ASSERT_FALSE(on_broadcast_event->wait(5000));
+
+    auto memory_writer = std::dynamic_pointer_cast<memory_log_writer>(writer);
+    auto log_entries = memory_writer->get_log_entries();
+    ASSERT_TRUE(log_entries.size() >= 1);
+
+    ASSERT_EQ(_XPLATSTR("[info        ] non-hub message received and will be discarded. message: \"Test\"\n"),
+        remove_date_from_log_entry(log_entries[1]));
+}
+
+TEST(hub_invocation, hub_connection_invokes_discards_persistent_connection_message_object)
+{
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+                "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [{\"Name\": \"Test\"}] }",
+                "{\"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_hub\", \"M\":\"broadcast\", \"A\" : [\"signal event\", 1]}] }",
+                "{}"
+        };
+
+        call_number = min(call_number + 1, 2);
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+    auto hub_connection = create_hub_connection(websocket_client, writer, trace_level::info);
+    auto hub_proxy = hub_connection->create_hub_proxy(_XPLATSTR("my_hub"));
+
+    auto on_broadcast_event = std::make_shared<pplx::event>();
+    hub_proxy->on(_XPLATSTR("broadcast"), [on_broadcast_event](const json::value&)
+    {
+        on_broadcast_event->set();
+    });
+
+    hub_connection->start().get();
+    ASSERT_FALSE(on_broadcast_event->wait(5000));
+
+    auto memory_writer = std::dynamic_pointer_cast<memory_log_writer>(writer);
+    auto log_entries = memory_writer->get_log_entries();
+    ASSERT_TRUE(log_entries.size() >= 1);
+
+    ASSERT_EQ(_XPLATSTR("[info        ] non-hub message received and will be discarded. message: {\"Name\":\"Test\"}\n"),
+        remove_date_from_log_entry(log_entries[1]));
+}
+
 TEST(hub_invocation, hub_connection_logs_if_no_hub_for_invocation)
 {
     int call_number = -1;

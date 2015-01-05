@@ -32,7 +32,7 @@ namespace signalr
         // weak_ptr prevents a circular dependency leading to memory leak and other problems
         auto weak_hub_connection = std::weak_ptr<hub_connection_impl>(this_hub_connection);
 
-        m_connection->set_message_received([weak_hub_connection](const utility::string_t& message)
+        m_connection->set_message_received_json([weak_hub_connection](const web::json::value& message)
         {
             auto connection = weak_hub_connection.lock();
             if (connection)
@@ -95,36 +95,44 @@ namespace signalr
         return m_connection->stop();
     }
 
-    // TODO: this method should take json::value to avoid duplicate parsing
-    void hub_connection_impl::process_message(const utility::string_t& message)
+    void hub_connection_impl::process_message(const web::json::value& message)
     {
-        //TODO: handle non-hub messages
-        auto message_json = json::value::parse(message);
+        if (message.is_object())
+        {
+            if (message.has_field(_XPLATSTR("P")))
+            {
+                // TODO: handle progress messages
+                return;
+            }
 
-        if (!message_json[_XPLATSTR("P")].is_null())
-        {
-            // TODO: handle progress messages
-            return;
+            if (message.has_field(_XPLATSTR("I")))
+            {
+                // TODO: handle invocation result
+                return;
+            }
+
+            if (message.has_field(_XPLATSTR("H")) && message.has_field(_XPLATSTR("M")) && message.has_field(_XPLATSTR("A")))
+            {
+                auto hub_name = message.at(_XPLATSTR("H")).as_string();
+                auto method = message.at(_XPLATSTR("M")).as_string();
+                auto iter = m_proxies.find(hub_name);
+                if (iter != m_proxies.end())
+                {
+                    iter->second->invoke_event(method, message.at(_XPLATSTR("A")));
+                }
+                else
+                {
+                    m_logger.log(trace_level::info,
+                        utility::string_t(_XPLATSTR("no proxy found for hub invocation. hub: "))
+                        .append(hub_name).append(_XPLATSTR(", method: ")).append(method));
+                }
+
+                return;
+            }
         }
 
-        if (!message_json[_XPLATSTR("I")].is_null())
-        {
-            // TODO: handle invocation result
-            return;
-        }
-
-        auto hub_name = message_json[_XPLATSTR("H")].as_string();
-        auto iter = m_proxies.find(hub_name);
-        if (iter != m_proxies.end())
-        {
-            iter->second->invoke_event(message_json[_XPLATSTR("M")].as_string(), message_json[_XPLATSTR("A")]);
-        }
-        else
-        {
-            m_logger.log(trace_level::info,
-                utility::string_t(_XPLATSTR("no proxy found for hub invocation. hub: "))
-                    .append(hub_name).append(_XPLATSTR(", method: ")).append(message_json[_XPLATSTR("M")].as_string()));
-        }
+        m_logger.log(trace_level::info, utility::string_t(_XPLATSTR("non-hub message received and will be discarded. message: "))
+            .append(message.serialize()));
     }
 
     connection_state hub_connection_impl::get_connection_state() const

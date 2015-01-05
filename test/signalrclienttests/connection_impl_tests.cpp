@@ -434,7 +434,7 @@ TEST(connection_impl_set_message_received, callback_invoked_when_message_receive
     auto message = std::make_shared<utility::string_t>();
 
     auto message_received_event = std::make_shared<pplx::event>();
-    connection->set_message_received([message, message_received_event](const utility::string_t &m){
+    connection->set_message_received_string([message, message_received_event](const utility::string_t &m){
         if (m == _XPLATSTR("\"Test\""))
         {
             *message = m;
@@ -476,7 +476,7 @@ TEST(connection_impl_set_message_received, exception_from_callback_caught_and_lo
     auto connection = create_connection(websocket_client, writer, trace_level::errors);
 
     auto message_received_event = std::make_shared<pplx::event>();
-    connection->set_message_received([message_received_event](const utility::string_t &m){
+    connection->set_message_received_string([message_received_event](const utility::string_t &m){
         if (m == _XPLATSTR("\"throw\""))
         {
             throw std::runtime_error("oops");
@@ -522,7 +522,7 @@ TEST(connection_impl_set_message_received, non_std_exception_from_callback_caugh
     auto connection = create_connection(websocket_client, writer, trace_level::errors);
 
     auto message_received_event = std::make_shared<pplx::event>();
-    connection->set_message_received([message_received_event](const utility::string_t &m)
+    connection->set_message_received_string([message_received_event](const utility::string_t &m)
     {
         if (m == _XPLATSTR("\"throw\""))
         {
@@ -569,7 +569,7 @@ TEST(connection_impl_set_message_received, error_logged_for_malformed_payload)
     auto connection = create_connection(websocket_client, writer, trace_level::errors);
 
     auto message_received_event = std::make_shared<pplx::event>();
-    connection->set_message_received([message_received_event](const utility::string_t&)
+    connection->set_message_received_string([message_received_event](const utility::string_t&)
     {
         // this is called only once because we have just one response with a message
         message_received_event->set();
@@ -596,7 +596,7 @@ TEST(connection_impl_set_message_received, callback_can_be_set_only_in_disconnec
 
     try
     {
-        connection->set_message_received([](const utility::string_t&){});
+        connection->set_message_received_string([](const utility::string_t&){});
         ASSERT_TRUE(false); // exception expected but not thrown
     }
     catch (const std::runtime_error &e)

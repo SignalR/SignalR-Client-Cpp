@@ -26,7 +26,7 @@ namespace signalr
         std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory)
         : m_base_url(url), m_query_string(query_string), m_connection_state(connection_state::disconnected),
         m_logger(log_writer, trace_level), m_transport(nullptr), m_web_request_factory(std::move(web_request_factory)),
-        m_transport_factory(std::move(transport_factory)), m_message_received([](const utility::string_t&){})
+        m_transport_factory(std::move(transport_factory)), m_message_received([](const web::json::value&){})
     { }
 
     connection_impl::~connection_impl()
@@ -223,7 +223,7 @@ namespace signalr
                 {
                     try
                     {
-                        m_message_received(m.serialize());
+                        m_message_received(m);
                     }
                     catch (const std::exception &e)
                     {
@@ -370,7 +370,15 @@ namespace signalr
         return m_connection_state.load();
     }
 
-    void connection_impl::set_message_received(const std::function<void(const utility::string_t&)>& message_received)
+    void connection_impl::set_message_received_string(const std::function<void(const utility::string_t&)>& message_received)
+    {
+        set_message_received_json([message_received](const web::json::value& payload)
+        {
+            message_received(payload.serialize());
+        });
+    }
+
+    void connection_impl::set_message_received_json(const std::function<void(const web::json::value&)>& message_received)
     {
         auto connection_state = get_connection_state();
         if (connection_state != connection_state::disconnected)

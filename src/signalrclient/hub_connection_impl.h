@@ -48,6 +48,6 @@ namespace signalr
 
         void initialize();
 
-        void process_message(const utility::string_t& message);
+        void process_message(const web::json::value& message);
     };
 }
