@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signalrclient", "src\signalrclient\Build\VS2013\signalrclient.vcxproj", "{87ED3AD4-D820-48CD-8382-A12564213A12}"
 EndProject
@@ -21,25 +21,43 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
 		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{87ED3AD4-D820-48CD-8382-A12564213A12}.Debug|Win32.ActiveCfg = Debug|Win32
 		{87ED3AD4-D820-48CD-8382-A12564213A12}.Debug|Win32.Build.0 = Debug|Win32
+		{87ED3AD4-D820-48CD-8382-A12564213A12}.Debug|x64.ActiveCfg = Debug|x64
+		{87ED3AD4-D820-48CD-8382-A12564213A12}.Debug|x64.Build.0 = Debug|x64
 		{87ED3AD4-D820-48CD-8382-A12564213A12}.Release|Win32.ActiveCfg = Release|Win32
 		{87ED3AD4-D820-48CD-8382-A12564213A12}.Release|Win32.Build.0 = Release|Win32
+		{87ED3AD4-D820-48CD-8382-A12564213A12}.Release|x64.ActiveCfg = Release|x64
+		{87ED3AD4-D820-48CD-8382-A12564213A12}.Release|x64.Build.0 = Release|x64
 		{10376148-BCF4-4B55-98A5-3C98C87FD898}.Debug|Win32.ActiveCfg = Debug|Win32
 		{10376148-BCF4-4B55-98A5-3C98C87FD898}.Debug|Win32.Build.0 = Debug|Win32
+		{10376148-BCF4-4B55-98A5-3C98C87FD898}.Debug|x64.ActiveCfg = Debug|x64
+		{10376148-BCF4-4B55-98A5-3C98C87FD898}.Debug|x64.Build.0 = Debug|x64
 		{10376148-BCF4-4B55-98A5-3C98C87FD898}.Release|Win32.ActiveCfg = Release|Win32
 		{10376148-BCF4-4B55-98A5-3C98C87FD898}.Release|Win32.Build.0 = Release|Win32
+		{10376148-BCF4-4B55-98A5-3C98C87FD898}.Release|x64.ActiveCfg = Release|x64
+		{10376148-BCF4-4B55-98A5-3C98C87FD898}.Release|x64.Build.0 = Release|x64
 		{2AF210A9-5BDC-45E8-95DD-07B5A2616493}.Debug|Win32.ActiveCfg = Debug|Win32
 		{2AF210A9-5BDC-45E8-95DD-07B5A2616493}.Debug|Win32.Build.0 = Debug|Win32
+		{2AF210A9-5BDC-45E8-95DD-07B5A2616493}.Debug|x64.ActiveCfg = Debug|x64
+		{2AF210A9-5BDC-45E8-95DD-07B5A2616493}.Debug|x64.Build.0 = Debug|x64
 		{2AF210A9-5BDC-45E8-95DD-07B5A2616493}.Release|Win32.ActiveCfg = Release|Win32
 		{2AF210A9-5BDC-45E8-95DD-07B5A2616493}.Release|Win32.Build.0 = Release|Win32
+		{2AF210A9-5BDC-45E8-95DD-07B5A2616493}.Release|x64.ActiveCfg = Release|x64
+		{2AF210A9-5BDC-45E8-95DD-07B5A2616493}.Release|x64.Build.0 = Release|x64
 		{18377AE8-E372-40CE-94FD-7F65008D39A3}.Debug|Win32.ActiveCfg = Debug|Win32
 		{18377AE8-E372-40CE-94FD-7F65008D39A3}.Debug|Win32.Build.0 = Debug|Win32
+		{18377AE8-E372-40CE-94FD-7F65008D39A3}.Debug|x64.ActiveCfg = Debug|x64
+		{18377AE8-E372-40CE-94FD-7F65008D39A3}.Debug|x64.Build.0 = Debug|x64
 		{18377AE8-E372-40CE-94FD-7F65008D39A3}.Release|Win32.ActiveCfg = Release|Win32
 		{18377AE8-E372-40CE-94FD-7F65008D39A3}.Release|Win32.Build.0 = Release|Win32
+		{18377AE8-E372-40CE-94FD-7F65008D39A3}.Release|x64.ActiveCfg = Release|x64
+		{18377AE8-E372-40CE-94FD-7F65008D39A3}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
