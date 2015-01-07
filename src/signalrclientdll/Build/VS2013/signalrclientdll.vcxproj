@@ -8,9 +8,10 @@
     <RootNamespace>signalrclient</RootNamespace>
     <ProjectName>signalrclientdll</ProjectName>
     <TargetName>$(SignalrClientTargetName)</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\dll\</OutDir>
-    <IntDir>$(Configuration)\dll\</IntDir>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <OutDir Condition="'$(OutDir)' == ''">$(SolutionDir)$(Configuration)\</OutDir>
+    <OutDir>$(OutDir)dll\</OutDir>
+    <IntDir>$(Configuration)\dll\</IntDir>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <Import Project="..\..\..\..\Build\Config.Definitions.props" />

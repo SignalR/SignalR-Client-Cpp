@@ -1,16 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\packages\cpprestsdk.2.2.0\build\native\cpprestsdk.props" Condition="Exists('..\..\..\..\packages\cpprestsdk.2.2.0\build\native\cpprestsdk.props')" />
-  <Import Project="..\..\..\..\Build\signalrclient.build.settings" />
+  <Import Project="..\..\..\..\Build\SignalRClient.Build.Settings" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{87ED3AD4-D820-48CD-8382-A12564213A12}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>signalr</RootNamespace>
     <ProjectName>signalrclient</ProjectName>
     <TargetName>$(SignalrClientTargetName)</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\lib\</OutDir>
-    <IntDir>$(Configuration)\lib\</IntDir>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <OutDir Condition="'$(OutDir)' == ''">$(SolutionDir)$(Configuration)\</OutDir>
+    <OutDir>$(OutDir)lib\</OutDir>
+    <IntDir>$(Configuration)\lib\</IntDir>
     <ConfigurationType>StaticLibrary</ConfigurationType>
   </PropertyGroup>
   <Import Project="..\..\..\..\Build\Config.Definitions.props" />
