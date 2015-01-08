@@ -2,7 +2,6 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildThisFileDirectory)\Common.Build.Settings" />
   <PropertyGroup>
-    <SignalrClientTargetName>signalrclient</SignalrClientTargetName>
     <DownloadNuGetExe Condition=" '$(DownloadNuGetExe)' == '' ">true</DownloadNuGetExe>
     <RestorePackages>true</RestorePackages>
     <CharacterSet>Unicode</CharacterSet>

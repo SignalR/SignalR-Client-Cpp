@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>Microsoft.SignalR.Client.Cpp</id>
+    <title>Microsoft ASP.NET SignalR C++ Client</title>
+    <!--TODO: should be common - taken from build -->
+    <version>3.0.0-alpha</version>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <!-- TODO: needs to be templetized? -->
+    <licenseUrl>http://www.microsoft.com/web/webpi/eula/net_library_eula_ENU.htm</licenseUrl>
+    <!-- TODO: needs to be templetized? -->
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+    <projectUrl>http://www.asp.net/signalr</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>C++ client for ASP.NET SignalR.</description>
+    <language>en-US</language>
+    <tags>Microsoft AspNet SignalR AspNetSignalR Client C++</tags>
+    <releaseNotes>https://github.com/SignalR/SignalR/releases</releaseNotes>
+    <dependencies>
+      <dependency id="cpprestsdk" version="2.2.0" />
+    </dependencies>
+  </metadata>
+</package>

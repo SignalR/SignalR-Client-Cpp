@@ -7,5 +7,6 @@
     <PlatformToolset Condition=" '$(PlatformToolset)' == ''">v120</PlatformToolset>
     <OutputPath Condition="'$(OutputPath)' == ''">$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutputPath>
     <OutDir>$(OutputPath)</OutDir>
+    <SignalrClientTargetName>signalrclient</SignalrClientTargetName>
   </PropertyGroup>
 </Project>
