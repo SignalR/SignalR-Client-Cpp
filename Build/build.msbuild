@@ -3,9 +3,12 @@
   <Import Project="$(MSBuildThisFileDirectory)\Common.Build.Settings" />
 
   <ItemGroup>
-    <Projects Include="$(SolutionDir)src\signalrclient\Build\VS2013\signalrclient.vcxproj" />
     <Projects Include="$(SolutionDir)src\signalrclientdll\Build\VS2013\signalrclientdll.vcxproj" />
-    <Projects Include="$(SolutionDir)test\signalrclienttests\Build\VS2013\signalrclienttests.vcxproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TestProjects Include="$(SolutionDir)src\signalrclient\Build\VS2013\signalrclient.vcxproj" />
+    <TestProjects Include="$(SolutionDir)test\signalrclienttests\Build\VS2013\signalrclienttests.vcxproj" />
   </ItemGroup>
 
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
@@ -14,18 +17,61 @@
     <MSBuild Targets="$(BuildTargets)"
       Projects="@(Projects)"
       Properties="Configuration=$(Configuration);Platform=$(Platform);PlatformToolset=$(PlatformToolset)" />
+
+    <MSBuild Targets="$(BuildTargets)"
+      Projects="@(TestProjects)"
+      Properties="Configuration=$(Configuration);Platform=$(Platform);PlatformToolset=$(PlatformToolset)" />
   </Target>
 
   <Target Name="Clean">
     <MSBuild Targets="Clean"
       Projects="@(Projects)" />
+    <MSBuild Targets="Clean"
+      Projects="@(TestProjects)" />
   </Target>
 
   <Target Name="Rebuild">
-    <MSBuild Projects="$(MSBuildProjectFile)" Properties="BuildTargets=Rebuild;Configuration=$(Configuration)" Targets="Clean;Build" />
+    <MSBuild Targets="Clean;Build"
+      Projects="$(MSBuildProjectFile)"
+      Properties="BuildTargets=Rebuild;Configuration=$(Configuration);Platform=$(Platform);PlatformToolset=$(PlatformToolset)"/>
   </Target>
 
   <Target Name="Test" DependsOnTargets="Build">
     <Exec Command="$(OutDir)\signalrclienttests.exe" />
   </Target>
+
+  <Import Project="Config.Definitions.Props" />
+
+  <Target Name="CreatePackage">
+    <PropertyGroup>
+      <PackageSource>$(SolutionDir)bin\Package\</PackageSource>
+      <PackageSourceNative>$(SolutionDir)bin\Package\build\native\</PackageSourceNative>
+      <NuSpecPath>$(MSBuildThisFileDirectory)signalrclientcpp.nuspec</NuSpecPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Include Include="$(SolutionDir)include\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(Include)" DestinationFolder="$(PackageSourceNative)include\%(RecursiveDir)" />
+    <Copy SourceFiles="$(NuSpecPath)" DestinationFolder="$(PackageSource)" />
+
+    <!-- TODO: consider using Config.Definitions.Props -->
+
+    <MSBuild Targets="BuildForNuget"
+      Projects="$(MSBuildThisFile)"
+      Properties="PackageSourceNative=$(PackageSourceNative);Configuration=%(ProjectConfiguration.Configuration);Platform=%(ProjectConfiguration.Platform);PlatformToolset=$(PlatformToolset);SignalrClientTargetName=$(SignalrClientTargetName)" />
+
+    <Exec Command="$(NuGetCommand) pack $(NuSpecPath) -BasePath $(PackageSource) -OutputDirectory $(SolutionDir)bin" LogStandardErrorAsError="true" />
+  </Target>
+
+  <Target Name="BuildForNuget">
+    <MSBuild Targets="$(BuildTargets)"
+      Projects="@(Projects)"
+      Properties="Configuration=$(Configuration);Platform=$(Platform);PlatformToolset=$(PlatformToolset)" />
+
+    <Copy SourceFiles="$(OutputPath)dll\$(SignalrClientTargetName).lib" DestinationFolder="$(PackageSourceNative)lib\$(Platform)\$(PlatformToolset)\$(Configuration)" />
+    <Copy SourceFiles="$(OutputPath)dll\$(SignalrClientTargetName).dll" DestinationFolder="$(PackageSourceNative)dll\$(Platform)\$(PlatformToolset)\$(Configuration)" />
+    <Copy SourceFiles="$(OutputPath)dll\$(SignalrClientTargetName).pub.pdb" DestinationFiles="$(PackageSourceNative)dll\$(Platform)\$(PlatformToolset)\$(Configuration)\$(SignalrClientTargetName).pdb" />
+  </Target>
+
 </Project>
