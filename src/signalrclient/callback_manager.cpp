@@ -1,0 +1,69 @@
+// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+#include "stdafx.h"
+#include "callback_manager.h"
+
+namespace signalr
+{
+    // dtor_clear_arguments will be passed when closing any pending callbacks when the `callback_manager` is
+    // destroyed (i.e. in the dtor)
+    callback_manager::callback_manager(const web::json::value& dtor_clear_arguments)
+        : m_dtor_clear_arguments(dtor_clear_arguments)
+    { }
+
+    callback_manager::~callback_manager()
+    {
+        clear(m_dtor_clear_arguments);
+    }
+
+    // note: callback must not throw
+    int callback_manager::register_callback(const std::function<void(const web::json::value&)>& callback)
+    {
+        auto callback_id = m_id++;
+
+        {
+            std::lock_guard<std::mutex> lock(m_map_lock);
+
+            m_callbacks.insert(std::make_pair(callback_id, callback));
+        }
+
+        return callback_id;
+    }
+
+    // invokes a callback and stops tracking it
+    bool callback_manager::complete_callback(int callback_id, const web::json::value& arguments)
+    {
+        std::function<void(const web::json::value& arguments)> callback;
+
+        {
+            std::lock_guard<std::mutex> lock(m_map_lock);
+
+            auto iter = m_callbacks.find(callback_id);
+            if (iter == m_callbacks.end())
+            {
+                return false;
+            }
+
+            callback = iter->second;
+            m_callbacks.erase(callback_id);
+        }
+
+        callback(arguments);
+        return true;
+    }
+
+    void callback_manager::clear(const web::json::value& arguments)
+    {
+        {
+            std::lock_guard<std::mutex> lock(m_map_lock);
+
+            for (auto& kvp : m_callbacks)
+            {
+                kvp.second(arguments);
+            }
+
+            m_callbacks.clear();
+        }
+    }
+}

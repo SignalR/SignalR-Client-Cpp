@@ -18,6 +18,9 @@
     <ClInclude Include="..\..\targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\signalrclient\callback_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\signalrclient\connection_impl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -104,6 +107,9 @@
     <ClCompile Include="..\..\dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClInclude Include="..\..\..\signalrclient\callback_manager.cpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClCompile Include="..\..\..\signalrclient\connection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

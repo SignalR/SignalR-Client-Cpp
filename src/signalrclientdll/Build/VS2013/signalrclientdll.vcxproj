@@ -42,6 +42,7 @@
     <ClInclude Include="..\..\..\signalrclient\http_sender.h" />
     <ClInclude Include="..\..\..\signalrclient\hub_connection_impl.h" />
     <ClInclude Include="..\..\..\signalrclient\internal_hub_proxy.h" />
+    <ClInclude Include="..\..\..\signalrclient\callback_manager.h" />
     <ClInclude Include="..\..\..\signalrclient\logger.h" />
     <ClInclude Include="..\..\..\signalrclient\negotiation_response.h" />
     <ClInclude Include="..\..\..\signalrclient\request_sender.h" />
@@ -64,6 +65,7 @@
     <ClCompile Include="..\..\..\signalrclient\http_sender.cpp" />
     <ClCompile Include="..\..\..\signalrclient\hub_connection_impl.cpp" />
     <ClCompile Include="..\..\..\signalrclient\internal_hub_proxy.cpp" />
+    <ClCompile Include="..\..\..\signalrclient\callback_manager.cpp" />
     <ClCompile Include="..\..\..\signalrclient\logger.cpp" />
     <ClCompile Include="..\..\..\signalrclient\request_sender.cpp" />
     <ClCompile Include="..\..\..\signalrclient\stdafx.cpp">
