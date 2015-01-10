@@ -76,6 +76,7 @@ namespace signalr
         bool change_state(connection_state old_state, connection_state new_state);
         connection_state change_state(connection_state new_state);
         void handle_connection_state_change(connection_state old_state, connection_state new_state);
+        void invoke_message_received(const web::json::value& message);
 
         static utility::string_t translate_connection_state(connection_state state);
     };

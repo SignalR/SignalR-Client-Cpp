@@ -7,6 +7,7 @@
 #include <cpprest\basic_types.h>
 #include "connection_impl.h"
 #include "internal_hub_proxy.h"
+#include "callback_manager.h"
 
 namespace signalr
 {
@@ -23,13 +24,13 @@ namespace signalr
             std::unique_ptr<transport_factory> transport_factory);
 
         hub_connection_impl(const hub_connection_impl&) = delete;
-
         hub_connection_impl& operator=(const hub_connection_impl&) = delete;
 
         std::shared_ptr<internal_hub_proxy> create_hub_proxy(const utility::string_t& hub_name);
+        pplx::task<json::value> invoke_json(const utility::string_t& hub_name, const utility::string_t& method_name, const json::value& arguments);
+        pplx::task<void> invoke_void(const utility::string_t& hub_name, const utility::string_t& method_name, const json::value& arguments);
 
         pplx::task<void> start();
-
         pplx::task<void> stop();
 
         connection_state get_connection_state() const;
@@ -43,11 +44,14 @@ namespace signalr
         logger m_logger;
 
         std::shared_ptr<connection_impl> m_connection;
-
         std::unordered_map<utility::string_t, std::shared_ptr<internal_hub_proxy>> m_proxies;
+        callback_manager m_callback_manager;
 
         void initialize();
 
         void process_message(const web::json::value& message);
+
+        void invoke_hub_method(const utility::string_t& hub_name, const utility::string_t& method_name,
+            const json::value& arguments, const utility::string_t& callback_id, std::function<void(const std::exception_ptr)> set_exception);
     };
 }

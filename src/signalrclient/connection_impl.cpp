@@ -211,6 +211,12 @@ namespace signalr
         {
             auto result = web::json::value::parse(response);
 
+            if (result.has_field(_XPLATSTR("I")))
+            {
+                invoke_message_received(result);
+                return;
+            }
+
             auto messages = result[_XPLATSTR("M")];
             if (!messages.is_null() && messages.is_array())
             {
@@ -221,27 +227,7 @@ namespace signalr
 
                 for (auto& m : messages.as_array())
                 {
-                    try
-                    {
-                        m_message_received(m);
-                    }
-                    catch (const std::exception &e)
-                    {
-                        m_logger.log(
-                            trace_level::errors,
-                            utility::string_t(_XPLATSTR("message_received callback threw an exception: "))
-                                .append(utility::conversions::to_string_t(e.what())));
-
-                        // TODO: call on error callback
-                    }
-                    catch (...)
-                    {
-                        m_logger.log(
-                            trace_level::errors,
-                            utility::string_t(_XPLATSTR("message_received callback threw an unknown exception.")));
-
-                        // TODO: call on error callback
-                    }
+                    invoke_message_received(m);
                 }
             }
         }
@@ -251,6 +237,31 @@ namespace signalr
                 .append(utility::conversions::to_string_t(e.what()))
                 .append(_XPLATSTR(". response: "))
                 .append(response));
+        }
+    }
+
+    void connection_impl::invoke_message_received(const web::json::value& message)
+    {
+        try
+        {
+            m_message_received(message);
+        }
+        catch (const std::exception &e)
+        {
+            m_logger.log(
+                trace_level::errors,
+                utility::string_t(_XPLATSTR("message_received callback threw an exception: "))
+                .append(utility::conversions::to_string_t(e.what())));
+
+            // TODO: call on error callback
+        }
+        catch (...)
+        {
+            m_logger.log(
+                trace_level::errors,
+                utility::string_t(_XPLATSTR("message_received callback threw an unknown exception.")));
+
+            // TODO: call on error callback
         }
     }
 
