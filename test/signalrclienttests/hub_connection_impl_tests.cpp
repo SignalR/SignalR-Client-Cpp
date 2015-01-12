@@ -248,9 +248,9 @@ TEST(hub_invocation, hub_connection_invokes_discards_persistent_connection_messa
         std::string responses[]
         {
             "{\"S\":1, \"M\":[] }",
-                "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [{\"Name\": \"Test\"}] }",
-                "{\"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_hub\", \"M\":\"broadcast\", \"A\" : [\"signal event\", 1]}] }",
-                "{}"
+            "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [{\"Name\": \"Test\"}] }",
+            "{\"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_hub\", \"M\":\"broadcast\", \"A\" : [\"signal event\", 1]}] }",
+            "{}"
         };
 
         call_number = min(call_number + 1, 2);

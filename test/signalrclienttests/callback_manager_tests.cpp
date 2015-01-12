@@ -37,9 +37,34 @@ TEST(callback_manager_complete_callback, complete_callback_invokes_callback_and_
 TEST(callback_manager_complete_callback, complete_callback_returns_false_for_invalid_callback_id)
 {
     auto callback_mgr = callback_manager{ json::value::object() };
-    auto callback_found = callback_mgr.complete_callback(42, json::value::number(42));
+    auto callback_found = callback_mgr.complete_callback(_XPLATSTR("42"), json::value::object());
 
     ASSERT_FALSE(callback_found);
+}
+
+TEST(callback_manager_remove, remove_removes_callback_and_returns_true_for_valid_callback_id)
+{
+    auto callback_called = false;
+
+    {
+        auto callback_mgr = callback_manager{ json::value::object() };
+
+        auto callback_id = callback_mgr.register_callback(
+            [&callback_called](const json::value&)
+        {
+            callback_called = true;
+        });
+
+        ASSERT_TRUE(callback_mgr.remove_callback(callback_id));
+    }
+
+    ASSERT_FALSE(callback_called);
+}
+
+TEST(callback_manager_remove, remove_returns_false_for_invalid_callback_id)
+{
+    auto callback_mgr = callback_manager{ json::value::object() };
+    ASSERT_FALSE(callback_mgr.remove_callback(_XPLATSTR("42")));
 }
 
 TEST(callback_manager_clear, clear_invokes_all_callbacks)
