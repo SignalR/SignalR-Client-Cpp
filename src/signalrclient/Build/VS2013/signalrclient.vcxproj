@@ -30,6 +30,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\signalrclient\connection.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\connection_state.h" />
+    <ClInclude Include="..\..\..\..\include\signalrclient\hub_exception.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\log_writer.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\trace_level.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\trace_log_writer.h" />

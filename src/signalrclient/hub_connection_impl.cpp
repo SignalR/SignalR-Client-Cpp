@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "hub_connection_impl.h"
+#include "signalrclient\hub_exception.h"
 
 namespace signalr
 {
@@ -226,10 +227,20 @@ namespace signalr
 
                 if (message.has_field(_XPLATSTR("E")))
                 {
-                    // TODO: handle hub_exception
-                    set_exception(
-                        std::make_exception_ptr(
-                            std::runtime_error(utility::conversions::to_utf8string(message.at(_XPLATSTR("E")).serialize()))));
+                    if (message.has_field(_XPLATSTR("H")) && message.at(_XPLATSTR("H")).is_boolean() && message.at(_XPLATSTR("H")).as_bool())
+                    {
+                        set_exception(
+                            std::make_exception_ptr(
+                                hub_exception(
+                                    message.at(_XPLATSTR("E")).serialize(),
+                                    message.has_field(_XPLATSTR("D")) ? message.at(_XPLATSTR("D")): json::value())));
+                    }
+                    else
+                    {
+                        set_exception(
+                            std::make_exception_ptr(
+                               std::runtime_error(utility::conversions::to_utf8string(message.at(_XPLATSTR("E")).serialize()))));
+                    }
 
                     return;
                 }

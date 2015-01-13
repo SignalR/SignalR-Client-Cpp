@@ -209,7 +209,15 @@ namespace signalr
 
         try
         {
-            auto result = web::json::value::parse(response);
+            const auto result = web::json::value::parse(response);
+
+            if (!result.is_object())
+            {
+                m_logger.log(trace_level::info, utility::string_t(_XPLATSTR("unexpected response received from the server: "))
+                    .append(response));
+
+                return;
+            }
 
             if (result.has_field(_XPLATSTR("I")))
             {
@@ -217,15 +225,14 @@ namespace signalr
                 return;
             }
 
-            auto messages = result[_XPLATSTR("M")];
-            if (!messages.is_null() && messages.is_array())
+            if (result.has_field(_XPLATSTR("M")) && result.at(_XPLATSTR("M")).is_array())
             {
-                if (result[_XPLATSTR("S")].is_integer() && result[_XPLATSTR("S")].as_integer() == 1)
+                if (result.has_field(_XPLATSTR("S")) && result.at(_XPLATSTR("S")).is_integer() && result.at(_XPLATSTR("S")).as_integer() == 1)
                 {
                     connect_request_tce.set();
                 }
 
-                for (auto& m : messages.as_array())
+                for (auto& m : result.at(_XPLATSTR("M")).as_array())
                 {
                     invoke_message_received(m);
                 }

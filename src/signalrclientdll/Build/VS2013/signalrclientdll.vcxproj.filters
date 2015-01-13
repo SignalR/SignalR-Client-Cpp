@@ -84,6 +84,9 @@
     <ClInclude Include="..\..\..\..\include\signalrclient\connection_state.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\include\signalrclient\hub_exception.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>    
     <ClInclude Include="..\..\..\..\include\signalrclient\log_writer.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -555,7 +555,7 @@ TEST(connection_impl_set_message_received, error_logged_for_malformed_payload)
         std::string responses[]
         {
             "{\"S\":1, \"M\":[] }",
-            "42",
+            "{ 42",
             "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"release\"] }",
             "{}"
         };
@@ -583,7 +583,47 @@ TEST(connection_impl_set_message_received, error_logged_for_malformed_payload)
     ASSERT_FALSE(log_entries.empty());
 
     auto entry = remove_date_from_log_entry(log_entries[0]);
-    ASSERT_EQ(_XPLATSTR("[error       ] error occured when parsing response: not an object. response: 42\n"), entry);
+    ASSERT_EQ(_XPLATSTR("[error       ] error occured when parsing response: * Line 1, Column 4 Syntax error: Malformed object literal. response: { 42\n"), entry);
+}
+
+TEST(connection_impl_set_message_received, unexpected_responses_logged)
+{
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+            "42",
+            "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"release\"] }",
+            "{}"
+        };
+
+        call_number = min(call_number + 1, 3);
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+    auto connection = create_connection(websocket_client, writer, trace_level::info);
+
+    auto message_received_event = std::make_shared<pplx::event>();
+    connection->set_message_received_string([message_received_event](const utility::string_t&)
+    {
+        // this is called only once because we have just one response with a message
+        message_received_event->set();
+    });
+
+    connection->start().get();
+
+    ASSERT_FALSE(message_received_event->wait(5000));
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_TRUE(log_entries.size() >= 1);
+
+    auto entry = remove_date_from_log_entry(log_entries[1]);
+    ASSERT_EQ(_XPLATSTR("[info        ] unexpected response received from the server: 42\n"), entry);
 }
 
 TEST(connection_impl_set_message_received, callback_can_be_set_only_in_disconnected_state)
