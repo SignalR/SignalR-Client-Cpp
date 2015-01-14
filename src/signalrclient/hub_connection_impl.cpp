@@ -11,7 +11,9 @@ namespace signalr
     namespace
     {
         static std::function<void(const json::value&)> create_hub_invocation_callback(const logger& logger,
-            std::function<void(const json::value&)> set_result, std::function<void(const std::exception_ptr e)> set_exception);
+            const std::function<void(const json::value&)>& set_result,
+            const std::function<void(const std::exception_ptr e)>& set_exception,
+            const std::function<void(const json::value&)>& on_progress);
     }
 
     std::shared_ptr<hub_connection_impl> hub_connection_impl::create(const utility::string_t& url, const utility::string_t& query_string,
@@ -108,11 +110,13 @@ namespace signalr
     {
         if (message.is_object())
         {
+            // note this handles both - invocation returns and progress updates
             if (message.has_field(_XPLATSTR("I")))
             {
-                auto callback_id = message.at(_XPLATSTR("I")).as_string();
-                m_callback_manager.complete_callback(callback_id, message);
-                return;
+                if (invoke_callback(message))
+                {
+                    return;
+                }
             }
 
             if (message.has_field(_XPLATSTR("H")) && message.has_field(_XPLATSTR("M")) && message.has_field(_XPLATSTR("A")))
@@ -139,8 +143,28 @@ namespace signalr
             .append(message.serialize()));
     }
 
+    bool hub_connection_impl::invoke_callback(const web::json::value& message)
+    {
+        auto is_progress = message.has_field(_XPLATSTR("P"));
+        auto id_source = is_progress ? message.at(_XPLATSTR("P")) : message;
+        if (id_source.has_field(_XPLATSTR("I")) && id_source.at(_XPLATSTR("I")).is_string())
+        {
+            auto callback_id = id_source.at(_XPLATSTR("I")).as_string();
+
+            // callbacks must not be removed for progress updates
+            if (!m_callback_manager.invoke_callback(callback_id, message, /*remove_callback*/ !is_progress))
+            {
+                m_logger.log(trace_level::info, utility::string_t(_XPLATSTR("no callback found for id: ")).append(callback_id));
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     pplx::task<json::value> hub_connection_impl::invoke_json(const utility::string_t& hub_name, const utility::string_t& method_name,
-        const json::value& arguments)
+        const json::value& arguments, const std::function<void(const json::value&)>& on_progress)
     {
         _ASSERTE(arguments.is_array());
 
@@ -148,7 +172,7 @@ namespace signalr
 
         const auto callback_id = m_callback_manager.register_callback(
             create_hub_invocation_callback(m_logger, [tce](const json::value& result) { tce.set(result); },
-                [tce](const std::exception_ptr e) { tce.set_exception(e); }));
+                [tce](const std::exception_ptr e) { tce.set_exception(e); }, on_progress));
 
         invoke_hub_method(hub_name, method_name, arguments, callback_id,
             [tce](const std::exception_ptr e){tce.set_exception(e); });
@@ -157,7 +181,7 @@ namespace signalr
     }
 
     pplx::task<void> hub_connection_impl::invoke_void(const utility::string_t& hub_name, const utility::string_t& method_name,
-        const json::value& arguments)
+        const json::value& arguments, const std::function<void(const json::value&)>& on_progress)
     {
         _ASSERTE(arguments.is_array());
 
@@ -165,7 +189,7 @@ namespace signalr
 
         const auto callback_id = m_callback_manager.register_callback(
             create_hub_invocation_callback(m_logger, [tce](const json::value&) { tce.set(); },
-            [tce](const std::exception_ptr e){ tce.set_exception(e); }));
+            [tce](const std::exception_ptr e){ tce.set_exception(e); }, on_progress));
 
         invoke_hub_method(hub_name, method_name, arguments, callback_id,
             [tce](const std::exception_ptr e){tce.set_exception(e); });
@@ -215,13 +239,27 @@ namespace signalr
     namespace
     {
         static std::function<void(const json::value&)> create_hub_invocation_callback(const logger& logger,
-            std::function<void(const json::value&)> set_result, std::function<void(const std::exception_ptr)> set_exception)
+            const std::function<void(const json::value&)>& set_result,
+            const std::function<void(const std::exception_ptr)>& set_exception,
+            const std::function<void(const json::value&)>& on_progress)
         {
-            return[logger, set_result, set_exception](const json::value& message)
+            return[logger, set_result, set_exception, on_progress](const json::value& message)
             {
                 if (message.has_field(_XPLATSTR("R")))
                 {
                     set_result(message.at(_XPLATSTR("R")));
+                    return;
+                }
+
+                if (message.has_field(_XPLATSTR("P")))
+                {
+                    auto progress_message = message.at(_XPLATSTR("P"));
+                    auto data = progress_message.has_field(_XPLATSTR("D"))
+                        ? progress_message.at(_XPLATSTR("D"))
+                        : json::value::null();
+
+                    on_progress(data);
+
                     return;
                 }
 
@@ -245,13 +283,7 @@ namespace signalr
                     return;
                 }
 
-                if (message.has_field(_XPLATSTR("P")))
-                {
-                    // TODO: handle progress messages
-                    return;
-                }
-
-                set_result(json::value::object());
+                set_result(json::value::null());
             };
         }
     }

@@ -21,8 +21,8 @@ namespace signalr
         callback_manager& operator=(const callback_manager&) = delete;
 
         utility::string_t register_callback(const std::function<void(const web::json::value&)>& callback);
-        bool complete_callback(const utility::string_t&  callback_id, const web::json::value& arguments);
-        bool remove_callback(const utility::string_t&  callback_id);
+        bool invoke_callback(const utility::string_t& callback_id, const web::json::value& arguments, bool remove_callback);
+        bool remove_callback(const utility::string_t& callback_id);
         void clear(const web::json::value& arguments);
 
     private:

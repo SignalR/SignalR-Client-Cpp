@@ -17,7 +17,7 @@ namespace signalr
         clear(m_dtor_clear_arguments);
     }
 
-    // note: callback must not throw
+    // note: callback must not throw except for the `on_progress` callback which will never be invoked from the dtor
     utility::string_t callback_manager::register_callback(const std::function<void(const web::json::value&)>& callback)
     {
         auto callback_id = get_callback_id();
@@ -32,8 +32,8 @@ namespace signalr
     }
 
 
-    // invokes a callback and stops tracking it
-    bool callback_manager::complete_callback(const utility::string_t& callback_id, const web::json::value& arguments)
+    // invokes a callback and stops tracking it if remove callback set to true
+    bool callback_manager::invoke_callback(const utility::string_t& callback_id, const web::json::value& arguments, bool remove_callback)
     {
         std::function<void(const web::json::value& arguments)> callback;
 
@@ -47,7 +47,11 @@ namespace signalr
             }
 
             callback = iter->second;
-            m_callbacks.erase(callback_id);
+
+            if (remove_callback)
+            {
+                m_callbacks.erase(callback_id);
+            }
         }
 
         callback(arguments);
