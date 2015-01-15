@@ -70,7 +70,8 @@ namespace signalr
             return iter->second;
         }
 
-        auto proxy = std::make_shared<internal_hub_proxy>(hub_name, m_logger);
+        auto weak_connection = std::weak_ptr<hub_connection_impl>(shared_from_this());
+        auto proxy = std::make_shared<internal_hub_proxy>(weak_connection, hub_name, m_logger);
         m_proxies.insert(std::make_pair(hub_name, proxy));
         return proxy;
     }
