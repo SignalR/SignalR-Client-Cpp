@@ -30,7 +30,9 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\signalrclient\connection.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\connection_state.h" />
+    <ClInclude Include="..\..\..\..\include\signalrclient\hub_connection.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\hub_exception.h" />
+    <ClInclude Include="..\..\..\..\include\signalrclient\hub_proxy.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\log_writer.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\trace_level.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\trace_log_writer.h" />
@@ -62,7 +64,9 @@
     <ClCompile Include="..\..\connection.cpp" />
     <ClCompile Include="..\..\connection_impl.cpp" />
     <ClCompile Include="..\..\http_sender.cpp" />
+    <ClCompile Include="..\..\hub_connection.cpp" />
     <ClCompile Include="..\..\hub_connection_impl.cpp" />
+    <ClCompile Include="..\..\hub_proxy.cpp" />
     <ClCompile Include="..\..\internal_hub_proxy.cpp" />
     <ClCompile Include="..\..\callback_manager.cpp" />
     <ClCompile Include="..\..\logger.cpp" />

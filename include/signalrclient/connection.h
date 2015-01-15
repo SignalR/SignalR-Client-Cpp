@@ -3,13 +3,16 @@
 
 #pragma once
 
-#include <cpprest\http_client.h>
 #include "_exports.h"
-#include "transport_type.h"
+#include <memory>
+#include <functional>
+#include <ppltasks.h>
 #include "connection_state.h"
 #include "trace_level.h"
 #include "log_writer.h"
 #include "trace_log_writer.h"
+
+namespace pplx = concurrency;
 
 namespace signalr
 {
@@ -17,10 +20,11 @@ namespace signalr
 
     class connection
     {
+        // TODO: consider making public or remove?
         typedef std::function<void(const utility::string_t&)> message_received;
 
     public:
-        SIGNALRCLIENT_API explicit connection(const utility::string_t& url, const utility::string_t& querystring = U(""),
+        SIGNALRCLIENT_API explicit connection(const utility::string_t& url, const utility::string_t& query_string = U(""),
             trace_level trace_level = trace_level::all, std::shared_ptr<log_writer> log_writer = std::make_shared<trace_log_writer>());
 
         SIGNALRCLIENT_API ~connection();

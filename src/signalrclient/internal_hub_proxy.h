@@ -15,10 +15,6 @@ namespace signalr
 
     class internal_hub_proxy
     {
-        // TODO: consider making visible outside
-    private:
-        typedef std::function<void(const json::value &)> action_handler;
-
     public:
         internal_hub_proxy(const std::weak_ptr<hub_connection_impl>& hub_connection, const utility::string_t& hub_name, const logger& logger);
 
@@ -27,7 +23,7 @@ namespace signalr
 
         utility::string_t get_hub_name() const;
 
-        void on(const utility::string_t& event_name, action_handler handler);
+        void on(const utility::string_t& event_name, const std::function<void(const json::value &)>& handler);
         void invoke_event(const utility::string_t& event_name, const json::value& arguments);
 
         pplx::task<json::value> invoke_json(const utility::string_t& method_name, const json::value& arguments,
@@ -40,6 +36,6 @@ namespace signalr
         const utility::string_t m_hub_name;
         logger m_logger;
 
-        std::unordered_map<utility::string_t, action_handler> m_subscriptions;
+        std::unordered_map<utility::string_t, std::function<void(const json::value &)>> m_subscriptions;
     };
 }

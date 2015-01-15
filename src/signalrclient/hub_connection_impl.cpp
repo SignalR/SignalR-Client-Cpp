@@ -17,6 +17,13 @@ namespace signalr
     }
 
     std::shared_ptr<hub_connection_impl> hub_connection_impl::create(const utility::string_t& url, const utility::string_t& query_string,
+        trace_level trace_level, const std::shared_ptr<log_writer>& log_writer)
+    {
+        return hub_connection_impl::create(url, query_string, trace_level, log_writer,
+            std::make_unique<web_request_factory>(), std::make_unique<transport_factory>());
+    }
+
+    std::shared_ptr<hub_connection_impl> hub_connection_impl::create(const utility::string_t& url, const utility::string_t& query_string,
         trace_level trace_level, const std::shared_ptr<log_writer>& log_writer, std::unique_ptr<web_request_factory> web_request_factory,
         std::unique_ptr<transport_factory> transport_factory)
     {

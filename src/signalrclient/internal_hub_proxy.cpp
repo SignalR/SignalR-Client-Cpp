@@ -16,7 +16,7 @@ namespace signalr
         return m_hub_name;
     }
 
-    void internal_hub_proxy::on(const utility::string_t& event_name, action_handler handler)
+    void internal_hub_proxy::on(const utility::string_t& event_name, const std::function<void(const json::value &)>& handler)
     {
         if (event_name.length() == 0)
         {
@@ -30,7 +30,7 @@ namespace signalr
         }
 
         // TODO: either needs to be thread safe or we should not allow adding handlers if the connection is not closed (or both)
-        m_subscriptions.insert(std::pair<utility::string_t, action_handler> {event_name, handler});
+        m_subscriptions.insert(std::pair<utility::string_t, std::function<void(const json::value &)>> {event_name, handler});
     }
 
     void internal_hub_proxy::invoke_event(const utility::string_t& event_name, const json::value& arguments)
