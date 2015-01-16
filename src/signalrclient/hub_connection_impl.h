@@ -27,8 +27,10 @@ namespace signalr
         hub_connection_impl& operator=(const hub_connection_impl&) = delete;
 
         std::shared_ptr<internal_hub_proxy> create_hub_proxy(const utility::string_t& hub_name);
-        pplx::task<json::value> invoke_json(const utility::string_t& hub_name, const utility::string_t& method_name, const json::value& arguments);
-        pplx::task<void> invoke_void(const utility::string_t& hub_name, const utility::string_t& method_name, const json::value& arguments);
+        pplx::task<json::value> invoke_json(const utility::string_t& hub_name, const utility::string_t& method_name, const json::value& arguments,
+            const std::function<void(const json::value&)>& on_progress = [](const json::value&){});
+        pplx::task<void> invoke_void(const utility::string_t& hub_name, const utility::string_t& method_name, const json::value& arguments,
+            const std::function<void(const json::value&)>& on_progress = [](const json::value&){});
 
         pplx::task<void> start();
         pplx::task<void> stop();
@@ -53,5 +55,6 @@ namespace signalr
 
         void invoke_hub_method(const utility::string_t& hub_name, const utility::string_t& method_name,
             const json::value& arguments, const utility::string_t& callback_id, std::function<void(const std::exception_ptr)> set_exception);
+        bool invoke_callback(const web::json::value& message);
     };
 }

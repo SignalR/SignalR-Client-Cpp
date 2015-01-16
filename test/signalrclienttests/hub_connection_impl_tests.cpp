@@ -8,6 +8,7 @@
 #include "hub_connection_impl.h"
 #include "signalrclient\trace_log_writer.h"
 #include "memory_log_writer.h"
+#include "signalrclient\hub_exception.h"
 
 using namespace signalr;
 
@@ -173,7 +174,7 @@ TEST(stop, stop_cancels_pending_callbacks)
         std::string responses[]
         {
             "{\"S\":1, \"M\":[] }",
-                "{}"
+            "{}"
         };
 
         if (call_number < 1)
@@ -209,7 +210,7 @@ TEST(stop, pending_callbacks_finished_if_hub_connections_goes_out_of_scope)
         std::string responses[]
         {
             "{\"S\":1, \"M\":[] }",
-                "{}"
+            "{}"
         };
 
         if (call_number < 1)
@@ -221,6 +222,7 @@ TEST(stop, pending_callbacks_finished_if_hub_connections_goes_out_of_scope)
     });
 
     pplx::task<void> t;
+
     {
         auto hub_connection = create_hub_connection(websocket_client);
         hub_connection->start().get();
@@ -526,6 +528,97 @@ TEST(invoke_json, invoke_propagates_errors_from_server_as_exceptions)
     }
 }
 
+TEST(invoke_json, invoke_propagates_hub_errors_from_server_as_hub_exceptions)
+{
+    auto callback_registered_event = std::make_shared<pplx::event>();
+
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number, callback_registered_event]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+            "{\"I\":\"0\", \"E\" : \"Ooops\", \"H\": true, \"D\": { \"ErrorNumber\" : 42 }}",
+            "{}"
+        };
+
+        call_number = min(call_number + 1, 2);
+
+        if (call_number > 0)
+        {
+            callback_registered_event->wait();
+        }
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    auto hub_connection = create_hub_connection(websocket_client);
+    try
+    {
+        hub_connection->start()
+            .then([hub_connection, callback_registered_event]()
+        {
+            auto t = hub_connection->invoke_json(_XPLATSTR("my_hub"), _XPLATSTR("method"), json::value::array());
+            callback_registered_event->set();
+            return t;
+        }).get();
+
+        ASSERT_TRUE(false); // exception expected but not thrown
+    }
+    catch (const hub_exception& e)
+    {
+        ASSERT_STREQ("\"Ooops\"", e.what());
+        ASSERT_EQ(_XPLATSTR("{\"ErrorNumber\":42}"), e.error_data().serialize());
+    }
+}
+
+TEST(progress, progress_callback_called_for_progress_messages_json)
+{
+    auto callback_registered_event = std::make_shared<pplx::event>();
+
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number, callback_registered_event]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"d-5E80A020-A,1|B,0|C,15|D,0\", \"M\":[{\"I\":\"P|1\", \"P\":{\"I\":\"0\", \"D\":1}}] }",
+            "{\"C\":\"d-5E80A020-A,1|B,0|C,15|D,0\", \"M\":[{\"I\":\"P|1\", \"P\":{\"I\":\"0\", \"D\":2}}] }",
+            "{\"I\":\"0\", \"R\":\"abc\"}",
+            "{}"
+        };
+
+        call_number = min(call_number + 1, 4);
+
+        if (call_number > 0)
+        {
+            callback_registered_event->wait();
+        }
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    auto progress_called_count = 0;
+    auto progress_callback = [&progress_called_count](const json::value& data)
+    {
+        auto expected_value = ++progress_called_count;
+        ASSERT_EQ(expected_value, data.as_integer());
+    };
+
+    auto hub_connection = create_hub_connection(websocket_client);
+    hub_connection->start()
+        .then([hub_connection, callback_registered_event, progress_callback]()
+    {
+        auto t = hub_connection->invoke_json(_XPLATSTR("my_hub"), _XPLATSTR("method"), json::value::array(), progress_callback);
+        callback_registered_event->set();
+        return t;
+    }).get();
+
+    ASSERT_EQ(2, progress_called_count);
+}
+
 TEST(invoke_void, invoke_unblocks_task_when_server_completes_call)
 {
     auto callback_registered_event = std::make_shared<pplx::event>();
@@ -562,6 +655,44 @@ TEST(invoke_void, invoke_unblocks_task_when_server_completes_call)
 
     // should not block
     ASSERT_TRUE(true);
+}
+
+TEST(invoke_void, invoke_logs_if_callback_for_given_id_not_found)
+{
+    auto message_received_event = std::make_shared<pplx::event>();
+
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number, message_received_event]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+            "{\"I\":\"not tracked\"}",
+            "{}"
+        };
+
+        call_number = min(call_number + 1, 2);
+
+        if (call_number > 1)
+        {
+            message_received_event->set();
+        }
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+    auto hub_connection = create_hub_connection(websocket_client, writer, trace_level::info);
+    hub_connection->start().get();
+
+    ASSERT_FALSE(message_received_event->wait(5000));
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_TRUE(log_entries.size() > 1);
+
+    auto entry = remove_date_from_log_entry(log_entries[2]);
+    ASSERT_EQ(_XPLATSTR("[info        ] no callback found for id: not tracked\n"), entry);
 }
 
 TEST(invoke_void, invoke_propagates_errors_from_server_as_exceptions)
@@ -606,4 +737,280 @@ TEST(invoke_void, invoke_propagates_errors_from_server_as_exceptions)
     {
         ASSERT_STREQ("\"Ooops\"", e.what());
     }
+}
+
+TEST(invoke_void, invoke_propagates_hub_errors_from_server_as_hub_exceptions)
+{
+    auto callback_registered_event = std::make_shared<pplx::event>();
+
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number, callback_registered_event]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+            "{\"I\":\"0\", \"E\" : \"Ooops\", \"H\": true, \"D\": { \"ErrorNumber\" : 42 }}",
+            "{}"
+        };
+
+        call_number = min(call_number + 1, 2);
+
+        if (call_number > 0)
+        {
+            callback_registered_event->wait();
+        }
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    auto hub_connection = create_hub_connection(websocket_client);
+    try
+    {
+        hub_connection->start()
+            .then([hub_connection, callback_registered_event]()
+        {
+            auto t = hub_connection->invoke_void(_XPLATSTR("my_hub"), _XPLATSTR("method"), json::value::array());
+            callback_registered_event->set();
+            return t;
+        }).get();
+
+        ASSERT_TRUE(false); // exception expected but not thrown
+    }
+    catch (const hub_exception& e)
+    {
+        ASSERT_STREQ("\"Ooops\"", e.what());
+        ASSERT_EQ(_XPLATSTR("{\"ErrorNumber\":42}"), e.error_data().serialize());
+    }
+}
+
+TEST(invoke_void, invoke_creates_hub_exception_even_if_no_error_data)
+{
+    auto callback_registered_event = std::make_shared<pplx::event>();
+
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number, callback_registered_event]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+            "{\"I\":\"0\", \"E\" : \"Ooops\", \"H\": true }",
+            "{}"
+        };
+
+        call_number = min(call_number + 1, 2);
+
+        if (call_number > 0)
+        {
+            callback_registered_event->wait();
+        }
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    auto hub_connection = create_hub_connection(websocket_client);
+    try
+    {
+        hub_connection->start()
+            .then([hub_connection, callback_registered_event]()
+        {
+            auto t = hub_connection->invoke_void(_XPLATSTR("my_hub"), _XPLATSTR("method"), json::value::array());
+            callback_registered_event->set();
+            return t;
+        }).get();
+
+        ASSERT_TRUE(false); // exception expected but not thrown
+    }
+    catch (const hub_exception& e)
+    {
+        ASSERT_STREQ("\"Ooops\"", e.what());
+        ASSERT_TRUE(e.error_data().is_null());
+    }
+}
+
+TEST(invoke_void, invoke_creates_runtime_error_even_hub_exception_indicator_false)
+{
+    auto callback_registered_event = std::make_shared<pplx::event>();
+
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number, callback_registered_event]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+            "{\"I\":\"0\", \"E\" : \"Ooops\", \"H\": false }",
+            "{}"
+        };
+
+        call_number = min(call_number + 1, 2);
+
+        if (call_number > 0)
+        {
+            callback_registered_event->wait();
+        }
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    auto hub_connection = create_hub_connection(websocket_client);
+    try
+    {
+        hub_connection->start()
+            .then([hub_connection, callback_registered_event]()
+        {
+            auto t = hub_connection->invoke_void(_XPLATSTR("my_hub"), _XPLATSTR("method"), json::value::array());
+            callback_registered_event->set();
+            return t;
+        }).get();
+
+        ASSERT_TRUE(false); // exception expected but not thrown
+    }
+    catch (const std::runtime_error& e)
+    {
+        ASSERT_STREQ("\"Ooops\"", e.what());
+        ASSERT_TRUE(dynamic_cast<const hub_exception *>(&e) == nullptr);
+    }
+}
+
+TEST(invoke_void, invoke_creates_runtime_error_even_hub_exception_indicator_non_bool)
+{
+    auto callback_registered_event = std::make_shared<pplx::event>();
+
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number, callback_registered_event]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+            "{\"I\":\"0\", \"E\" : \"Ooops\", \"H\": 42 }",
+            "{}"
+        };
+
+        call_number = min(call_number + 1, 2);
+
+        if (call_number > 0)
+        {
+            callback_registered_event->wait();
+        }
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    auto hub_connection = create_hub_connection(websocket_client);
+    try
+    {
+        hub_connection->start()
+            .then([hub_connection, callback_registered_event]()
+        {
+            auto t = hub_connection->invoke_void(_XPLATSTR("my_hub"), _XPLATSTR("method"), json::value::array());
+            callback_registered_event->set();
+            return t;
+        }).get();
+
+        ASSERT_TRUE(false); // exception expected but not thrown
+    }
+    catch (const std::runtime_error& e)
+    {
+        ASSERT_STREQ("\"Ooops\"", e.what());
+        ASSERT_TRUE(dynamic_cast<const hub_exception *>(&e) == nullptr);
+    }
+}
+
+TEST(progress, progress_callback_called_for_progress_messages)
+{
+    auto callback_registered_event = std::make_shared<pplx::event>();
+
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number, callback_registered_event]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"d-5E80A020-A,1|B,0|C,15|D,0\", \"M\":[{\"I\":\"P|1\", \"P\":{\"I\":\"0\", \"D\":1}}] }",
+            "{\"C\":\"d-5E80A020-A,1|B,0|C,15|D,0\", \"M\":[{\"I\":\"P|1\", \"P\":{\"I\":\"0\", \"D\":2}}] }",
+            "{\"I\":\"0\"}",
+            "{}"
+        };
+
+        call_number = min(call_number + 1, 4);
+
+        if (call_number > 0)
+        {
+            callback_registered_event->wait();
+        }
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    auto progress_called_count = 0;
+    auto progress_callback = [&progress_called_count](const json::value& data)
+    {
+        auto expected_value = ++progress_called_count;
+        ASSERT_EQ(expected_value, data.as_integer());
+    };
+
+    auto hub_connection = create_hub_connection(websocket_client);
+    hub_connection->start()
+        .then([hub_connection, callback_registered_event, progress_callback]()
+    {
+        auto t = hub_connection->invoke_void(_XPLATSTR("my_hub"), _XPLATSTR("method"), json::value::array(), progress_callback);
+        callback_registered_event->set();
+        return t;
+    }).get();
+
+    ASSERT_EQ(2, progress_called_count);
+}
+
+TEST(progress, exceptions_from_progress_callbacks_logged)
+{
+    auto callback_registered_event = std::make_shared<pplx::event>();
+
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number, callback_registered_event]()
+        mutable {
+        std::string responses[]
+        {
+            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"d-5E80A020-A,1|B,0|C,15|D,0\", \"M\":[{\"I\":\"P|1\", \"P\":{\"I\":\"0\", \"D\":1}}] }",
+            "{\"I\":\"0\"}",
+            "{}"
+        };
+
+        call_number = min(call_number + 1, 3);
+
+        if (call_number > 0)
+        {
+            callback_registered_event->wait();
+        }
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    auto progress_called_count = 0;
+    auto progress_callback = [&progress_called_count](const json::value&)
+    {
+        throw std::runtime_error("bad stuff happened");
+    };
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+    auto hub_connection = create_hub_connection(websocket_client, writer, trace_level::errors);
+
+    hub_connection->start()
+        .then([hub_connection, callback_registered_event, progress_callback]()
+    {
+        auto t = hub_connection->invoke_void(_XPLATSTR("my_hub"), _XPLATSTR("method"), json::value::array(), progress_callback);
+        callback_registered_event->set();
+        return t;
+    }).get();
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_FALSE(log_entries.empty());
+
+    auto entry = remove_date_from_log_entry(log_entries[0]);
+    ASSERT_EQ(_XPLATSTR("[error       ] message_received callback threw an exception: bad stuff happened\n"), entry);
 }
