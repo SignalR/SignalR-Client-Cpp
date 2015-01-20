@@ -46,7 +46,8 @@
     <PropertyGroup>
       <PackageSource>$(SolutionDir)bin\Package\</PackageSource>
       <PackageSourceNative>$(SolutionDir)bin\Package\build\native\</PackageSourceNative>
-      <NuSpecPath>$(MSBuildThisFileDirectory)signalrclientcpp.nuspec</NuSpecPath>
+      <NuGetArtifactsPath>$(MSBuildThisFileDirectory)..\NuGet\</NuGetArtifactsPath>
+      <NuSpecPath>$(NuGetArtifactsPath)signalrclientcpp.nuspec</NuSpecPath>
     </PropertyGroup>
 
     <ItemGroup>
@@ -54,8 +55,7 @@
     </ItemGroup>
     <Copy SourceFiles="@(Include)" DestinationFolder="$(PackageSourceNative)include\%(RecursiveDir)" />
     <Copy SourceFiles="$(NuSpecPath)" DestinationFolder="$(PackageSource)" />
-
-    <!-- TODO: consider using Config.Definitions.Props -->
+    <Copy SourceFiles="$(NuGetArtifactsPath)Microsoft.SignalR.Client.Cpp.targets" DestinationFolder="$(PackageSourceNative)" />
 
     <MSBuild Targets="BuildForNuget"
       Projects="$(MSBuildThisFile)"
