@@ -29,6 +29,10 @@ namespace signalr
 
         SIGNALRCLIENT_API ~connection();
 
+        connection(const connection&) = delete;
+
+        connection& operator=(const connection&) = delete;
+
         SIGNALRCLIENT_API pplx::task<void> start();
 
         SIGNALRCLIENT_API pplx::task<void> send(const utility::string_t& data);

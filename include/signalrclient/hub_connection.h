@@ -28,6 +28,10 @@ namespace signalr
 
         SIGNALRCLIENT_API ~hub_connection();
 
+        hub_connection(const hub_connection&) = delete;
+
+        hub_connection& operator=(const hub_connection&) = delete;
+
         SIGNALRCLIENT_API pplx::task<void> start();
         SIGNALRCLIENT_API pplx::task<void> stop();
 

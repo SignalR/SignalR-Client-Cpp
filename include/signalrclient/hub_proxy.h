@@ -21,6 +21,9 @@ namespace signalr
     {
     public:
         explicit hub_proxy(const std::shared_ptr<internal_hub_proxy>& proxy);
+
+        SIGNALRCLIENT_API hub_proxy();
+
         SIGNALRCLIENT_API ~hub_proxy();
 
         SIGNALRCLIENT_API utility::string_t get_hub_name() const;
@@ -56,6 +59,9 @@ namespace signalr
         {
             return invoke_void(method_name, arguments, on_progress);
         }
+
+        SIGNALRCLIENT_API hub_proxy& operator=(const hub_proxy& other);
+        SIGNALRCLIENT_API hub_proxy& operator=(const hub_proxy&& other);
 
     private:
         std::shared_ptr<internal_hub_proxy> m_pImpl;
