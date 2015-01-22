@@ -75,7 +75,7 @@ namespace signalr
             .then([connection]()
             {
                 return request_sender::negotiate(*connection->m_web_request_factory, connection->m_base_url,
-                    connection->m_connection_data, connection->m_query_string);
+                    connection->m_connection_data, connection->m_query_string, connection->m_headers);
             }, m_disconnect_cts.get_token())
             .then([connection](negotiation_response negotiation_response)
             {
@@ -90,7 +90,7 @@ namespace signalr
             {
                 return request_sender::start(*connection->m_web_request_factory, connection->m_base_url,
                     connection->m_transport->get_transport_type(), connection->m_connection_token,
-                    connection->m_connection_data, connection->m_query_string);
+                    connection->m_connection_data, connection->m_query_string, connection->m_headers);
             }, m_disconnect_cts.get_token())
             .then([start_tce, connection](pplx::task<void> previous_task)
             {
@@ -366,7 +366,7 @@ namespace signalr
         }
 
         // This is fire and forget because we don't really care about the result
-        request_sender::abort(*m_web_request_factory, m_base_url, m_transport->get_transport_type(), m_connection_token, m_connection_data, m_query_string)
+        request_sender::abort(*m_web_request_factory, m_base_url, m_transport->get_transport_type(), m_connection_token, m_connection_data, m_query_string, m_headers)
             .then([](pplx::task<utility::string_t> abort_task)
             {
                 try
@@ -412,6 +412,11 @@ namespace signalr
     void connection_impl::set_connection_data(const utility::string_t& connection_data)
     {
         m_connection_data = connection_data;
+    }
+
+    void connection_impl::set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers)
+    {
+        m_headers = headers;
     }
 
     bool connection_impl::change_state(connection_state old_state, connection_state new_state)

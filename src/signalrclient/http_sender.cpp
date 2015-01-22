@@ -4,21 +4,23 @@
 #include "stdafx.h"
 #include <cpprest\http_client.h>
 #include "signalrclient\web_exception.h"
-#include "web_request.h"
+#include "web_request_factory.h"
 #include "constants.h"
 
 namespace signalr
 {
     namespace http_sender
     {
-        pplx::task<utility::string_t> get(web_request &request)
+        pplx::task<utility::string_t> get(web_request_factory& request_factory, const web::uri& url, const std::unordered_map<utility::string_t, utility::string_t>& headers)
         {
-            request.set_method(web::http::methods::GET);
+            auto request = request_factory.create_web_request(url);
+            request->set_method(web::http::methods::GET);
 
-            // TODO: set other and custom headers
-            request.set_user_agent(USER_AGENT);
+            request->set_headers(headers);
+            // TODO: set other headers we set in the .NET client (if any)
+            request->set_user_agent(USER_AGENT);
 
-            return request.get_response().then([](web_response response)
+            return request->get_response().then([](web_response response)
             {
                 if (response.status_code != 200)
                 {

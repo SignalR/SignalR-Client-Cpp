@@ -39,6 +39,8 @@ namespace signalr
 
         SIGNALRCLIENT_API connection_state get_connection_state() const;
 
+        SIGNALRCLIENT_API void set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers);
+
     private:
         std::shared_ptr<hub_connection_impl> m_pImpl;
         pplx::task<web::json::value> invoke_json(const utility::string_t& hub_name, const utility::string_t& method_name, const web::json::value& arguments,

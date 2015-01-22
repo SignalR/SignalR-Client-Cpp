@@ -243,6 +243,11 @@ namespace signalr
         return m_connection->get_connection_state();
     }
 
+    void hub_connection_impl::set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers)
+    {
+        m_connection->set_headers(headers);
+    }
+
     // unnamed namespace makes it invisble outside this translation unit
     namespace
     {

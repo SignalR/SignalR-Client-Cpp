@@ -40,6 +40,8 @@ namespace signalr
 
         connection_state get_connection_state() const;
 
+        void set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers);
+
     private:
         hub_connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level,
             const std::shared_ptr<log_writer>& log_writer, std::unique_ptr<web_request_factory> web_request_factory,
