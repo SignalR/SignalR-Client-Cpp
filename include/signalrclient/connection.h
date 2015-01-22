@@ -11,6 +11,7 @@
 #include "trace_level.h"
 #include "log_writer.h"
 #include "trace_log_writer.h"
+#include <unordered_map>
 
 namespace pplx = concurrency;
 
@@ -38,6 +39,8 @@ namespace signalr
         SIGNALRCLIENT_API pplx::task<void> send(const utility::string_t& data);
 
         SIGNALRCLIENT_API void set_message_received(const message_received& message_received_callback);
+
+        SIGNALRCLIENT_API void set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers);
 
         SIGNALRCLIENT_API pplx::task<void> stop();
 

@@ -18,8 +18,15 @@ void web_request_stub::set_user_agent(const utility::string_t &user_agent_string
     m_user_agent_string = user_agent_string;
 }
 
+void web_request_stub::set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers)
+{
+    m_headers = headers;
+}
+
 pplx::task<web_response> web_request_stub::get_response()
 {
+    on_get_response(*this);
+
     return pplx::task_from_result<web_response>(
         web_response{ m_status_code, m_reason_phrase, pplx::task_from_result<utility::string_t>(m_response_body) });
 }

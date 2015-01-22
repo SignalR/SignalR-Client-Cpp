@@ -875,6 +875,49 @@ TEST(connection_impl_stop, stop_ignores_exceptions_from_abort_requests)
     ASSERT_EQ(_XPLATSTR("[state change] disconnecting -> disconnected\n"), remove_date_from_log_entry(log_entries[3]));
 }
 
+TEST(connection_impl_headers, custom_headers_set_in_requests)
+{
+    auto writer = std::shared_ptr<log_writer>{std::make_shared<memory_log_writer>()};
+
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
+    {
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"KeepAliveTimeout\" : 20.0, \"DisconnectTimeout\" : 30.0, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : url.path() == _XPLATSTR("/start")
+            ? _XPLATSTR("{\"Response\":\"started\" }")
+            : _XPLATSTR("");
+
+        auto request = new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body);
+        request->on_get_response = [](web_request_stub& request)
+        {
+            ASSERT_EQ(1, request.m_headers.size());
+            ASSERT_EQ(_XPLATSTR("42"), request.m_headers[_XPLATSTR("Answer")]);
+        };
+
+        return std::unique_ptr<web_request>(request);
+    });
+
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+
+    auto connection =
+        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::state_changes,
+        writer, std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
+
+    connection->set_headers(std::unordered_map<utility::string_t, utility::string_t>({ { _XPLATSTR("Answer"), _XPLATSTR("42") } }));
+
+    connection->start()
+        .then([connection]()
+    {
+        return connection->stop();
+    }).get();
+
+    ASSERT_EQ(connection_state::disconnected, connection->get_connection_state());
+}
+
 TEST(connection_impl_change_state, change_state_logs)
 {
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());

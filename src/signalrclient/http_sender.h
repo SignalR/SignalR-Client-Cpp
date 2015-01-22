@@ -5,8 +5,7 @@
 
 #include <ppl.h>
 #include <cpprest\basic_types.h>
-
-#include "web_request.h"
+#include "web_request_factory.h"
 
 namespace pplx = concurrency;
 
@@ -14,6 +13,7 @@ namespace signalr
 {
     namespace http_sender
     {
-        pplx::task<utility::string_t> get(web_request &request);
+        pplx::task<utility::string_t> get(web_request_factory& request_factory, const web::uri& url,
+            const std::unordered_map<utility::string_t, utility::string_t>& headers);
     }
 }

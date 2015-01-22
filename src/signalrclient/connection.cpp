@@ -31,6 +31,11 @@ namespace signalr
         m_pImpl->set_message_received_string(message_received_callback);
     }
 
+    void connection::set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers)
+    {
+        m_pImpl->set_headers(headers);
+    }
+
     pplx::task<void> connection::stop()
     {
         return m_pImpl->stop();

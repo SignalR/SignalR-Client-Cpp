@@ -11,12 +11,13 @@ namespace signalr
     namespace request_sender
     {
         pplx::task<negotiation_response> negotiate(web_request_factory& request_factory, const web::uri& base_url,
-            const utility::string_t& connection_data, const utility::string_t& query_string)
+            const utility::string_t& connection_data, const utility::string_t& query_string,
+            const std::unordered_map<utility::string_t, utility::string_t>& headers)
         {
             auto negotiate_url = url_builder::build_negotiate(base_url, connection_data, query_string);
             auto request = request_factory.create_web_request(negotiate_url);
 
-            return http_sender::get(*request)
+            return http_sender::get(request_factory, negotiate_url, headers)
                 .then([](utility::string_t body)
             {
                 auto negotiation_response_json = web::json::value::parse(body);
@@ -37,12 +38,12 @@ namespace signalr
         }
 
         pplx::task<void> start(web_request_factory& request_factory, const web::uri &base_url, transport_type transport,
-            const utility::string_t& connection_token, const utility::string_t& connection_data, const utility::string_t &query_string)
+            const utility::string_t& connection_token, const utility::string_t& connection_data,
+            const utility::string_t &query_string, const std::unordered_map<utility::string_t, utility::string_t>& headers)
         {
             auto start_url = url_builder::build_start(base_url, transport, connection_token, connection_data, query_string);
-            auto request = request_factory.create_web_request(start_url);
 
-            return http_sender::get(*request)
+            return http_sender::get(request_factory, start_url, headers)
                 .then([](utility::string_t body)
             {
                 auto start_response_json = web::json::value::parse(body);
@@ -57,12 +58,13 @@ namespace signalr
         }
 
         pplx::task<utility::string_t> abort(web_request_factory& request_factory, const web::uri &base_url, transport_type transport,
-            const utility::string_t& connection_token, const utility::string_t& connection_data, const utility::string_t &query_string)
+            const utility::string_t& connection_token, const utility::string_t& connection_data, const utility::string_t &query_string,
+            const std::unordered_map<utility::string_t, utility::string_t>& headers)
         {
             auto abort_url = url_builder::build_abort(base_url, transport, connection_token, connection_data, query_string);
             auto request = request_factory.create_web_request(abort_url);
 
-            return http_sender::get(*request);
+            return http_sender::get(request_factory, abort_url, headers);
         }
     }
 }

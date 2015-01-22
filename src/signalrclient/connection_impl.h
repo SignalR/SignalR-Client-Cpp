@@ -44,6 +44,7 @@ namespace signalr
         void set_message_received_string(const std::function<void(const utility::string_t&)>& message_received);
         void set_message_received_json(const std::function<void(const web::json::value&)>& message_received);
         void set_connection_data(const utility::string_t& connection_data);
+        void set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers);
 
     private:
         web::uri m_base_url;
@@ -55,6 +56,7 @@ namespace signalr
         std::unique_ptr<transport_factory> m_transport_factory;
 
         std::function<void(const web::json::value&)> m_message_received;
+        std::unordered_map<utility::string_t, utility::string_t> m_headers;
 
         pplx::cancellation_token_source m_disconnect_cts;
         std::mutex m_stop_lock;
