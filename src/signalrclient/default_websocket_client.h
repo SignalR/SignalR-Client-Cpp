@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <cpprest\ws_client.h>
 #include "websocket_client.h"
 
@@ -13,6 +14,8 @@ namespace signalr
     class default_websocket_client : public websocket_client
     {
     public:
+        explicit default_websocket_client(const std::unordered_map<utility::string_t, utility::string_t>& headers);
+
         pplx::task<void> connect(const web::uri &url) override;
 
         pplx::task<void> send(const utility::string_t &message) override;

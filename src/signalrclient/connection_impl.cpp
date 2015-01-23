@@ -162,7 +162,7 @@ namespace signalr
         };
 
         auto transport = connection->m_transport_factory->create_transport(
-            transport_type::websockets, connection->m_logger, process_response_callback, error_callback);
+            transport_type::websockets, connection->m_logger, connection->m_headers, process_response_callback, error_callback);
 
         pplx::create_task([negotiation_response, connect_request_tce]()
         {
