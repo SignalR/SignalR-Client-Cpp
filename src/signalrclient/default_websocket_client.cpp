@@ -6,6 +6,24 @@
 
 namespace signalr
 {
+    namespace
+    {
+        static web_sockets::client::websocket_client_config create_client_config(const std::unordered_map<utility::string_t, utility::string_t>& headers)
+        {
+            web_sockets::client::websocket_client_config config;
+            for (auto &header : headers)
+            {
+                config.headers()[header.first] = header.second;
+            }
+
+            return config;
+        }
+    }
+
+    default_websocket_client::default_websocket_client(const std::unordered_map<utility::string_t, utility::string_t>& headers)
+        : m_underlying_client(create_client_config(headers))
+    { }
+
     pplx::task<void> default_websocket_client::connect(const web::uri &url)
     {
         return m_underlying_client.connect(url);
