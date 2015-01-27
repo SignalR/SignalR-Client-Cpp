@@ -37,7 +37,7 @@
   </Target>
 
   <Target Name="Test" DependsOnTargets="Build">
-    <Exec Command="$(OutDir)\signalrclienttests.exe" />
+    <Exec Command="$(OutDir)\signalrclienttests.exe --gtest_output=xml:$(OutDir)\test_results.xml" />
   </Target>
 
   <Import Project="Config.Definitions.Props" />
