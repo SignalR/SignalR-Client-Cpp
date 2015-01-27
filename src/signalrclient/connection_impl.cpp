@@ -398,25 +398,31 @@ namespace signalr
 
     void connection_impl::set_message_received_json(const std::function<void(const web::json::value&)>& message_received)
     {
-        auto connection_state = get_connection_state();
-        if (connection_state != connection_state::disconnected)
-        {
-            throw std::runtime_error(
-                std::string{ "cannot set the callback when the connection is not in the disconnected state. current connection state: " }
-            .append(utility::conversions::to_utf8string(translate_connection_state(connection_state))));
-        }
-
+        ensure_disconnected("cannot set the callback when the connection is not in the disconnected state. ");
         m_message_received = message_received;
     }
 
     void connection_impl::set_connection_data(const utility::string_t& connection_data)
     {
+        _ASSERTE(get_connection_state() == connection_state::disconnected);
+
         m_connection_data = connection_data;
     }
 
     void connection_impl::set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers)
     {
+        ensure_disconnected("cannot set headers when the connection is not in the disconnected state. ");
         m_headers = headers;
+    }
+
+    void connection_impl::ensure_disconnected(const std::string& error_message)
+    {
+        auto connection_state = get_connection_state();
+        if (connection_state != connection_state::disconnected)
+        {
+            throw std::runtime_error(error_message + std::string{"current connection state: "}
+                .append(utility::conversions::to_utf8string(translate_connection_state(connection_state))));
+        }
     }
 
     bool connection_impl::change_state(connection_state old_state, connection_state new_state)

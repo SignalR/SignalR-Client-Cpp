@@ -918,6 +918,25 @@ TEST(connection_impl_headers, custom_headers_set_in_requests)
     ASSERT_EQ(connection_state::disconnected, connection->get_connection_state());
 }
 
+TEST(connection_impl_set_headers, headers_can_be_set_only_in_disconnected_state)
+{
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+    auto connection = create_connection(websocket_client);
+
+    connection->start().get();
+
+    try
+    {
+        connection->set_headers(std::unordered_map<utility::string_t, utility::string_t>{});
+        ASSERT_TRUE(false); // exception expected but not thrown
+    }
+    catch (const std::runtime_error &e)
+    {
+        ASSERT_STREQ("cannot set headers when the connection is not in the disconnected state. current connection state: connected", e.what());
+    }
+}
+
 TEST(connection_impl_change_state, change_state_logs)
 {
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
