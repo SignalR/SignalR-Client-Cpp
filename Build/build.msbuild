@@ -57,6 +57,8 @@
     <Copy SourceFiles="$(NuSpecPath)" DestinationFolder="$(PackageSource)" />
     <Copy SourceFiles="$(NuGetArtifactsPath)Microsoft.SignalR.Client.Cpp.targets" DestinationFolder="$(PackageSourceNative)" />
 
+    <MSBuild Targets="RestorePackages" Projects="@(Projects)" />
+
     <MSBuild Targets="BuildForNuget"
       Projects="$(MSBuildThisFile)"
       Properties="PackageSourceNative=$(PackageSourceNative);Configuration=%(ProjectConfiguration.Configuration);Platform=%(ProjectConfiguration.Platform);PlatformToolset=$(PlatformToolset);SignalrClientTargetName=$(SignalrClientTargetName)" />
