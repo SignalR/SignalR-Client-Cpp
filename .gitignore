@@ -14,3 +14,4 @@ Release/
 ipch/
 *.vcxproj.user
 *.exe
+artifacts/

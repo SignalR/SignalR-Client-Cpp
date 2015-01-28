@@ -48,6 +48,7 @@
       <PackageSourceNative>$(SolutionDir)bin\Package\build\native\</PackageSourceNative>
       <NuGetArtifactsPath>$(MSBuildThisFileDirectory)..\NuGet\</NuGetArtifactsPath>
       <NuSpecPath>$(NuGetArtifactsPath)signalrclientcpp.nuspec</NuSpecPath>
+      <PackageOutputDir>$(SolutionDir)artifacts\build</PackageOutputDir>
     </PropertyGroup>
 
     <ItemGroup>
@@ -63,7 +64,8 @@
       Projects="$(MSBuildThisFile)"
       Properties="PackageSourceNative=$(PackageSourceNative);Configuration=%(ProjectConfiguration.Configuration);Platform=%(ProjectConfiguration.Platform);PlatformToolset=$(PlatformToolset);SignalrClientTargetName=$(SignalrClientTargetName)" />
 
-    <Exec Command="$(NuGetCommand) pack $(NuSpecPath) -BasePath $(PackageSource) -OutputDirectory $(SolutionDir)bin" LogStandardErrorAsError="true" />
+    <MakeDir Directories="$(PackageOutputDir)" />
+    <Exec Command="$(NuGetCommand) pack $(NuSpecPath) -BasePath $(PackageSource) -OutputDirectory $(PackageOutputDir)" LogStandardErrorAsError="true" />
   </Target>
 
   <Target Name="BuildForNuget">
