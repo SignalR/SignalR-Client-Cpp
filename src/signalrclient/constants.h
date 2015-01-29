@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "cpprest\basic_types.h"
+#include "cpprest\details\basic_types.h"
 
 #define SIGNALR_VERSION _XPLATSTR("3.0.0")
 #define PROTOCOL _XPLATSTR("1.4")

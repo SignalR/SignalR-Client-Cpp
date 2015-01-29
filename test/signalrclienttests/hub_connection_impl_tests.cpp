@@ -253,7 +253,7 @@ TEST(hub_invocation, hub_connection_invokes_users_code_on_hub_invocations)
             "{}"
         };
 
-        call_number = min(call_number + 1, 2);
+        call_number = std::min(call_number + 1, 2);
 
         return pplx::task_from_result(responses[call_number]);
     });
@@ -289,7 +289,7 @@ TEST(hub_invocation, hub_connection_discards_persistent_connection_message_primi
             "{}"
         };
 
-        call_number = min(call_number + 1, 2);
+        call_number = std::min(call_number + 1, 2);
 
         return pplx::task_from_result(responses[call_number]);
     });
@@ -329,7 +329,7 @@ TEST(hub_invocation, hub_connection_invokes_persistent_connection_message_object
             "{}"
         };
 
-        call_number = min(call_number + 1, 2);
+        call_number = std::min(call_number + 1, 2);
 
         return pplx::task_from_result(responses[call_number]);
     });
@@ -423,7 +423,7 @@ TEST(hub_invocation, hub_connection_logs_if_no_hub_for_invocation)
             "{}"
         };
 
-        call_number = min(call_number + 1, 2);
+        call_number = std::min(call_number + 1, 2);
 
         if (call_number == 2)
         {
@@ -462,7 +462,7 @@ TEST(invoke_json, invoke_returns_value_returned_from_the_server)
             "{}"
         };
 
-        call_number = min(call_number + 1, 2);
+        call_number = std::min(call_number + 1, 2);
 
         if (call_number > 0)
         {
@@ -499,7 +499,7 @@ TEST(invoke_json, invoke_propagates_errors_from_server_as_exceptions)
             "{}"
         };
 
-        call_number = min(call_number + 1, 2);
+        call_number = std::min(call_number + 1, 2);
 
         if (call_number > 0)
         {
@@ -543,7 +543,7 @@ TEST(invoke_json, invoke_propagates_hub_errors_from_server_as_hub_exceptions)
             "{}"
         };
 
-        call_number = min(call_number + 1, 2);
+        call_number = std::min(call_number + 1, 2);
 
         if (call_number > 0)
         {
@@ -590,7 +590,7 @@ TEST(progress, progress_callback_called_for_progress_messages_json)
             "{}"
         };
 
-        call_number = min(call_number + 1, 4);
+        call_number = std::min(call_number + 1, 4);
 
         if (call_number > 0)
         {
@@ -634,7 +634,7 @@ TEST(invoke_void, invoke_unblocks_task_when_server_completes_call)
             "{}"
         };
 
-        call_number = min(call_number + 1, 2);
+        call_number = std::min(call_number + 1, 2);
 
         if (call_number > 0)
         {
@@ -672,7 +672,7 @@ TEST(invoke_void, invoke_logs_if_callback_for_given_id_not_found)
             "{}"
         };
 
-        call_number = min(call_number + 1, 2);
+        call_number = std::min(call_number + 1, 2);
 
         if (call_number > 1)
         {
@@ -710,7 +710,7 @@ TEST(invoke_void, invoke_propagates_errors_from_server_as_exceptions)
             "{}"
         };
 
-        call_number = min(call_number + 1, 2);
+        call_number = std::min(call_number + 1, 2);
 
         if (call_number > 0)
         {
@@ -754,7 +754,7 @@ TEST(invoke_void, invoke_propagates_hub_errors_from_server_as_hub_exceptions)
             "{}"
         };
 
-        call_number = min(call_number + 1, 2);
+        call_number = std::min(call_number + 1, 2);
 
         if (call_number > 0)
         {
@@ -799,7 +799,7 @@ TEST(invoke_void, invoke_creates_hub_exception_even_if_no_error_data)
             "{}"
         };
 
-        call_number = min(call_number + 1, 2);
+        call_number = std::min(call_number + 1, 2);
 
         if (call_number > 0)
         {
@@ -844,7 +844,7 @@ TEST(invoke_void, invoke_creates_runtime_error_even_hub_exception_indicator_fals
             "{}"
         };
 
-        call_number = min(call_number + 1, 2);
+        call_number = std::min(call_number + 1, 2);
 
         if (call_number > 0)
         {
@@ -889,7 +889,7 @@ TEST(invoke_void, invoke_creates_runtime_error_even_hub_exception_indicator_non_
             "{}"
         };
 
-        call_number = min(call_number + 1, 2);
+        call_number = std::min(call_number + 1, 2);
 
         if (call_number > 0)
         {
@@ -936,7 +936,7 @@ TEST(progress, progress_callback_called_for_progress_messages)
             "{}"
         };
 
-        call_number = min(call_number + 1, 4);
+        call_number = std::min(call_number + 1, 4);
 
         if (call_number > 0)
         {
@@ -981,7 +981,7 @@ TEST(progress, exceptions_from_progress_callbacks_logged)
             "{}"
         };
 
-        call_number = min(call_number + 1, 3);
+        call_number = std::min(call_number + 1, 3);
 
         if (call_number > 0)
         {

@@ -6,14 +6,12 @@
 #include "_exports.h"
 #include <memory>
 #include <functional>
-#include <ppltasks.h>
+#include "pplx\pplxtasks.h"
 #include "connection_state.h"
 #include "trace_level.h"
 #include "log_writer.h"
 #include "trace_log_writer.h"
 #include <unordered_map>
-
-namespace pplx = concurrency;
 
 namespace signalr
 {

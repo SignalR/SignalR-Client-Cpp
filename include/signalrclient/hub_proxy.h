@@ -7,11 +7,9 @@
 #include <memory>
 #include <memory>
 #include <functional>
-#include <ppltasks.h>
-#include <cpprest\basic_types.h>
-#include <cpprest\json.h>
-
-namespace pplx = concurrency;
+#include "pplx\pplxtasks.h"
+#include "cpprest\details\basic_types.h"
+#include "cpprest\json.h"
 
 namespace signalr
 {

@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include<atomic>
-#include<unordered_map>
-#include<functional>
-#include<mutex>
-#include<cpprest\json.h>
+#include <atomic>
+#include <unordered_map>
+#include <functional>
+#include <mutex>
+#include "cpprest\json.h"
 
 namespace signalr
 {

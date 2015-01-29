@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <cpprest\basic_types.h>
+#include "cpprest\details\basic_types.h"
 #include "websocket_client.h"
 #include "web_request_factory.h"
 

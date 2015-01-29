@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <cpprest\http_client.h>
+#include "cpprest\http_client.h"
 #include "signalrclient\transport_type.h"
 
 namespace signalr

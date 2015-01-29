@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "constants.h"
-#include <cpprest\http_client.h>
+#include "cpprest\http_client.h"
 #include "signalrclient\transport_type.h"
 
 namespace signalr

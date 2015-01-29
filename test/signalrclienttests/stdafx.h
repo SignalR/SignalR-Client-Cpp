@@ -3,6 +3,11 @@
 
 #pragma once
 
+#ifdef _WIN32
+// prevents from defining min/max macros that conflict with std::min()/std::max() functions
+#define NOMINMAX
+#endif
+
 #include "targetver.h"
 
 #include <stdio.h>

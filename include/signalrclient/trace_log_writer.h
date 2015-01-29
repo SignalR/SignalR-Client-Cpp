@@ -5,7 +5,7 @@
 
 #include "log_writer.h"
 
-#ifdef _MS_WINDOWS
+#ifdef _WIN32
 #include <Windows.h>
 #include <WinBase.h>
 #endif
@@ -17,7 +17,7 @@ namespace signalr
     public:
         void write(const utility::string_t &entry) override
         {
-#ifdef _MS_WINDOWS
+#ifdef _WIN32
             // OutputDebugString is thread safe
             OutputDebugString(entry.c_str());
 #else

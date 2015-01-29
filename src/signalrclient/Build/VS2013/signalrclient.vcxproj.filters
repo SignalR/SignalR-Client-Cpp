@@ -107,7 +107,7 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\include\signalrclient\hub_proxy.h">
       <Filter>Header Files</Filter>
-    </ClInclude>  
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\stdafx.cpp">

@@ -4,7 +4,7 @@
 #pragma once
 
 #include <unordered_map>
-#include <cpprest\basic_types.h>
+#include "cpprest\details\basic_types.h"
 #include "connection_impl.h"
 #include "internal_hub_proxy.h"
 #include "callback_manager.h"

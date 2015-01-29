@@ -116,9 +116,6 @@
     <ClCompile Include="..\..\dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClInclude Include="..\..\..\signalrclient\callback_manager.cpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClCompile Include="..\..\..\signalrclient\connection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -168,6 +165,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\signalrclient\hub_proxy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\signalrclient\callback_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

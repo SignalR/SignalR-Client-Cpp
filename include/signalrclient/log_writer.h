@@ -4,7 +4,7 @@
 #pragma once
 
 #include "_exports.h"
-#include <cpprest\basic_types.h>
+#include "cpprest\details\basic_types.h"
 
 namespace signalr
 {

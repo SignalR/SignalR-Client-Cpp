@@ -3,11 +3,9 @@
 
 #pragma once
 
-#include <ppl.h>
-#include <cpprest\basic_types.h>
+#include "pplx\pplxtasks.h"
+#include "cpprest\details\basic_types.h"
 #include "web_request_factory.h"
-
-namespace pplx = concurrency;
 
 namespace signalr
 {

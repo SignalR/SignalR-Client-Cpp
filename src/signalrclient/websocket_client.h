@@ -3,10 +3,8 @@
 
 #pragma once
 
-#include <ppl.h>
-#include <cpprest\base_uri.h>
-
-namespace pplx = concurrency;
+#include "pplx\pplxtasks.h"
+#include "cpprest\base_uri.h"
 
 namespace signalr
 {

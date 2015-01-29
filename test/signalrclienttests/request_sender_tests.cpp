@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 #include "stdafx.h"
-#include <cpprest\basic_types.h>
+#include "cpprest\details\basic_types.h"
 #include "signalrclient\web_exception.h"
 #include "request_sender.h"
 #include "web_request_stub.h"

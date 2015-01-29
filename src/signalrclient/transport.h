@@ -3,12 +3,10 @@
 
 #pragma once;
 
-#include <cpprest\base_uri.h>
-#include <ppl.h>
+#include "pplx\pplxtasks.h"
+#include "cpprest\base_uri.h"
 #include "signalrclient\transport_type.h"
 #include "logger.h"
-
-namespace pplx = Concurrency;
 
 namespace signalr
 {

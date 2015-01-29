@@ -10,7 +10,7 @@
 #include "signalrclient\trace_level.h"
 #include "signalrclient\trace_log_writer.h"
 #include "memory_log_writer.h"
-#include <cpprest\ws_client.h>
+#include "cpprest\ws_client.h"
 
 using namespace signalr;
 using namespace web::experimental;
@@ -424,7 +424,7 @@ TEST(connection_impl_set_message_received, callback_invoked_when_message_receive
             "{}"
         };
 
-        call_number = min(call_number + 1, 3);
+        call_number = std::min(call_number + 1, 3);
 
         return pplx::task_from_result(responses[call_number]);
     });
@@ -467,7 +467,7 @@ TEST(connection_impl_set_message_received, exception_from_callback_caught_and_lo
             "{}"
         };
 
-        call_number = min(call_number + 1, 3);
+        call_number = std::min(call_number + 1, 3);
 
         return pplx::task_from_result(responses[call_number]);
     });
@@ -513,7 +513,7 @@ TEST(connection_impl_set_message_received, non_std_exception_from_callback_caugh
             "{}"
         };
 
-        call_number = min(call_number + 1, 3);
+        call_number = std::min(call_number + 1, 3);
 
         return pplx::task_from_result(responses[call_number]);
     });
@@ -560,7 +560,7 @@ TEST(connection_impl_set_message_received, error_logged_for_malformed_payload)
             "{}"
         };
 
-        call_number = min(call_number + 1, 3);
+        call_number = std::min(call_number + 1, 3);
 
         return pplx::task_from_result(responses[call_number]);
     });
@@ -600,7 +600,7 @@ TEST(connection_impl_set_message_received, unexpected_responses_logged)
             "{}"
         };
 
-        call_number = min(call_number + 1, 3);
+        call_number = std::min(call_number + 1, 3);
 
         return pplx::task_from_result(responses[call_number]);
     });

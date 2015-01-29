@@ -3,8 +3,8 @@
 
 #pragma once
 #include <functional>
-#include <cpprest\basic_types.h>
-#include <cpprest\json.h>
+#include "cpprest\details\basic_types.h"
+#include "cpprest\json.h"
 #include "logger.h"
 
 using namespace web;

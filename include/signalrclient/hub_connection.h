@@ -6,15 +6,13 @@
 #include "_exports.h"
 #include <memory>
 #include <functional>
-#include <ppltasks.h>
-#include <cpprest\json.h>
+#include "pplx\pplxtasks.h"
+#include "cpprest\json.h"
 #include "connection_state.h"
 #include "trace_level.h"
 #include "log_writer.h"
 #include "trace_log_writer.h"
 #include "hub_proxy.h"
-
-namespace pplx = concurrency;
 
 namespace signalr
 {
