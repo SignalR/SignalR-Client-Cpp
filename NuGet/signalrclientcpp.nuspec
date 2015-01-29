@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <metadata>
-    <id>Microsoft.SignalR.Client.Cpp</id>
+    <id>Microsoft.AspNet.SignalR.Client.Cpp</id>
     <title>Microsoft ASP.NET SignalR C++ Client</title>
     <!--TODO: should be common - taken from build -->
     <version>3.0.0-alpha</version>
@@ -15,7 +15,7 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>C++ client for ASP.NET SignalR.</description>
     <language>en-US</language>
-    <tags>Microsoft AspNet SignalR AspNetSignalR Client C++</tags>
+    <tags>Microsoft AspNet SignalR AspNetSignalR Client C++ native</tags>
     <releaseNotes>https://github.com/SignalR/SignalR/releases</releaseNotes>
     <dependencies>
       <dependency id="cpprestsdk" version="2.4.0.1" />
