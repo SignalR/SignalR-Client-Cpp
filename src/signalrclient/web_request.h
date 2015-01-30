@@ -22,7 +22,7 @@ namespace signalr
 
         web_request& operator=(const web_request&) = delete;
 
-		virtual ~web_request();
+        virtual ~web_request();
 
     private:
         const web::uri m_url;

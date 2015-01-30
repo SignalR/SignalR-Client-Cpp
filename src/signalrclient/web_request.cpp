@@ -45,5 +45,5 @@ namespace signalr
             });
     }
 
-	web_request::~web_request() = default;
+    web_request::~web_request() = default;
 }
