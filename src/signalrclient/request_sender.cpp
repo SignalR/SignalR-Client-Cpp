@@ -15,7 +15,6 @@ namespace signalr
             const std::unordered_map<utility::string_t, utility::string_t>& headers)
         {
             auto negotiate_url = url_builder::build_negotiate(base_url, connection_data, query_string);
-            auto request = request_factory.create_web_request(negotiate_url);
 
             return http_sender::get(request_factory, negotiate_url, headers)
                 .then([](utility::string_t body)
@@ -62,7 +61,6 @@ namespace signalr
             const std::unordered_map<utility::string_t, utility::string_t>& headers)
         {
             auto abort_url = url_builder::build_abort(base_url, transport, connection_token, connection_data, query_string);
-            auto request = request_factory.create_web_request(abort_url);
 
             return http_sender::get(request_factory, abort_url, headers);
         }
