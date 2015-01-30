@@ -30,3 +30,5 @@ pplx::task<web_response> web_request_stub::get_response()
     return pplx::task_from_result<web_response>(
         web_response{ m_status_code, m_reason_phrase, pplx::task_from_result<utility::string_t>(m_response_body) });
 }
+
+web_request_stub::~web_request_stub() = default;

@@ -25,4 +25,6 @@ struct web_request_stub : public web_request
     virtual void set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers) override;
 
     virtual pplx::task<web_response> get_response() override;
+
+	virtual ~web_request_stub();
 };
