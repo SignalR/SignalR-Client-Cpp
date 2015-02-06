@@ -3,8 +3,18 @@
 
 #pragma once
 
-#include "targetver.h"
+#ifdef _WIN32 // used in the default log writer and to build the dll
+
+#include <SDKDDKVer.h>
 
 #define WIN32_LEAN_AND_MEAN
 
 #include <windows.h>
+
+#endif
+
+#include <functional>
+#include <unordered_map>
+#include "cpprest/details/basic_types.h"
+#include "cpprest/json.h"
+#include "pplx/pplxtasks.h"

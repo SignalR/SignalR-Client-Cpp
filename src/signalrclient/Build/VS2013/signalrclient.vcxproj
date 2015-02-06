@@ -50,7 +50,6 @@
     <ClInclude Include="..\..\negotiation_response.h" />
     <ClInclude Include="..\..\request_sender.h" />
     <ClInclude Include="..\..\stdafx.h" />
-    <ClInclude Include="..\..\targetver.h" />
     <ClInclude Include="..\..\transport.h" />
     <ClInclude Include="..\..\transport_factory.h" />
     <ClInclude Include="..\..\url_builder.h" />
@@ -74,6 +73,7 @@
     <ClCompile Include="..\..\stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\trace_log_writer.cpp" />
     <ClCompile Include="..\..\transport.cpp" />
     <ClCompile Include="..\..\transport_factory.cpp" />
     <ClCompile Include="..\..\url_builder.cpp" />

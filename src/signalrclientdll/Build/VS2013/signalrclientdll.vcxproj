@@ -50,7 +50,6 @@
     <ClInclude Include="..\..\..\signalrclient\negotiation_response.h" />
     <ClInclude Include="..\..\..\signalrclient\request_sender.h" />
     <ClInclude Include="..\..\..\signalrclient\stdafx.h" />
-    <ClInclude Include="..\..\..\signalrclient\targetver.h" />
     <ClInclude Include="..\..\..\signalrclient\transport.h" />
     <ClInclude Include="..\..\..\signalrclient\transport_factory.h" />
     <ClInclude Include="..\..\..\signalrclient\url_builder.h" />
@@ -59,7 +58,6 @@
     <ClInclude Include="..\..\..\signalrclient\web_request.h" />
     <ClInclude Include="..\..\..\signalrclient\web_request_factory.h" />
     <ClInclude Include="..\..\..\signalrclient\web_response.h" />
-    <ClInclude Include="..\..\targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\signalrclient\connection.cpp" />
@@ -79,6 +77,7 @@
     <ClCompile Include="..\..\..\signalrclient\transport.cpp" />
     <ClCompile Include="..\..\..\signalrclient\transport_factory.cpp" />
     <ClCompile Include="..\..\..\signalrclient\url_builder.cpp" />
+    <ClCompile Include="..\..\..\signalrclient\trace_log_writer.cpp" />
     <ClCompile Include="..\..\..\signalrclient\websocket_transport.cpp" />
     <ClCompile Include="..\..\..\signalrclient\web_request.cpp" />
     <ClCompile Include="..\..\..\signalrclient\web_request_factory.cpp" />
