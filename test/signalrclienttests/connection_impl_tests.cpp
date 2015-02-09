@@ -8,7 +8,7 @@
 #include "test_transport_factory.h"
 #include "connection_impl.h"
 #include "signalrclient\trace_level.h"
-#include "signalrclient\trace_log_writer.h"
+#include "trace_log_writer.h"
 #include "memory_log_writer.h"
 #include "cpprest\ws_client.h"
 

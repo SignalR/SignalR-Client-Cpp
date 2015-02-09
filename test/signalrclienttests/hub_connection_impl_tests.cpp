@@ -6,7 +6,7 @@
 #include "test_transport_factory.h"
 #include "test_web_request_factory.h"
 #include "hub_connection_impl.h"
-#include "signalrclient\trace_log_writer.h"
+#include "trace_log_writer.h"
 #include "memory_log_writer.h"
 #include "signalrclient\hub_exception.h"
 

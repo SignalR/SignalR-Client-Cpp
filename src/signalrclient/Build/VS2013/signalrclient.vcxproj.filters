@@ -69,7 +69,7 @@
     <ClInclude Include="..\..\logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\include\signalrclient\trace_log_writer.h">
+    <ClInclude Include="..\..\trace_log_writer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\transport_factory.h">

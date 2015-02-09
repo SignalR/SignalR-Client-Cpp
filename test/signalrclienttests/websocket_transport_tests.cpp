@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "test_utils.h"
-#include "signalrclient\trace_log_writer.h"
+#include "trace_log_writer.h"
 #include "test_websocket_client.h"
 #include "websocket_transport.h"
 #include "memory_log_writer.h"

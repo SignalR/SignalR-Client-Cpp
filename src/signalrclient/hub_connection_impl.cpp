@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "hub_connection_impl.h"
 #include "signalrclient\hub_exception.h"
+#include "trace_log_writer.h"
 
 namespace signalr
 {
@@ -27,8 +28,8 @@ namespace signalr
         trace_level trace_level, const std::shared_ptr<log_writer>& log_writer, std::unique_ptr<web_request_factory> web_request_factory,
         std::unique_ptr<transport_factory> transport_factory)
     {
-        auto connection = std::shared_ptr<hub_connection_impl>(new hub_connection_impl(url, query_string, trace_level, log_writer,
-            std::move(web_request_factory), std::move(transport_factory)));
+        auto connection = std::shared_ptr<hub_connection_impl>(new hub_connection_impl(url, query_string, trace_level,
+            log_writer ? log_writer : std::make_shared<trace_log_writer>(), std::move(web_request_factory), std::move(transport_factory)));
 
         connection->initialize();
 

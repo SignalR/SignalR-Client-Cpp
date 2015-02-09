@@ -35,7 +35,6 @@
     <ClInclude Include="..\..\..\..\include\signalrclient\hub_proxy.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\log_writer.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\trace_level.h" />
-    <ClInclude Include="..\..\..\..\include\signalrclient\trace_log_writer.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\transport_type.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\web_exception.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\_exports.h" />
@@ -50,6 +49,7 @@
     <ClInclude Include="..\..\..\signalrclient\negotiation_response.h" />
     <ClInclude Include="..\..\..\signalrclient\request_sender.h" />
     <ClInclude Include="..\..\..\signalrclient\stdafx.h" />
+    <ClInclude Include="..\..\..\signalrclient\trace_log_writer.h" />
     <ClInclude Include="..\..\..\signalrclient\transport.h" />
     <ClInclude Include="..\..\..\signalrclient\transport_factory.h" />
     <ClInclude Include="..\..\..\signalrclient\url_builder.h" />
