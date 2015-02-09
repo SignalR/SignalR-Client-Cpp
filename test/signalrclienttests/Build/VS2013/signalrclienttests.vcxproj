@@ -20,7 +20,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>_CONSOLE;_LIB;NO_SIGNALRCLIENT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\gtest-1.7.0\include;..\..\..\..\include;..\..\..\..\src\signalrclient;..\..\..\..\packages\cpprestsdk.2.2.0\build\native\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\gtest-1.7.0\include;..\..\..\..\include;..\..\..\..\src\signalrclient;..\..\..\..\packages\cpprestsdk.2.4.0.1\build\native\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

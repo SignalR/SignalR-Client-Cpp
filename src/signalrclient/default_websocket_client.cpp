@@ -8,9 +8,9 @@ namespace signalr
 {
     namespace
     {
-        static web_sockets::client::websocket_client_config create_client_config(const std::unordered_map<utility::string_t, utility::string_t>& headers)
+        static web::websockets::client::websocket_client_config create_client_config(const std::unordered_map<utility::string_t, utility::string_t>& headers)
         {
-            web_sockets::client::websocket_client_config config;
+            web::websockets::client::websocket_client_config config;
             for (auto &header : headers)
             {
                 config.headers()[header.first] = header.second;
@@ -31,7 +31,7 @@ namespace signalr
 
     pplx::task<void> default_websocket_client::send(const utility::string_t &message)
     {
-        web_sockets::client::websocket_outgoing_message msg;
+        web::websockets::client::websocket_outgoing_message msg;
         msg.set_utf8_message(utility::conversions::to_utf8string(message));
         return m_underlying_client.send(msg);
     }
@@ -40,7 +40,7 @@ namespace signalr
     {
         // the caller is responsible for observing exceptions
         return m_underlying_client.receive()
-            .then([](web_sockets::client::websocket_incoming_message msg)
+            .then([](web::websockets::client::websocket_incoming_message msg)
             {
                 return msg.extract_string();
             });

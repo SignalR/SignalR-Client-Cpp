@@ -13,7 +13,6 @@
 #include "cpprest\ws_client.h"
 
 using namespace signalr;
-using namespace web::experimental;
 
 static std::shared_ptr<connection_impl> create_connection(std::shared_ptr<websocket_client> websocket_client = create_test_websocket_client(),
     std::shared_ptr<log_writer> log_writer = std::make_shared<trace_log_writer>(), trace_level trace_level = trace_level::all)
@@ -58,7 +57,7 @@ TEST(connection_impl_start, connection_state_is_connecting_when_connection_is_be
         /* send function */ [](const utility::string_t){ return pplx::task_from_exception<void>(std::runtime_error("should not be invoked"));  },
         /* connect function */[](const web::uri&)
         {
-            return pplx::task_from_exception<void>(web_sockets::client::websocket_exception(_XPLATSTR("connecting failed")));
+            return pplx::task_from_exception<void>(web::websockets::client::websocket_exception(_XPLATSTR("connecting failed")));
         });
 
     auto connection = create_connection(websocket_client, writer, trace_level::errors);
@@ -167,7 +166,7 @@ TEST(connection_impl_start, start_fails_if_transport_connect_throws)
         /* send function */ [](const utility::string_t){ return pplx::task_from_exception<void>(std::runtime_error("should not be invoked"));  },
         /* connect function */[](const web::uri&)
         {
-            return pplx::task_from_exception<void>(web_sockets::client::websocket_exception(_XPLATSTR("connecting failed")));
+            return pplx::task_from_exception<void>(web::websockets::client::websocket_exception(_XPLATSTR("connecting failed")));
         });
 
     auto connection = create_connection(websocket_client, writer, trace_level::errors);

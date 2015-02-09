@@ -9,7 +9,6 @@
 #include "memory_log_writer.h"
 
 using namespace signalr;
-using namespace web::experimental;
 
 TEST(websocket_transport_connect, connect_connects_and_starts_receive_loop)
 {
@@ -51,7 +50,7 @@ TEST(websocket_transport_connect, connect_propagates_exceptions)
     auto client = std::make_shared<test_websocket_client>();
     client->set_connect_function([](const web::uri &)->pplx::task<void>
     {
-        return pplx::task_from_exception<void>(web_sockets::client::websocket_exception(_XPLATSTR("connecting failed")));
+        return pplx::task_from_exception<void>(web::websockets::client::websocket_exception(_XPLATSTR("connecting failed")));
     });
 
     auto ws_transport = websocket_transport::create(client, logger(std::make_shared<trace_log_writer>(), trace_level::none),
@@ -73,7 +72,7 @@ TEST(websocket_transport_connect, connect_logs_exceptions)
     auto client = std::make_shared<test_websocket_client>();
     client->set_connect_function([](const web::uri &) -> pplx::task<void>
     {
-        return pplx::task_from_exception<void>(web_sockets::client::websocket_exception(_XPLATSTR("connecting failed")));
+        return pplx::task_from_exception<void>(web::websockets::client::websocket_exception(_XPLATSTR("connecting failed")));
     });
 
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
@@ -225,7 +224,7 @@ TEST(websocket_transport_disconnect, disconnect_logs_exceptions)
     auto client = std::make_shared<test_websocket_client>();
     client->set_close_function([]()->pplx::task<void>
     {
-        return pplx::task_from_exception<void>(web_sockets::client::websocket_exception(_XPLATSTR("connection closing failed")));
+        return pplx::task_from_exception<void>(web::websockets::client::websocket_exception(_XPLATSTR("connection closing failed")));
     });
 
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
@@ -342,7 +341,7 @@ void receive_loop_logs_exception_runner(const T& e, const utility::string_t& exp
 TEST(websocket_transport_receive_loop, receive_loop_logs_websocket_exceptions)
 {
     receive_loop_logs_exception_runner(
-        web_sockets::client::websocket_exception(_XPLATSTR("receive failed")),
+        web::websockets::client::websocket_exception(_XPLATSTR("receive failed")),
         _XPLATSTR("[error       ] [websocket transport] error receiving response from websocket: receive failed\n"),
         trace_level::errors);
 }

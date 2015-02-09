@@ -7,8 +7,6 @@
 #include "cpprest\ws_client.h"
 #include "websocket_client.h"
 
-using namespace web::experimental;
-
 namespace signalr
 {
     class default_websocket_client : public websocket_client
@@ -25,6 +23,6 @@ namespace signalr
         pplx::task<void> close() override;
 
     private:
-        web_sockets::client::websocket_client m_underlying_client;
+        web::websockets::client::websocket_client m_underlying_client;
     };
 }
