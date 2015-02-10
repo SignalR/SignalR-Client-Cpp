@@ -26,7 +26,7 @@ namespace signalr
         return m_pImpl->send(data);
     }
 
-    void connection::set_message_received(const message_received& message_received_callback)
+    void connection::set_message_received(const message_received_handler& message_received_callback)
     {
         m_pImpl->set_message_received_string(message_received_callback);
     }

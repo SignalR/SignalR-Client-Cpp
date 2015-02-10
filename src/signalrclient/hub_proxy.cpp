@@ -28,7 +28,7 @@ namespace signalr
         return m_pImpl->get_hub_name();
     }
 
-    void hub_proxy::on(const utility::string_t& event_name, const std::function<void(const web::json::value &)>& handler)
+    void hub_proxy::on(const utility::string_t& event_name, const method_invoked_handler& handler)
     {
         if (!m_pImpl)
         {
@@ -39,7 +39,7 @@ namespace signalr
     }
 
     pplx::task<web::json::value> hub_proxy::invoke_json(const utility::string_t& method_name, const web::json::value& arguments,
-        const std::function<void(const web::json::value&)>& on_progress)
+        const on_progress_handler& on_progress)
     {
         if (!m_pImpl)
         {
@@ -50,7 +50,7 @@ namespace signalr
     }
 
     pplx::task<void> hub_proxy::invoke_void(const utility::string_t& method_name, const web::json::value& arguments,
-        const std::function<void(const web::json::value&)>& on_progress)
+        const on_progress_handler& on_progress)
     {
         if (!m_pImpl)
         {

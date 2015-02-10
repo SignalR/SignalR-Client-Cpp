@@ -30,14 +30,14 @@ namespace signalr
 
         hub_connection& operator=(const hub_connection&) = delete;
 
-        SIGNALRCLIENT_API pplx::task<void> start();
-        SIGNALRCLIENT_API pplx::task<void> stop();
+        SIGNALRCLIENT_API pplx::task<void> __cdecl start();
+        SIGNALRCLIENT_API pplx::task<void> __cdecl stop();
 
-        SIGNALRCLIENT_API hub_proxy create_hub_proxy(const utility::string_t& hub_name);
+        SIGNALRCLIENT_API hub_proxy __cdecl create_hub_proxy(const utility::string_t& hub_name);
 
-        SIGNALRCLIENT_API connection_state get_connection_state() const;
+        SIGNALRCLIENT_API connection_state __cdecl get_connection_state() const;
 
-        SIGNALRCLIENT_API void set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers);
+        SIGNALRCLIENT_API void __cdecl set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers);
 
     private:
         std::shared_ptr<hub_connection_impl> m_pImpl;
