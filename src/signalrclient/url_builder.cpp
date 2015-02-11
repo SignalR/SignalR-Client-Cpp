@@ -43,6 +43,22 @@ namespace signalr
             }
         }
 
+        void append_message_id(web::uri_builder& builder, const utility::string_t& message_id)
+        {
+            if (message_id.length() > 0)
+            {
+                builder.append_query(_XPLATSTR("messageId"), message_id, /* do_encoding */ true);
+            }
+        }
+
+        void append_groups_token(web::uri_builder& builder, const utility::string_t& groups_token)
+        {
+            if (groups_token.length() > 0)
+            {
+                builder.append_query(_XPLATSTR("groupsToken"), groups_token, /* do_encoding */ true);
+            }
+        }
+
         web::uri_builder &convert_to_websocket_url(web::uri_builder &builder, transport_type transport)
         {
             if (transport == transport_type::websockets)
@@ -61,14 +77,19 @@ namespace signalr
         }
 
         web::uri_builder build_uri(const web::uri& base_url, const utility::string_t& command, transport_type transport,
-            const utility::string_t &connection_token, const utility::string_t& connection_data, const utility::string_t& query_string)
+            const utility::string_t &connection_token, const utility::string_t& connection_data, const utility::string_t& query_string,
+            const utility::string_t& last_message_id = _XPLATSTR(""), const utility::string_t& groups_token = _XPLATSTR(""))
         {
+            _ASSERTE(command == _XPLATSTR("reconnect") || (last_message_id.length() == 0 && groups_token.length() == 0));
+
             web::uri_builder builder(base_url);
             builder.append_path(command);
             append_transport(builder, transport);
             builder.append_query(_XPLATSTR("clientProtocol"), PROTOCOL);
             append_connection_token(builder, connection_token);
             append_connection_data(builder, connection_data);
+            append_message_id(builder, last_message_id);
+            append_groups_token(builder, groups_token);
             return builder.append_query(query_string);
         }
 
@@ -81,19 +102,34 @@ namespace signalr
         web::uri build_connect(const web::uri& base_url, transport_type transport,
             const utility::string_t& connection_token, const utility::string_t& connection_data, const utility::string_t& query_string)
         {
+            _ASSERTE(connection_token.length() > 0);
+
             auto builder = build_uri(base_url, _XPLATSTR("connect"), transport, connection_token, connection_data, query_string);
+            return convert_to_websocket_url(builder, transport).to_uri();
+        }
+
+        web::uri build_reconnect(const web::uri& base_url, transport_type transport, const utility::string_t& connection_token,
+            const utility::string_t& connection_data, const utility::string_t& last_message_id, const utility::string_t& groups_token,
+            const utility::string_t& query_string)
+        {
+            _ASSERTE(connection_token.length() > 0);
+
+            auto builder = build_uri(base_url, _XPLATSTR("reconnect"), transport, connection_token, connection_data, query_string, last_message_id, groups_token);
             return convert_to_websocket_url(builder, transport).to_uri();
         }
 
         web::uri build_start(const web::uri &base_url, transport_type transport,
             const utility::string_t &connection_token, const utility::string_t& connection_data, const utility::string_t &query_string)
         {
+            _ASSERTE(connection_token.length() > 0);
             return build_uri(base_url, _XPLATSTR("start"), transport, connection_token, connection_data, query_string).to_uri();
         }
 
         web::uri build_abort(const web::uri &base_url, transport_type transport,
             const utility::string_t &connection_token, const utility::string_t& connection_data, const utility::string_t &query_string)
         {
+            _ASSERTE(connection_token.length() > 0);
+
             return build_uri(base_url, _XPLATSTR("abort"), transport, connection_token, connection_data, query_string).to_uri();
         }
     }
