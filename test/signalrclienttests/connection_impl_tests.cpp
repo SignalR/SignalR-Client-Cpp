@@ -32,7 +32,7 @@ TEST(connection_impl_connection_state, initial_connection_state_is_disconnected)
 TEST(connection_impl_start, cannot_start_non_disconnected_exception)
 {
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+        /* receive function */ []() { return pplx::task_from_result(std::string("{\"C\":\"x\", \"S\":1, \"M\":[] }")); });
     auto connection = create_connection(websocket_client);
 
     connection->start().wait();
@@ -81,7 +81,7 @@ TEST(connection_impl_start, connection_state_is_connecting_when_connection_is_be
 TEST(connection_impl_start, connection_state_is_connected_when_connection_established_succesfully)
 {
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+        /* receive function */ []() { return pplx::task_from_result(std::string("{\"C\":\"x\", \"S\":1, \"M\":[] }")); });
     auto connection = create_connection(websocket_client);
     connection->start().get();
     ASSERT_EQ(connection->get_connection_state(), connection_state::connected);
@@ -265,7 +265,7 @@ TEST(connection_impl_start, start_fails_if_start_request_fails)
     auto websocket_client = std::make_shared<test_websocket_client>();
     websocket_client->set_receive_function([]()->pplx::task<std::string>
     {
-        return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }"));
+        return pplx::task_from_result(std::string("{\"C\":\"x\", \"S\":1, \"M\":[] }"));
     });
 
     auto connection =
@@ -324,7 +324,7 @@ TEST(connection_impl_process_response, process_response_logs_messages)
 {
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+        /* receive function */ []() { return pplx::task_from_result(std::string("{\"C\":\"x\", \"S\":1, \"M\":[] }")); });
     auto connection = create_connection(websocket_client, writer, trace_level::messages);
 
     connection->start().get();
@@ -333,7 +333,7 @@ TEST(connection_impl_process_response, process_response_logs_messages)
     ASSERT_FALSE(log_entries.empty());
 
     auto entry = remove_date_from_log_entry(log_entries[0]);
-    ASSERT_EQ(_XPLATSTR("[message     ] processing message: {\"S\":1, \"M\":[] }\n"), entry);
+    ASSERT_EQ(_XPLATSTR("[message     ] processing message: {\"C\":\"x\", \"S\":1, \"M\":[] }\n"), entry);
 }
 
 TEST(connection_impl_send, message_sent)
@@ -341,7 +341,7 @@ TEST(connection_impl_send, message_sent)
     utility::string_t actual_message;
 
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); },
+        /* receive function */ []() { return pplx::task_from_result(std::string("{\"C\":\"x\", \"S\":1, \"M\":[] }")); },
         /* send function */ [&actual_message](const utility::string_t& message)
     {
         actual_message = message;
@@ -382,7 +382,7 @@ TEST(connection_impl_send, exceptions_from_send_logged_and_propagated)
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
 
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); },
+        /* receive function */ []() { return pplx::task_from_result(std::string("{\"C\":\"x\", \"S\":1, \"M\":[] }")); },
         /* send function */ [](const utility::string_t&){ return pplx::task_from_exception<void>(std::runtime_error("error")); });
 
     auto connection = create_connection(websocket_client, writer, trace_level::errors);
@@ -417,13 +417,14 @@ TEST(connection_impl_set_message_received, callback_invoked_when_message_receive
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+            "{ \"C\":\"x\", \"G\":\"gr0\", \"M\":[]}",
             "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"Test\"] }",
             "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"release\"] }",
             "{}"
         };
 
-        call_number = std::min(call_number + 1, 3);
+        call_number = std::min(call_number + 1, 4);
 
         return pplx::task_from_result(responses[call_number]);
     });
@@ -460,7 +461,7 @@ TEST(connection_impl_set_message_received, exception_from_callback_caught_and_lo
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
             "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"throw\"] }",
             "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"release\"] }",
             "{}"
@@ -506,7 +507,7 @@ TEST(connection_impl_set_message_received, non_std_exception_from_callback_caugh
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
             "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"throw\"] }",
             "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"release\"] }",
             "{}"
@@ -553,7 +554,7 @@ TEST(connection_impl_set_message_received, error_logged_for_malformed_payload)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
             "{ 42",
             "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"release\"] }",
             "{}"
@@ -593,7 +594,7 @@ TEST(connection_impl_set_message_received, unexpected_responses_logged)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
             "42",
             "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"release\"] }",
             "{}"
@@ -628,7 +629,7 @@ TEST(connection_impl_set_message_received, unexpected_responses_logged)
 TEST(connection_impl_set_message_received, callback_can_be_set_only_in_disconnected_state)
 {
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
     auto connection = create_connection(websocket_client);
 
     connection->start().get();
@@ -662,7 +663,7 @@ TEST(connection_impl_stop, stopping_disconnecting_connection_returns_cancelled_t
     auto writer = std::shared_ptr<log_writer>{std::make_shared<memory_log_writer>()};
 
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); },
+        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); },
         /* send function */ [](const utility::string_t){ return pplx::task_from_exception<void>(std::runtime_error("should not be invoked")); },
         /* connect function */ [&close_event](const web::uri&) { return pplx::task_from_result(); },
         /* close function */ [&close_event]()
@@ -704,7 +705,7 @@ TEST(connection_impl_stop, can_start_and_stop_connection)
     auto writer = std::shared_ptr<log_writer>{std::make_shared<memory_log_writer>()};
 
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
     auto connection = create_connection(websocket_client, writer, trace_level::state_changes);
 
     connection->start()
@@ -727,7 +728,7 @@ TEST(connection_impl_stop, can_start_and_stop_connection_multiple_times)
 
     {
         auto websocket_client = create_test_websocket_client(
-            /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+            /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
         auto connection = create_connection(websocket_client, writer, trace_level::state_changes);
 
         connection->start()
@@ -769,7 +770,7 @@ TEST(connection_impl_stop, dtor_stops_the_connection)
 
     {
         auto websocket_client = create_test_websocket_client(
-            /* receive function */ []() { pplx::wait(1); return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+            /* receive function */ []() { pplx::wait(1); return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
         auto connection = create_connection(websocket_client, writer, trace_level::state_changes);
 
         connection->start().get();
@@ -801,7 +802,7 @@ TEST(connection_impl_stop, stop_cancels_ongoing_start_request)
         /* receive function */ [disconnect_completed_event]()
         {
             disconnect_completed_event->wait();
-            return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }"));
+            return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }"));
         });
 
     auto writer = std::shared_ptr<log_writer>{std::make_shared<memory_log_writer>()};
@@ -852,7 +853,7 @@ TEST(connection_impl_stop, stop_ignores_exceptions_from_abort_requests)
     });
 
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
 
     auto connection =
         connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::state_changes,
@@ -900,7 +901,7 @@ TEST(connection_impl_headers, custom_headers_set_in_requests)
     });
 
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
 
     auto connection =
         connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::state_changes,
@@ -920,7 +921,7 @@ TEST(connection_impl_headers, custom_headers_set_in_requests)
 TEST(connection_impl_set_headers, headers_can_be_set_only_in_disconnected_state)
 {
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
     auto connection = create_connection(websocket_client);
 
     connection->start().get();
@@ -940,7 +941,7 @@ TEST(connection_impl_change_state, change_state_logs)
 {
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+        /* receive function */ []() { return pplx::task_from_result(std::string("{\"C\":\"x\", \"S\":1, \"M\":[] }")); });
     auto connection = create_connection(websocket_client, writer, trace_level::state_changes);
 
     connection->start().wait();

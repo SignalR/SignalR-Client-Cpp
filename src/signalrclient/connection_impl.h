@@ -63,6 +63,8 @@ namespace signalr
         pplx::event m_start_completed_event;
         utility::string_t m_connection_token;
         utility::string_t m_connection_data;
+        utility::string_t m_message_id;
+        utility::string_t m_groups_token;
 
         connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level, const std::shared_ptr<log_writer>& log_writer,
             std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);

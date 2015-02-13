@@ -67,6 +67,7 @@ namespace signalr
 
             m_disconnect_cts = pplx::cancellation_token_source();
             m_start_completed_event.reset();
+            m_message_id = m_groups_token = _XPLATSTR("");
         }
 
         pplx::task_completion_event<void> start_tce;
@@ -227,8 +228,23 @@ namespace signalr
                 return;
             }
 
+
+            // The assumption is that we cannot start reconnecting when a message is being processed otherwise there
+            // a data race occurs - we could read `m_groups_token` and `m_message_id` while they are being set below.
+            // This can't happen right now since in the `websocket_transport.receive_loop` we either process the message
+            // or effectively invoke reconnect.
+            if (result.has_field(_XPLATSTR("G")) && result.at(_XPLATSTR("G")).is_string())
+            {
+                m_groups_token = result.at(_XPLATSTR("G")).as_string();
+            }
+
             if (result.has_field(_XPLATSTR("M")) && result.at(_XPLATSTR("M")).is_array())
             {
+                _ASSERTE(result.has_field(_XPLATSTR("C")));
+                _ASSERTE(result.at(_XPLATSTR("C")).is_string());
+
+                m_message_id = result.at(_XPLATSTR("C")).as_string();
+
                 if (result.has_field(_XPLATSTR("S")) && result.at(_XPLATSTR("S")).is_integer() && result.at(_XPLATSTR("S")).as_integer() == 1)
                 {
                     connect_request_tce.set();

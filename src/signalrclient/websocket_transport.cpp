@@ -119,6 +119,9 @@ namespace signalr
             });
     }
 
+    // Note that the connection assumes that the error callback won't be fired when the result is being processed. This
+    // may no longer be true when we replace the `receive_loop` with "on_message_received" and "on_close" events if they
+    // can be fired on different threads in which case we will have to lock before setting groups token and message id.
     void websocket_transport::receive_loop(pplx::cancellation_token_source cts)
     {
         auto this_transport = shared_from_this();

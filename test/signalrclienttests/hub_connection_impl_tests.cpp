@@ -54,7 +54,7 @@ TEST(create_hub_proxy, cannot_create_proxy_if_connection_not_disconnected)
     try
     {
         auto websocket_client = create_test_websocket_client(
-            /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+            /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
         auto hub_connection = create_hub_connection(websocket_client);
 
         hub_connection->start().get();
@@ -72,7 +72,7 @@ TEST(create_hub_proxy, cannot_create_proxy_if_connection_not_disconnected)
 TEST(start, start_starts_connection)
 {
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
     auto hub_connection = create_hub_connection(websocket_client);
 
     hub_connection->start().get();
@@ -111,7 +111,7 @@ TEST(start, start_logs_if_no_hub_proxies_exist_for_hub_connection)
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
 
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
     auto hub_connection = create_hub_connection(websocket_client, writer, trace_level::info);
 
     hub_connection->start().get();
@@ -126,7 +126,7 @@ TEST(start, start_logs_if_no_hub_proxies_exist_for_hub_connection)
 TEST(stop, stop_stops_connection)
 {
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
     auto hub_connection = create_hub_connection(websocket_client);
 
     hub_connection->start().get();
@@ -141,7 +141,7 @@ TEST(stop, connection_stopped_when_going_out_of_scope)
 
     {
         auto websocket_client = create_test_websocket_client(
-            /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); });
+            /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
         auto hub_connection = create_hub_connection(websocket_client, writer, trace_level::state_changes);
 
         hub_connection->start().get();
@@ -173,7 +173,7 @@ TEST(stop, stop_cancels_pending_callbacks)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
             "{}"
         };
 
@@ -209,7 +209,7 @@ TEST(stop, pending_callbacks_finished_if_hub_connections_goes_out_of_scope)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
             "{}"
         };
 
@@ -248,8 +248,8 @@ TEST(hub_invocation, hub_connection_invokes_users_code_on_hub_invocations)
     mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
-            "{\"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_hub\", \"M\":\"broadcast\", \"A\" : [\"message\", 1]}] }",
+            "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+            "{ \"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_hub\", \"M\":\"broadcast\", \"A\" : [\"message\", 1]}] }",
             "{}"
         };
 
@@ -283,9 +283,9 @@ TEST(hub_invocation, hub_connection_discards_persistent_connection_message_primi
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
             "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [\"Test\"] }",
-            "{\"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_hub\", \"M\":\"broadcast\", \"A\" : [\"signal event\", 1]}] }",
+            "{ \"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_hub\", \"M\":\"broadcast\", \"A\" : [\"signal event\", 1]}] }",
             "{}"
         };
 
@@ -323,9 +323,9 @@ TEST(hub_invocation, hub_connection_invokes_persistent_connection_message_object
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
             "{ \"C\":\"d-486F0DF9-BAO,5|BAV,1|BAW,0\", \"M\" : [{\"Name\": \"Test\"}] }",
-            "{\"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_hub\", \"M\":\"broadcast\", \"A\" : [\"signal event\", 1]}] }",
+            "{ \"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_hub\", \"M\":\"broadcast\", \"A\" : [\"signal event\", 1]}] }",
             "{}"
         };
 
@@ -360,7 +360,7 @@ TEST(invoke, invoke_creates_correct_payload)
     utility::string_t payload;
 
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); },
+        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); },
         /* send function */[&payload](const utility::string_t& m)
         {
             payload = m;
@@ -385,7 +385,7 @@ TEST(invoke, invoke_creates_correct_payload)
 TEST(invoke, callback_not_called_if_send_throws)
 {
     auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{\"S\":1, \"M\":[] }")); },
+        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); },
         /* send function */[](const utility::string_t&) { return pplx::task_from_exception<void>(std::runtime_error("error")); });
 
     auto hub_connection = create_hub_connection(websocket_client);
@@ -418,8 +418,8 @@ TEST(hub_invocation, hub_connection_logs_if_no_hub_for_invocation)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
-            "{\"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_hub\", \"M\":\"broadcast\", \"A\" : [\"message\", 1]}] }",
+            "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+            "{ \"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_hub\", \"M\":\"broadcast\", \"A\" : [\"message\", 1]}] }",
             "{}"
         };
 
@@ -457,12 +457,13 @@ TEST(invoke_json, invoke_returns_value_returned_from_the_server)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
-            "{\"I\":\"0\", \"R\" : \"abc\"}",
+            "{\"C\":\"x\", \"S\":1, \"M\":[] }",
+            "{\"C\":\"x\", \"G\":\"gr0\", \"M\":[]}",
+            "{\"I\":\"0\", \"R\":\"abc\"}",
             "{}"
         };
 
-        call_number = std::min(call_number + 1, 2);
+        call_number = std::min(call_number + 1, 3);
 
         if (call_number > 0)
         {
@@ -494,7 +495,7 @@ TEST(invoke_json, invoke_propagates_errors_from_server_as_exceptions)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"x\", \"S\":1, \"M\":[] }",
             "{\"I\":\"0\", \"E\" : \"Ooops\"}",
             "{}"
         };
@@ -538,7 +539,7 @@ TEST(invoke_json, invoke_propagates_hub_errors_from_server_as_hub_exceptions)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"x\", \"S\":1, \"M\":[] }",
             "{\"I\":\"0\", \"E\" : \"Ooops\", \"H\": true, \"D\": { \"ErrorNumber\" : 42 }}",
             "{}"
         };
@@ -583,7 +584,7 @@ TEST(progress, progress_callback_called_for_progress_messages_json)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"x\", \"S\":1, \"M\":[] }",
             "{\"C\":\"d-5E80A020-A,1|B,0|C,15|D,0\", \"M\":[{\"I\":\"P|1\", \"P\":{\"I\":\"0\", \"D\":1}}] }",
             "{\"C\":\"d-5E80A020-A,1|B,0|C,15|D,0\", \"M\":[{\"I\":\"P|1\", \"P\":{\"I\":\"0\", \"D\":2}}] }",
             "{\"I\":\"0\", \"R\":\"abc\"}",
@@ -629,7 +630,7 @@ TEST(invoke_void, invoke_unblocks_task_when_server_completes_call)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"x\", \"S\":1, \"M\":[] }",
             "{\"I\":\"0\"}",
             "{}"
         };
@@ -667,7 +668,7 @@ TEST(invoke_void, invoke_logs_if_callback_for_given_id_not_found)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"x\", \"S\":1, \"M\":[] }",
             "{\"I\":\"not tracked\"}",
             "{}"
         };
@@ -705,7 +706,7 @@ TEST(invoke_void, invoke_propagates_errors_from_server_as_exceptions)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"x\", \"S\":1, \"M\":[] }",
             "{\"I\":\"0\", \"E\" : \"Ooops\"}",
             "{}"
         };
@@ -749,7 +750,7 @@ TEST(invoke_void, invoke_propagates_hub_errors_from_server_as_hub_exceptions)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"x\", \"S\":1, \"M\":[] }",
             "{\"I\":\"0\", \"E\" : \"Ooops\", \"H\": true, \"D\": { \"ErrorNumber\" : 42 }}",
             "{}"
         };
@@ -794,7 +795,7 @@ TEST(invoke_void, invoke_creates_hub_exception_even_if_no_error_data)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"x\", \"S\":1, \"M\":[] }",
             "{\"I\":\"0\", \"E\" : \"Ooops\", \"H\": true }",
             "{}"
         };
@@ -829,7 +830,7 @@ TEST(invoke_void, invoke_creates_hub_exception_even_if_no_error_data)
     }
 }
 
-TEST(invoke_void, invoke_creates_runtime_error_even_hub_exception_indicator_false)
+TEST(invoke_void, invoke_creates_runtime_error_when_hub_exception_indicator_false)
 {
     auto callback_registered_event = std::make_shared<pplx::event>();
 
@@ -839,7 +840,7 @@ TEST(invoke_void, invoke_creates_runtime_error_even_hub_exception_indicator_fals
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"x\", \"S\":1, \"M\":[] }",
             "{\"I\":\"0\", \"E\" : \"Ooops\", \"H\": false }",
             "{}"
         };
@@ -884,7 +885,7 @@ TEST(invoke_void, invoke_creates_runtime_error_even_hub_exception_indicator_non_
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"x\", \"S\":1, \"M\":[] }",
             "{\"I\":\"0\", \"E\" : \"Ooops\", \"H\": 42 }",
             "{}"
         };
@@ -929,7 +930,7 @@ TEST(progress, progress_callback_called_for_progress_messages)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"x\", \"S\":1, \"M\":[] }",
             "{\"C\":\"d-5E80A020-A,1|B,0|C,15|D,0\", \"M\":[{\"I\":\"P|1\", \"P\":{\"I\":\"0\", \"D\":1}}] }",
             "{\"C\":\"d-5E80A020-A,1|B,0|C,15|D,0\", \"M\":[{\"I\":\"P|1\", \"P\":{\"I\":\"0\", \"D\":2}}] }",
             "{\"I\":\"0\"}",
@@ -975,7 +976,7 @@ TEST(progress, exceptions_from_progress_callbacks_logged)
         mutable {
         std::string responses[]
         {
-            "{\"S\":1, \"M\":[] }",
+            "{\"C\":\"x\", \"S\":1, \"M\":[] }",
             "{\"C\":\"d-5E80A020-A,1|B,0|C,15|D,0\", \"M\":[{\"I\":\"P|1\", \"P\":{\"I\":\"0\", \"D\":1}}] }",
             "{\"I\":\"0\"}",
             "{}"
