@@ -67,7 +67,7 @@
       Properties="PackageSourceNative=$(PackageSourceNative);Configuration=%(ProjectConfiguration.Configuration);Platform=%(ProjectConfiguration.Platform);PlatformToolset=$(PlatformToolset);SignalrClientTargetName=$(SignalrClientTargetName)" />
 
     <MakeDir Directories="$(PackageOutputDir)" />
-    <Exec Command="$(NuGetCommand) pack $(NuSpecPath) -BasePath $(PackageSource) -OutputDirectory $(PackageOutputDir)" LogStandardErrorAsError="true" />
+    <Exec Command="$(NuGetCommand) pack $(NuSpecPath) -BasePath $(PackageSource) -OutputDirectory $(PackageOutputDir) -Version $(SignalRClientCppVersionString)" LogStandardErrorAsError="true" />
   </Target>
 
   <Target Name="BuildForNuget">
