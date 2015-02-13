@@ -21,7 +21,7 @@ namespace signalr
     {
     public:
         SIGNALRCLIENT_API explicit hub_connection(const utility::string_t& url, const utility::string_t& query_string = U(""),
-            trace_level trace_level = trace_level::all, std::shared_ptr<log_writer> log_writer = nullptr);
+            trace_level trace_level = trace_level::all, std::shared_ptr<log_writer> log_writer = nullptr, bool use_default_url = true);
 
         SIGNALRCLIENT_API ~hub_connection();
 

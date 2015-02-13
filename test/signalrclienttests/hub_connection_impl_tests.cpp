@@ -15,8 +15,62 @@ using namespace signalr;
 std::shared_ptr<hub_connection_impl> create_hub_connection(std::shared_ptr<websocket_client> websocket_client = create_test_websocket_client(),
     std::shared_ptr<log_writer> log_writer = std::make_shared<trace_log_writer>(), trace_level trace_level = trace_level::all)
 {
-    return hub_connection_impl::create( _XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level, log_writer,
+    return hub_connection_impl::create( _XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level, log_writer, /*use_default_url*/true,
         create_test_web_request_factory(), std::make_unique<test_transport_factory>(websocket_client));
+}
+
+TEST(url, signalr_appended_to_url_if_use_default_url_true)
+{
+    utility::string_t base_urls[] = { _XPLATSTR("http://fakeuri"), _XPLATSTR("http://fakeuri/") };
+
+    for (const auto& base_url : base_urls)
+    {
+        web::uri requested_url;
+        auto web_request_factory = std::make_unique<test_web_request_factory>([&requested_url](const web::uri &url)
+        {
+            requested_url = url;
+            return std::unique_ptr<web_request>(new web_request_stub((unsigned short)404, _XPLATSTR("Bad request"), _XPLATSTR("")));
+        });
+
+        auto hub_connection = hub_connection_impl::create(base_url, _XPLATSTR(""), trace_level::none,
+            std::make_shared<trace_log_writer>(), /*use_default_url:*/ true, std::move(web_request_factory),
+            std::make_unique<test_transport_factory>(create_test_websocket_client()));
+
+        try
+        {
+            hub_connection->start().get();
+        }
+        catch (const std::exception&) { }
+
+        ASSERT_EQ(web::uri(_XPLATSTR("http://fakeuri/signalr/negotiate?clientProtocol=1.4")), requested_url);
+    }
+}
+
+TEST(url, signalr_not_appended_to_url_if_use_default_url_false)
+{
+    utility::string_t base_urls[] = { _XPLATSTR("http://fakeuri"), _XPLATSTR("http://fakeuri/") };
+
+    for (const auto& base_url : base_urls)
+    {
+        web::uri requested_url;
+        auto web_request_factory = std::make_unique<test_web_request_factory>([&requested_url](const web::uri &url)
+        {
+            requested_url = url;
+            return std::unique_ptr<web_request>(new web_request_stub((unsigned short)404, _XPLATSTR("Bad request"), _XPLATSTR("")));
+        });
+
+        auto hub_connection = hub_connection_impl::create(base_url, _XPLATSTR(""), trace_level::none,
+            std::make_shared<trace_log_writer>(), /*use_default_url:*/ false, std::move(web_request_factory),
+            std::make_unique<test_transport_factory>(create_test_websocket_client()));
+
+        try
+        {
+            hub_connection->start().get();
+        }
+        catch (const std::exception&) {}
+
+        ASSERT_EQ(web::uri(_XPLATSTR("http://fakeuri/negotiate?clientProtocol=1.4")), requested_url);
+    }
 }
 
 TEST(create_hub_proxy, create_hub_proxy_creates_proxy_with_correct_name)
@@ -89,8 +143,9 @@ TEST(start, start_sets_connection_data)
         return std::unique_ptr<web_request>(new web_request_stub((unsigned short)404, _XPLATSTR("Bad request"), _XPLATSTR("")));
     });
 
-    auto hub_connection = hub_connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>(),
-        std::move(web_request_factory), std::make_unique<test_transport_factory>(create_test_websocket_client()));
+    auto hub_connection = hub_connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::none,
+        std::make_shared<trace_log_writer>(), /*use_default_url:*/ true, std::move(web_request_factory),
+        std::make_unique<test_transport_factory>(create_test_websocket_client()));
     hub_connection->create_hub_proxy(_XPLATSTR("my_hub"));
     hub_connection->create_hub_proxy(_XPLATSTR("your_hub"));
 
@@ -102,7 +157,7 @@ TEST(start, start_sets_connection_data)
     {
     }
 
-    ASSERT_EQ(web::uri(_XPLATSTR("http://fakeuri/negotiate?clientProtocol=1.4&connectionData=%5B%7B%22Name%22:%22my_hub%22%7D,%7B%22Name%22:%22your_hub%22%7D%5D")),
+    ASSERT_EQ(web::uri(_XPLATSTR("http://fakeuri/signalr/negotiate?clientProtocol=1.4&connectionData=%5B%7B%22Name%22:%22my_hub%22%7D,%7B%22Name%22:%22your_hub%22%7D%5D")),
         requested_url);
 }
 
