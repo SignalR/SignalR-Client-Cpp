@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 #include "stdafx.h"
-#include "cpprest\asyncrt_utils.h"
 #include <thread>
 #include "connection_impl.h"
 #include "request_sender.h"
@@ -82,6 +81,8 @@ namespace signalr
             }, m_disconnect_cts.get_token())
             .then([connection](negotiation_response negotiation_response)
             {
+                connection->m_last_message_at = utility::datetime::utc_now();
+
                 return connection->start_transport(negotiation_response)
                     .then([connection, negotiation_response](std::shared_ptr<transport> transport)
                     {
@@ -212,6 +213,8 @@ namespace signalr
 
         try
         {
+            m_last_message_at = utility::datetime::utc_now();
+
             const auto result = web::json::value::parse(response);
 
             if (!result.is_object())

@@ -6,6 +6,7 @@
 #include <atomic>
 #include <mutex>
 #include "cpprest\http_client.h"
+#include "cpprest\asyncrt_utils.h"
 #include "signalrclient\trace_level.h"
 #include "signalrclient\connection_state.h"
 #include "web_request_factory.h"
@@ -65,6 +66,7 @@ namespace signalr
         utility::string_t m_connection_data;
         utility::string_t m_message_id;
         utility::string_t m_groups_token;
+        std::atomic<utility::datetime> m_last_message_at;
 
         connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level, const std::shared_ptr<log_writer>& log_writer,
             std::unique_ptr<web_request_factory> web_request_factory, std::unique_ptr<transport_factory> transport_factory);
