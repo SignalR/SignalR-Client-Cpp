@@ -63,6 +63,7 @@ namespace signalr
         pplx::event m_start_completed_event;
         utility::string_t m_connection_token;
         utility::string_t m_connection_data;
+        int m_reconnect_window; // in milliseconds
         utility::string_t m_message_id;
         utility::string_t m_groups_token;
 

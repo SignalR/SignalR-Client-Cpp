@@ -2,8 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 #include "stdafx.h"
-#include "cpprest\asyncrt_utils.h"
 #include <thread>
+#include <algorithm>
+#include "cpprest\asyncrt_utils.h"
 #include "connection_impl.h"
 #include "request_sender.h"
 #include "url_builder.h"
@@ -85,8 +86,10 @@ namespace signalr
                 return connection->start_transport(negotiation_response)
                     .then([connection, negotiation_response](std::shared_ptr<transport> transport)
                     {
-                        connection->m_transport = transport;
                         connection->m_connection_token = negotiation_response.connection_token;
+                        connection->m_reconnect_window =
+                            negotiation_response.disconnect_timeout + std::max(negotiation_response.keep_alive_timeout, 0);
+                        connection->m_transport = transport;
                     });
             }, m_disconnect_cts.get_token())
             .then([connection]()
