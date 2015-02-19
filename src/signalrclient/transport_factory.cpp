@@ -14,8 +14,8 @@ namespace signalr
     {
         if (transport_type == transport_type::websockets)
         {
-            auto websocket_client = std::make_shared<default_websocket_client>(headers);
-            return websocket_transport::create(websocket_client, logger, process_response_callback, error_callback);
+            return websocket_transport::create([headers](){ return std::make_shared<default_websocket_client>(headers); },
+                logger, process_response_callback, error_callback);
         }
 
         throw std::exception("not implemented");

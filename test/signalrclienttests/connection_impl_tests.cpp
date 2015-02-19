@@ -543,7 +543,7 @@ TEST(connection_impl_set_message_received, non_std_exception_from_callback_caugh
     ASSERT_FALSE(log_entries.empty());
 
     auto entry = remove_date_from_log_entry(log_entries[0]);
-    ASSERT_EQ(_XPLATSTR("[error       ] message_received callback threw an unknown exception.\n"), entry);
+    ASSERT_EQ(_XPLATSTR("[error       ] message_received callback threw an unknown exception\n"), entry);
 }
 
 TEST(connection_impl_set_message_received, error_logged_for_malformed_payload)
@@ -626,7 +626,7 @@ TEST(connection_impl_set_message_received, unexpected_responses_logged)
     ASSERT_EQ(_XPLATSTR("[info        ] unexpected response received from the server: 42\n"), entry);
 }
 
-TEST(connection_impl_set_message_received, callback_can_be_set_only_in_disconnected_state)
+void can_be_set_only_in_disconnected_state(std::function<void(connection_impl *)> callback, const char* expected_exception_message)
 {
     auto websocket_client = create_test_websocket_client(
         /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
@@ -636,13 +636,55 @@ TEST(connection_impl_set_message_received, callback_can_be_set_only_in_disconnec
 
     try
     {
-        connection->set_message_received_string([](const utility::string_t&){});
+        callback(connection.get());
         ASSERT_TRUE(false); // exception expected but not thrown
     }
     catch (const std::runtime_error &e)
     {
-        ASSERT_STREQ("cannot set the callback when the connection is not in the disconnected state. current connection state: connected", e.what());
+        ASSERT_STREQ(expected_exception_message, e.what());
     }
+}
+
+TEST(connection_impl_set_configuration, set_message_received_string_callback_can_be_set_only_in_disconnected_state)
+{
+    can_be_set_only_in_disconnected_state(
+        [](connection_impl* connection) { connection->set_message_received_string([](const utility::string_t&){}); },
+        "cannot set the callback when the connection is not in the disconnected state. current connection state: connected");
+}
+
+TEST(connection_impl_set_configuration, set_message_received_json_callback_can_be_set_only_in_disconnected_state)
+{
+    can_be_set_only_in_disconnected_state(
+        [](connection_impl* connection) { connection->set_message_received_json([](const web::json::value&){}); },
+        "cannot set the callback when the connection is not in the disconnected state. current connection state: connected");
+}
+
+TEST(connection_impl_set_configuration, set_reconnecting_callback_can_be_set_only_in_disconnected_state)
+{
+    can_be_set_only_in_disconnected_state(
+        [](connection_impl* connection) { connection->set_reconnecting([](){}); },
+        "cannot set the reconnecting callback when the connection is not in the disconnected state. current connection state: connected");
+}
+
+TEST(connection_impl_set_configuration, set_reconnected_callback_can_be_set_only_in_disconnected_state)
+{
+    can_be_set_only_in_disconnected_state(
+        [](connection_impl* connection) { connection->set_reconnected([](){}); },
+        "cannot set the reconnected callback when the connection is not in the disconnected state. current connection state: connected");
+}
+
+TEST(connection_impl_set_configuration, set_disconnected_callback_can_be_set_only_in_disconnected_state)
+{
+    can_be_set_only_in_disconnected_state(
+        [](connection_impl* connection) { connection->set_disconnected([](){}); },
+        "cannot set the disconnected callback when the connection is not in the disconnected state. current connection state: connected");
+}
+
+TEST(connection_impl_set_configuration, set_reconnect_delay_can_be_set_only_in_disconnected_state)
+{
+    can_be_set_only_in_disconnected_state(
+        [](connection_impl* connection) { connection->set_reconnect_delay(100); },
+        "cannot set reconnect delay when the connection is not in the disconnected state. current connection state: connected");
 }
 
 TEST(connection_impl_stop, stopping_disconnected_connection_is_no_op)
@@ -861,9 +903,9 @@ TEST(connection_impl_stop, stop_ignores_exceptions_from_abort_requests)
 
     connection->start()
         .then([connection]()
-    {
-        return connection->stop();
-    }).get();
+        {
+            return connection->stop();
+        }).get();
 
     ASSERT_EQ(connection_state::disconnected, connection->get_connection_state());
 
@@ -873,6 +915,66 @@ TEST(connection_impl_stop, stop_ignores_exceptions_from_abort_requests)
     ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(log_entries[1]));
     ASSERT_EQ(_XPLATSTR("[state change] connected -> disconnecting\n"), remove_date_from_log_entry(log_entries[2]));
     ASSERT_EQ(_XPLATSTR("[state change] disconnecting -> disconnected\n"), remove_date_from_log_entry(log_entries[3]));
+}
+
+TEST(connection_impl_stop, stop_invokes_disconnected_callback)
+{
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
+    auto connection = create_connection(websocket_client);
+
+    auto disconnected_invoked = false;
+    connection->set_disconnected([&disconnected_invoked](){ disconnected_invoked = true; });
+
+    connection->start()
+        .then([connection]()
+        {
+            return connection->stop();
+        }).get();
+
+    ASSERT_TRUE(disconnected_invoked);
+}
+
+TEST(connection_impl_stop, std_exception_for_disconnected_callback_caught_and_logged)
+{
+    auto writer = std::shared_ptr<log_writer>{std::make_shared<memory_log_writer>()};
+
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
+    auto connection = create_connection(websocket_client, writer, trace_level::errors);
+
+    connection->set_disconnected([](){ throw std::runtime_error("exception from disconnected"); });
+
+    connection->start()
+        .then([connection]()
+        {
+            return connection->stop();
+        }).get();
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_EQ(1, log_entries.size());
+    ASSERT_EQ(_XPLATSTR("[error       ] disconnected callback threw an exception: exception from disconnected\n"), remove_date_from_log_entry(log_entries[0]));
+}
+
+TEST(connection_impl_stop, exception_for_disconnected_callback_caught_and_logged)
+{
+    auto writer = std::shared_ptr<log_writer>{std::make_shared<memory_log_writer>()};
+
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
+    auto connection = create_connection(websocket_client, writer, trace_level::errors);
+
+    connection->set_disconnected([](){ throw 42; });
+
+    connection->start()
+        .then([connection]()
+        {
+            return connection->stop();
+        }).get();
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_EQ(1, log_entries.size());
+    ASSERT_EQ(_XPLATSTR("[error       ] disconnected callback threw an unknown exception\n"), remove_date_from_log_entry(log_entries[0]));
 }
 
 TEST(connection_impl_headers, custom_headers_set_in_requests)
@@ -920,21 +1022,9 @@ TEST(connection_impl_headers, custom_headers_set_in_requests)
 
 TEST(connection_impl_set_headers, headers_can_be_set_only_in_disconnected_state)
 {
-    auto websocket_client = create_test_websocket_client(
-        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
-    auto connection = create_connection(websocket_client);
-
-    connection->start().get();
-
-    try
-    {
-        connection->set_headers(std::unordered_map<utility::string_t, utility::string_t>{});
-        ASSERT_TRUE(false); // exception expected but not thrown
-    }
-    catch (const std::runtime_error &e)
-    {
-        ASSERT_STREQ("cannot set headers when the connection is not in the disconnected state. current connection state: connected", e.what());
-    }
+    can_be_set_only_in_disconnected_state(
+        [](connection_impl* connection) { connection->set_headers(std::unordered_map<utility::string_t, utility::string_t>{}); },
+        "cannot set headers when the connection is not in the disconnected state. current connection state: connected");
 }
 
 TEST(connection_impl_change_state, change_state_logs)
@@ -951,4 +1041,567 @@ TEST(connection_impl_change_state, change_state_logs)
 
     auto entry = remove_date_from_log_entry(log_entries[0]);
     ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), entry);
+}
+
+TEST(connection_impl_reconnect, can_reconnect)
+{
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number]() mutable
+        {
+            std::string responses[]
+            {
+                "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+                "{}",
+                "{}",
+                "{}"
+            };
+
+            call_number = std::min(call_number + 1, 3);
+
+            return call_number == 2
+                ? pplx::task_from_exception<std::string>(std::runtime_error("connection exception"))
+                : pplx::task_from_result(responses[call_number]);
+        });
+
+    auto connection = create_connection(websocket_client);
+    connection->set_reconnect_delay(100);
+    auto reconnected_event = std::make_shared<pplx::event>();
+    connection->set_reconnected([reconnected_event](){ reconnected_event->set(); });
+    connection->start();
+
+    ASSERT_FALSE(reconnected_event->wait(5000));
+    ASSERT_EQ(connection_state::connected, connection->get_connection_state());
+}
+
+TEST(connection_impl_reconnect, successful_reconnect_state_changes)
+{
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number]() mutable
+        {
+            std::string responses[]
+            {
+                "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+                "{}",
+                "{}",
+                "{}"
+            };
+
+            call_number = std::min(call_number + 1, 3);
+
+            return call_number == 2
+                ? pplx::task_from_exception<std::string>(std::runtime_error("connection exception"))
+                : pplx::task_from_result(responses[call_number]);
+        });
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+    auto connection = create_connection(websocket_client, writer, trace_level::state_changes);
+    connection->set_reconnect_delay(100);
+    auto reconnected_event = std::make_shared<pplx::event>();
+    connection->set_reconnected([reconnected_event](){ reconnected_event->set(); });
+    connection->start();
+
+    ASSERT_FALSE(reconnected_event->wait(5000));
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_EQ(4, log_entries.size());
+    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
+    ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(log_entries[1]));
+    ASSERT_EQ(_XPLATSTR("[state change] connected -> reconnecting\n"), remove_date_from_log_entry(log_entries[2]));
+    ASSERT_EQ(_XPLATSTR("[state change] reconnecting -> connected\n"), remove_date_from_log_entry(log_entries[3]));
+}
+
+TEST(connection_impl_reconnect, connection_stopped_if_reconnecting_failed)
+{
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
+    {
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"DisconnectTimeout\" : 0.5, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : url.path() == _XPLATSTR("/start")
+                ? _XPLATSTR("{\"Response\":\"started\" }")
+                : _XPLATSTR("");
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    int call_number = -1;
+    int reconnect_invocations = 0;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number]() mutable
+        {
+            std::string responses[]
+            {
+                "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+                "{}",
+                "{}",
+                "{}"
+            };
+
+            call_number = std::min(call_number + 1, 3);
+
+            return call_number == 2
+                ? pplx::task_from_exception<std::string>(std::runtime_error("connection exception"))
+                : pplx::task_from_result(responses[call_number]);
+        },
+        /* send function */ [](const utility::string_t){ return pplx::task_from_exception<void>(std::runtime_error("should not be invoked"));  },
+        /* connect function */[&reconnect_invocations](const web::uri& url)
+        {
+            if (url.path() == _XPLATSTR("/reconnect"))
+            {
+                reconnect_invocations++;
+                return pplx::task_from_exception<void>(std::runtime_error("reconnect rejected"));
+            }
+
+            return pplx::task_from_result();
+        });
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+    auto connection =
+        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::state_changes,
+        writer, std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
+
+    auto disconnected_event = std::make_shared<pplx::event>();
+    connection->set_disconnected([disconnected_event](){ disconnected_event->set(); });
+    connection->set_reconnect_delay(100);
+    connection->start();
+
+    ASSERT_FALSE(disconnected_event->wait(5000));
+    ASSERT_EQ(connection_state::disconnected, connection->get_connection_state());
+    ASSERT_GE(reconnect_invocations, 2);
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_EQ(5, log_entries.size());
+    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
+    ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(log_entries[1]));
+    ASSERT_EQ(_XPLATSTR("[state change] connected -> reconnecting\n"), remove_date_from_log_entry(log_entries[2]));
+    ASSERT_EQ(_XPLATSTR("[state change] reconnecting -> disconnecting\n"), remove_date_from_log_entry(log_entries[3]));
+    ASSERT_EQ(_XPLATSTR("[state change] disconnecting -> disconnected\n"), remove_date_from_log_entry(log_entries[4]));
+}
+
+TEST(connection_impl_reconnect, reconnect_works_if_connection_dropped_during_after_init_and_before_start_successfully_completed)
+{
+    auto connection_dropped_event = std::make_shared<pplx::event>();
+
+    auto web_request_factory = std::make_unique<test_web_request_factory>([&connection_dropped_event](const web::uri& url)
+    {
+        if (url.path() == _XPLATSTR("/start"))
+        {
+            connection_dropped_event->wait();
+        }
+
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"DisconnectTimeout\" : 0.5, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : url.path() == _XPLATSTR("/start")
+                ? _XPLATSTR("{\"Response\":\"started\" }")
+                : _XPLATSTR("");
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number, connection_dropped_event]() mutable
+    {
+        std::string responses[]
+        {
+            "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+            "{}",
+            "{}"
+        };
+
+        call_number = std::min(call_number + 1, 2);
+
+        if (call_number == 1)
+        {
+            connection_dropped_event->set();
+            return pplx::task_from_exception<std::string>(std::runtime_error("connection exception"));
+        }
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+    auto connection = create_connection(websocket_client, writer, trace_level::state_changes);
+    connection->set_reconnect_delay(100);
+    auto reconnected_event = std::make_shared<pplx::event>();
+    connection->set_reconnected([reconnected_event](){ reconnected_event->set(); });
+
+    connection->start();
+
+    ASSERT_FALSE(reconnected_event->wait(5000));
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_EQ(4, log_entries.size());
+    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
+    ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(log_entries[1]));
+    ASSERT_EQ(_XPLATSTR("[state change] connected -> reconnecting\n"), remove_date_from_log_entry(log_entries[2]));
+    ASSERT_EQ(_XPLATSTR("[state change] reconnecting -> connected\n"), remove_date_from_log_entry(log_entries[3]));
+}
+
+TEST(connection_impl_reconnect, reconnect_canceled_if_connection_dropped_during_start_and_start_failed)
+{
+    auto connection_dropped_event = std::make_shared<pplx::event>();
+
+    auto web_request_factory = std::make_unique<test_web_request_factory>([&connection_dropped_event](const web::uri& url)
+    {
+        if (url.path() == _XPLATSTR("/start"))
+        {
+            connection_dropped_event->wait();
+            return std::unique_ptr<web_request>(new web_request_stub((unsigned short)404, _XPLATSTR("Bad request"), _XPLATSTR("")));
+        }
+
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"DisconnectTimeout\" : 0.5, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : _XPLATSTR("");
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number, connection_dropped_event]() mutable
+    {
+        std::string responses[]
+        {
+            "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+            "{}",
+            "{}"
+        };
+
+        call_number = std::min(call_number + 1, 2);
+
+        if (call_number == 1)
+        {
+            connection_dropped_event->set();
+            return pplx::task_from_exception<std::string>(std::runtime_error("connection exception"));
+        }
+
+        return pplx::task_from_result(responses[call_number]);
+    });
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+    auto connection =
+        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::state_changes | trace_level::info,
+        writer, std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
+
+    try
+    {
+        connection->start().get();
+        ASSERT_TRUE(false); // exception expected but not thrown
+    }
+    catch (const std::exception&)
+    { }
+
+    // Reconnecting happens on its own thread. If the connection is dropped after a successfull /connect but before the
+    // entire start sequence completes the reconnect thread is blocked to see if the starts sequence succeded or not.
+    // If the start sequence ultimately fails the reconnect logic will not be run - the reconnect thread will exit.
+    // However there is no further synchronization between start and reconnect threads so the order in which they will
+    // finish is not defined. Note that this does not matter for the user since they don't directly depend on/observe
+    // the reconnect in any way. In tests however if the start thread finishes first we can get here while the reconnect
+    // thread still has not finished. This would make the test fail so we need to wait until the reconnect thread finishes
+    // which will be when it logs a message that it is giving up reconnecting.
+    auto memory_writer = std::dynamic_pointer_cast<memory_log_writer>(writer);
+    for (int wait_time_ms = 5; wait_time_ms < 100 && memory_writer->get_log_entries().size() < 5; wait_time_ms <<= 1)
+    {
+        pplx::wait(wait_time_ms);
+    }
+
+    auto log_entries = memory_writer->get_log_entries();
+    ASSERT_EQ(5, log_entries.size());
+    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
+    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://fakeuri/connect?transport=webSockets&clientProtocol=1.4&connectionToken=A==\n"), remove_date_from_log_entry(log_entries[1]));
+    ASSERT_EQ(_XPLATSTR("[info        ] connection lost - trying to re-establish connection\n"), remove_date_from_log_entry(log_entries[2]));
+    ASSERT_EQ(_XPLATSTR("[state change] connecting -> disconnected\n"), remove_date_from_log_entry(log_entries[3]));
+    ASSERT_EQ(_XPLATSTR("[info        ] reconnecting cancelled - connection is not in the connected state\n"), remove_date_from_log_entry(log_entries[4]));
+}
+
+TEST(connection_impl_reconnect, reconnect_canceled_when_connection_being_stopped)
+{
+    std::atomic<bool> connection_started;
+
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number, &connection_started]() mutable
+        {
+            std::string responses[]
+            {
+                "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+                "{}"
+            };
+
+            call_number = std::min(call_number + 1, 1);
+
+            return connection_started
+                ? pplx::task_from_exception<std::string>(std::runtime_error("connection exception"))
+                : pplx::task_from_result(responses[call_number]);
+        },
+        /* send function */ [](const utility::string_t){ return pplx::task_from_exception<void>(std::runtime_error("should not be invoked"));  },
+        /* connect function */[](const web::uri& url)
+        {
+            if (url.path() == _XPLATSTR("/reconnect"))
+            {
+                return pplx::task_from_exception<void>(std::runtime_error("reconnect rejected"));
+            }
+
+            return pplx::task_from_result();
+        });
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+    auto connection = create_connection(websocket_client, writer, trace_level::state_changes | trace_level::info | trace_level::errors);
+    connection->set_reconnect_delay(100);
+    pplx::event reconnecting_event{};
+    connection->set_reconnecting([&reconnecting_event](){ reconnecting_event.set(); });
+
+    connection->start().then([&connection_started](){ connection_started = true; });
+    ASSERT_FALSE(reconnecting_event.wait(5000));
+    connection->stop().get();
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_EQ(13, log_entries.size());
+    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
+    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://fakeuri/connect?transport=webSockets&clientProtocol=1.4&connectionToken=A==\n"), remove_date_from_log_entry(log_entries[1]));
+    ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(log_entries[2]));
+    ASSERT_EQ(_XPLATSTR("[error       ] [websocket transport] error receiving response from websocket: connection exception\n"), remove_date_from_log_entry(log_entries[3]));
+    ASSERT_EQ(_XPLATSTR("[info        ] connection lost - trying to re-establish connection\n"), remove_date_from_log_entry(log_entries[4]));
+    ASSERT_EQ(_XPLATSTR("[state change] connected -> reconnecting\n"), remove_date_from_log_entry(log_entries[5]));
+    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://fakeuri/reconnect?transport=webSockets&clientProtocol=1.4&connectionToken=A==&messageId=x\n"), remove_date_from_log_entry(log_entries[6]));
+    ASSERT_EQ(_XPLATSTR("[error       ] [websocket transport] exception when connecting to the server: reconnect rejected\n"), remove_date_from_log_entry(log_entries[7]));
+    ASSERT_EQ(_XPLATSTR("[info        ] reconnect attempt starting\n"), remove_date_from_log_entry(log_entries[8]));
+    ASSERT_EQ(_XPLATSTR("[info        ] reconnect attempt failed due to: reconnect rejected\n"), remove_date_from_log_entry(log_entries[9]));
+    ASSERT_TRUE(remove_date_from_log_entry(log_entries[10]).find(_XPLATSTR("[info        ] reconnecting cancelled - connection is being stopped. line")) == 0);
+    ASSERT_EQ(_XPLATSTR("[state change] reconnecting -> disconnecting\n"), remove_date_from_log_entry(log_entries[11]));
+    ASSERT_EQ(_XPLATSTR("[state change] disconnecting -> disconnected\n"), remove_date_from_log_entry(log_entries[12]));
+}
+
+TEST(connection_impl_reconnect, reconnect_canceled_if_connection_goes_out_of_scope)
+{
+    std::atomic<bool> connection_started;
+
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number, &connection_started]() mutable
+        {
+            std::string responses[]
+            {
+                "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+                "{}"
+            };
+
+            call_number = std::min(call_number + 1, 1);
+
+            return connection_started
+                ? pplx::task_from_exception<std::string>(std::runtime_error("connection exception"))
+                : pplx::task_from_result(responses[call_number]);
+        },
+        /* send function */ [](const utility::string_t){ return pplx::task_from_exception<void>(std::runtime_error("should not be invoked"));  },
+        /* connect function */[](const web::uri& url)
+        {
+            if (url.path() == _XPLATSTR("/reconnect"))
+            {
+                return pplx::task_from_exception<void>(std::runtime_error("reconnect rejected"));
+            }
+
+            return pplx::task_from_result();
+        });
+
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+
+    {
+        auto connection = create_connection(websocket_client, writer, trace_level::state_changes);
+        connection->set_reconnect_delay(100);
+        pplx::event reconnecting_event{};
+        connection->set_reconnecting([&reconnecting_event](){ reconnecting_event.set(); });
+
+        connection->start().then([&connection_started](){ connection_started = true; });
+        ASSERT_FALSE(reconnecting_event.wait(5000));
+    }
+
+    // The connection_impl destructor does can be called on a different thread. This is because it is being internally
+    // used by tasks as a shared_ptr. As a result the dtor is being called on the thread which released the last reference.
+    // Therefore we need to wait block until the dtor has actually completed. Time out would most likely indicate a bug.
+    auto memory_writer = std::dynamic_pointer_cast<memory_log_writer>(writer);
+    for (int wait_time_ms = 5; wait_time_ms < 100 && memory_writer->get_log_entries().size() < 5; wait_time_ms <<= 1)
+    {
+        pplx::wait(wait_time_ms);
+    }
+
+    auto log_entries = memory_writer->get_log_entries();
+    ASSERT_EQ(5, log_entries.size());
+    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
+    ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(log_entries[1]));
+    ASSERT_EQ(_XPLATSTR("[state change] connected -> reconnecting\n"), remove_date_from_log_entry(log_entries[2]));
+    ASSERT_EQ(_XPLATSTR("[state change] reconnecting -> disconnecting\n"), remove_date_from_log_entry(log_entries[3]));
+    ASSERT_EQ(_XPLATSTR("[state change] disconnecting -> disconnected\n"), remove_date_from_log_entry(log_entries[4]));
+}
+
+TEST(connection_impl_reconnect, std_exception_for_reconnected_reconnecting_callback_caught_and_logged)
+{
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number]() mutable
+        {
+            std::string responses[]
+            {
+                "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+                "{}",
+                "{}",
+                "{}"
+            };
+
+            call_number = std::min(call_number + 1, 3);
+
+            return call_number == 2
+                ? pplx::task_from_exception<std::string>(std::runtime_error("connection exception"))
+                : pplx::task_from_result(responses[call_number]);
+        });
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+    auto connection = create_connection(websocket_client, writer, trace_level::errors);
+    connection->set_reconnect_delay(100);
+    connection->set_reconnecting([](){ throw std::runtime_error("exception from reconnecting"); });
+    auto reconnected_event = std::make_shared<pplx::event>();
+    connection->set_reconnected([reconnected_event]()
+    {
+        reconnected_event->set();
+        throw std::runtime_error("exception from reconnected");
+    });
+
+    connection->start();
+    ASSERT_FALSE(reconnected_event->wait(5000));
+    ASSERT_EQ(connection_state::connected, connection->get_connection_state());
+
+    connection->stop().get();
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_EQ(3, log_entries.size());
+    ASSERT_EQ(_XPLATSTR("[error       ] reconnecting callback threw an exception: exception from reconnecting\n"), remove_date_from_log_entry(log_entries[1]));
+    ASSERT_EQ(_XPLATSTR("[error       ] reconnected callback threw an exception: exception from reconnected\n"), remove_date_from_log_entry(log_entries[2]));
+}
+
+TEST(connection_impl_reconnect, exception_for_reconnected_reconnecting_callback_caught_and_logged)
+{
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number]() mutable
+        {
+            std::string responses[]
+            {
+                "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+                "{}",
+                "{}",
+                "{}"
+            };
+
+            call_number = std::min(call_number + 1, 3);
+
+            return call_number == 2
+                ? pplx::task_from_exception<std::string>(std::runtime_error("connection exception"))
+                : pplx::task_from_result(responses[call_number]);
+        });
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+    auto connection = create_connection(websocket_client, writer, trace_level::errors);
+    connection->set_reconnect_delay(100);
+    connection->set_reconnecting([](){ throw 42; });
+    auto reconnected_event = std::make_shared<pplx::event>();
+    connection->set_reconnected([reconnected_event]()
+    {
+        reconnected_event->set();
+        throw 42;
+    });
+
+    connection->start();
+    ASSERT_FALSE(reconnected_event->wait(5000));
+    ASSERT_EQ(connection_state::connected, connection->get_connection_state());
+
+    connection->stop().get();
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_EQ(3, log_entries.size());
+    ASSERT_EQ(_XPLATSTR("[error       ] reconnecting callback threw an unknown exception\n"), remove_date_from_log_entry(log_entries[1]));
+    ASSERT_EQ(_XPLATSTR("[error       ] reconnected callback threw an unknown exception\n"), remove_date_from_log_entry(log_entries[2]));
+}
+
+TEST(connection_impl_reconnect, can_stop_connection_from_reconnecting_event)
+{
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
+    {
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"DisconnectTimeout\" : 0.5, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : url.path() == _XPLATSTR("/start")
+            ? _XPLATSTR("{\"Response\":\"started\" }")
+            : _XPLATSTR("");
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    int call_number = -1;
+    int reconnect_invocations = 0;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number]() mutable
+        {
+            std::string responses[]
+            {
+                "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+                "{}",
+                "{}",
+                "{}"
+            };
+
+            call_number = std::min(call_number + 1, 3);
+
+            return call_number == 2
+                ? pplx::task_from_exception<std::string>(std::runtime_error("connection exception"))
+                : pplx::task_from_result(responses[call_number]);
+        },
+        /* send function */ [](const utility::string_t){ return pplx::task_from_exception<void>(std::runtime_error("should not be invoked"));  },
+        /* connect function */[&reconnect_invocations](const web::uri& url)
+        {
+            if (url.path() == _XPLATSTR("/reconnect"))
+            {
+                reconnect_invocations++;
+                return pplx::task_from_exception<void>(std::runtime_error("reconnect rejected"));
+            }
+
+            return pplx::task_from_result();
+        });
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+    auto connection =
+        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::state_changes,
+        writer, std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
+
+    auto stop_event = std::make_shared<pplx::event>();
+    connection->set_reconnecting([&connection, stop_event]()
+    {
+        connection->stop()
+            .then([stop_event](){ stop_event->set(); });
+    });
+    connection->set_reconnect_delay(100);
+    connection->start();
+
+    ASSERT_FALSE(stop_event->wait(5000));
+    ASSERT_EQ(connection_state::disconnected, connection->get_connection_state());
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_EQ(5, log_entries.size());
+    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
+    ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(log_entries[1]));
+    ASSERT_EQ(_XPLATSTR("[state change] connected -> reconnecting\n"), remove_date_from_log_entry(log_entries[2]));
+    ASSERT_EQ(_XPLATSTR("[state change] reconnecting -> disconnecting\n"), remove_date_from_log_entry(log_entries[3]));
+    ASSERT_EQ(_XPLATSTR("[state change] disconnecting -> disconnected\n"), remove_date_from_log_entry(log_entries[4]));
 }

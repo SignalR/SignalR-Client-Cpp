@@ -16,7 +16,7 @@ std::shared_ptr<transport> test_transport_factory::create_transport(transport_ty
 {
     if (transport_type == transport_type::websockets)
     {
-        return websocket_transport::create(m_websocket_client, logger, process_message_callback, error_callback);
+        return websocket_transport::create([&](){ return m_websocket_client; }, logger, process_message_callback, error_callback);
     }
 
     throw std::exception("not supported");

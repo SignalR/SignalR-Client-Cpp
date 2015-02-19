@@ -43,8 +43,13 @@ namespace signalr
 
         void set_message_received_string(const std::function<void(const utility::string_t&)>& message_received);
         void set_message_received_json(const std::function<void(const web::json::value&)>& message_received);
-        void set_connection_data(const utility::string_t& connection_data);
+        void set_reconnecting(const std::function<void()>& reconnecting);
+        void set_reconnected(const std::function<void()>& reconnected);
+        void set_disconnected(const std::function<void()>& disconnected);
         void set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers);
+        void set_reconnect_delay(const int reconnect_delay /*milliseconds*/);
+
+        void set_connection_data(const utility::string_t& connection_data);
 
     private:
         web::uri m_base_url;
@@ -56,6 +61,9 @@ namespace signalr
         std::unique_ptr<transport_factory> m_transport_factory;
 
         std::function<void(const web::json::value&)> m_message_received;
+        std::function<void()> m_reconnecting;
+        std::function<void()> m_reconnected;
+        std::function<void()> m_disconnected;
         std::unordered_map<utility::string_t, utility::string_t> m_headers;
 
         pplx::cancellation_token_source m_disconnect_cts;
@@ -64,6 +72,7 @@ namespace signalr
         utility::string_t m_connection_token;
         utility::string_t m_connection_data;
         int m_reconnect_window; // in milliseconds
+        int m_reconnect_delay; // in milliseconds
         utility::string_t m_message_id;
         utility::string_t m_groups_token;
 
@@ -77,6 +86,9 @@ namespace signalr
         void process_response(const utility::string_t& response, const pplx::task_completion_event<void>& connect_request_tce);
 
         pplx::task<void> shutdown();
+        void reconnect();
+        pplx::task<bool> try_reconnect(const web::uri& reconnect_url, const utility::datetime::interval_type reconnect_start_time,
+            int reconnect_window, int reconnect_delay, pplx::cancellation_token_source disconnect_cts);
 
         bool change_state(connection_state old_state, connection_state new_state);
         connection_state change_state(connection_state new_state);
