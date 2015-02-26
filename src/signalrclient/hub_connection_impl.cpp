@@ -62,6 +62,8 @@ namespace signalr
                 connection->process_message(message);
             }
         });
+
+        set_reconnecting([](){});
     }
 
     std::shared_ptr<internal_hub_proxy> hub_connection_impl::create_hub_proxy(const utility::string_t& hub_name)
@@ -251,6 +253,34 @@ namespace signalr
     void hub_connection_impl::set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers)
     {
         m_connection->set_headers(headers);
+    }
+
+    void hub_connection_impl::set_reconnecting(const std::function<void()>& reconnecting)
+    {
+        // weak_ptr prevents a circular dependency leading to memory leak and other problems
+        auto weak_hub_connection = std::weak_ptr<hub_connection_impl>(shared_from_this());
+
+        m_connection->set_reconnecting([weak_hub_connection, reconnecting]()
+        {
+            auto hub_connection = weak_hub_connection.lock();
+            if (hub_connection)
+            {
+                hub_connection->m_callback_manager.clear(
+                    json::value::parse(_XPLATSTR("{ \"E\" : \"connection has been lost\"}")));
+            }
+
+            reconnecting();
+        });
+    }
+
+    void hub_connection_impl::set_reconnected(const std::function<void()>& reconnected)
+    {
+        m_connection->set_reconnected(reconnected);
+    }
+
+    void hub_connection_impl::set_disconnected(const std::function<void()>& disconnected)
+    {
+        m_connection->set_disconnected(disconnected);
     }
 
     // unnamed namespace makes it invisble outside this translation unit

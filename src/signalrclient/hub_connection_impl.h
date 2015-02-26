@@ -41,6 +41,9 @@ namespace signalr
         connection_state get_connection_state() const;
 
         void set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers);
+        void set_reconnecting(const std::function<void()>& reconnecting);
+        void set_reconnected(const std::function<void()>& reconnected);
+        void set_disconnected(const std::function<void()>& disconnected);
 
     private:
         hub_connection_impl(const utility::string_t& url, const utility::string_t& query_string, trace_level trace_level,

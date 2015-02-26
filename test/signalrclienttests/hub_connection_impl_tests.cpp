@@ -190,6 +190,21 @@ TEST(stop, stop_stops_connection)
     ASSERT_EQ(connection_state::disconnected, hub_connection->get_connection_state());
 }
 
+TEST(stop, disconnected_callback_called_when_hub_connection_stops)
+{
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
+    auto hub_connection = create_hub_connection(websocket_client);
+
+    auto disconnected_invoked = false;
+    hub_connection->set_disconnected([&disconnected_invoked]() { disconnected_invoked = true; });
+
+    hub_connection->start().get();
+    hub_connection->stop().get();
+
+    ASSERT_TRUE(disconnected_invoked);
+}
+
 TEST(stop, connection_stopped_when_going_out_of_scope)
 {
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
@@ -1069,4 +1084,152 @@ TEST(progress, exceptions_from_progress_callbacks_logged)
 
     auto entry = remove_date_from_log_entry(log_entries[0]);
     ASSERT_EQ(_XPLATSTR("[error       ] message_received callback threw an exception: bad stuff happened\n"), entry);
+}
+
+TEST(reconnect, pending_invocations_finished_if_connection_lost)
+{
+    auto message_sent_event = std::make_shared<pplx::event>();
+
+    auto init_sent = false;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [init_sent, message_sent_event]() mutable
+        {
+            if(init_sent)
+            {
+                message_sent_event->wait();
+                return pplx::task_from_exception<std::string>(std::runtime_error("connection exception"));
+            }
+
+            init_sent = true;
+            return pplx::task_from_result<std::string>("{ \"C\":\"x\", \"S\":1, \"M\":[] }");
+        },
+        /* send function */ [](const utility::string_t){ return pplx::task_from_result(); },
+        /* connect function */[](const web::uri& url)
+        {
+            if (url.path() == _XPLATSTR("/reconnect"))
+            {
+                return pplx::task_from_exception<void>(std::runtime_error("reconnect rejected"));
+            }
+
+            return pplx::task_from_result();
+        });
+
+    auto hub_connection = create_hub_connection(websocket_client);
+
+    auto test_completed_event = std::make_shared<pplx::event>();
+    hub_connection->start()
+        .then([hub_connection, message_sent_event, test_completed_event]()
+        {
+            auto invoke_task = hub_connection->invoke_void(_XPLATSTR("TestHub"), _XPLATSTR("TestMethod"), json::value::array())
+                .then([test_completed_event, hub_connection](pplx::task<void> invoke_void_task)
+                {
+                    try
+                    {
+                        invoke_void_task.get();
+                        ASSERT_TRUE(false); // exception expected but not thrown
+                    }
+                    catch (const std::exception& e)
+                    {
+                        ASSERT_STREQ("\"connection has been lost\"", e.what());
+                    }
+                });
+
+            message_sent_event->set();
+
+            return invoke_task;
+        }).get();
+}
+
+TEST(reconnect, pending_invocations_finished_and_custom_reconnecting_callback_invoked_if_connection_lost)
+{
+    auto message_sent_event = std::make_shared<pplx::event>();
+
+    auto init_sent = false;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [init_sent, message_sent_event]() mutable
+        {
+            if (init_sent)
+            {
+                message_sent_event->wait();
+                return pplx::task_from_exception<std::string>(std::runtime_error("connection exception"));
+            }
+
+            init_sent = true;
+            return pplx::task_from_result<std::string>("{ \"C\":\"x\", \"S\":1, \"M\":[] }");
+        },
+        /* send function */ [](const utility::string_t){ return pplx::task_from_result(); },
+        /* connect function */[](const web::uri& url)
+        {
+            if (url.path() == _XPLATSTR("/reconnect"))
+            {
+                return pplx::task_from_exception<void>(std::runtime_error("reconnect rejected"));
+            }
+
+            return pplx::task_from_result();
+        });
+
+    auto hub_connection = create_hub_connection(websocket_client);
+    auto reconnecting_invoked_event = std::make_shared<pplx::event >();
+    hub_connection->set_reconnecting([reconnecting_invoked_event](){ reconnecting_invoked_event->set(); });
+
+    hub_connection->start()
+        .then([hub_connection, message_sent_event]()
+        {
+            auto invoke_task = hub_connection->invoke_void(_XPLATSTR("TestHub"), _XPLATSTR("TestMethod"), json::value::array())
+                .then([hub_connection](pplx::task<void> invoke_void_task)
+                {
+                    try
+                    {
+                        invoke_void_task.get();
+                        ASSERT_TRUE(false); // exception expected but not thrown
+                    }
+                    catch (const std::exception& e)
+                    {
+                        ASSERT_STREQ("\"connection has been lost\"", e.what());
+                    }
+                });
+
+            message_sent_event->set();
+
+            return invoke_task;
+        }).get();
+
+    ASSERT_FALSE(reconnecting_invoked_event->wait(5000));
+}
+
+#include "windows.h"
+
+TEST(reconnect, reconnecting_reconnected_callbacks_invoked)
+{
+    int call_number = -1;
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number]() mutable
+    {
+        std::string responses[]
+        {
+            "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+                "{}",
+                "{}",
+                "{}"
+        };
+
+        call_number = std::min(call_number + 1, 3);
+
+        return call_number == 2
+            ? pplx::task_from_exception<std::string>(std::runtime_error("connection exception"))
+            : pplx::task_from_result(responses[call_number]);
+    });
+
+    auto hub_connection = create_hub_connection(websocket_client);
+
+    auto reconnecting_invoked = false;
+    hub_connection->set_reconnecting([&reconnecting_invoked](){ reconnecting_invoked = true; });
+    auto reconnected_event = std::make_shared<pplx::event>();
+    hub_connection->set_reconnected([reconnected_event]() { reconnected_event->set(); });
+
+    hub_connection->start();
+
+    ASSERT_FALSE(reconnected_event->wait(5000));
+    ASSERT_TRUE(reconnecting_invoked);
+
 }
