@@ -36,6 +36,10 @@ namespace signalr
 
         SIGNALRCLIENT_API connection_state __cdecl get_connection_state() const;
 
+        SIGNALRCLIENT_API void __cdecl set_reconnecting(const std::function<void __cdecl()>& reconnecting_callback);
+        SIGNALRCLIENT_API void __cdecl set_reconnected(const std::function<void __cdecl()>& reconnected_callback);
+        SIGNALRCLIENT_API void __cdecl set_disconnected(const std::function<void __cdecl()>& disconnected_callback);
+
         SIGNALRCLIENT_API void __cdecl set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers);
 
     private:
