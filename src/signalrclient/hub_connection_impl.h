@@ -8,6 +8,7 @@
 #include "connection_impl.h"
 #include "internal_hub_proxy.h"
 #include "callback_manager.h"
+#include "case_insensitive_comparison_utils.h"
 
 namespace signalr
 {
@@ -54,7 +55,7 @@ namespace signalr
         logger m_logger;
 
         std::shared_ptr<connection_impl> m_connection;
-        std::unordered_map<utility::string_t, std::shared_ptr<internal_hub_proxy>> m_proxies;
+        std::unordered_map<utility::string_t, std::shared_ptr<internal_hub_proxy>, case_insensitive_hash, case_insensitive_equals> m_proxies;
         callback_manager m_callback_manager;
 
         void initialize();

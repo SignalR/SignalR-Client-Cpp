@@ -337,7 +337,7 @@ TEST(websocket_transport_disconnect, exceptions_from_outstanding_receive_task_ob
     receive_event->set();
 }
 
-template<class T>
+template<typename T>
 void receive_loop_logs_exception_runner(const T& e, const utility::string_t& expected_message, trace_level trace_level);
 
 TEST(websocket_transport_receive_loop, receive_loop_logs_websocket_exceptions)
@@ -364,7 +364,7 @@ TEST(websocket_transport_receive_loop, receive_loop_logs_std_exception)
         trace_level::errors);
 }
 
-template<class T>
+template<typename T>
 void receive_loop_logs_exception_runner(const T& e, const utility::string_t& expected_message, trace_level trace_level)
 {
     pplx::event receive_event;

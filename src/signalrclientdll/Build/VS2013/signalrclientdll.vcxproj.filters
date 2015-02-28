@@ -45,9 +45,6 @@
     <ClInclude Include="..\..\..\signalrclient\request_sender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\signalrclient\trace_level.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>    
     <ClInclude Include="..\..\..\signalrclient\transport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -87,9 +84,6 @@
     <ClInclude Include="..\..\..\..\include\signalrclient\log_writer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\include\signalrclient\trace_log_writer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\include\signalrclient\transport_type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -103,6 +97,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\include\signalrclient\hub_proxy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\include\signalrclient\trace_level.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\signalrclient\trace_log_writer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\signalrclient\case_insensitive_comparison_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

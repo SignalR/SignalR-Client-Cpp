@@ -38,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\callback_manager_tests.cpp" />
+    <ClCompile Include="..\..\case_insensitive_comparison_utils_tests.cpp" />
     <ClCompile Include="..\..\connection_impl_tests.cpp" />
     <ClCompile Include="..\..\http_sender_tests.cpp" />
     <ClCompile Include="..\..\hub_connection_impl_tests.cpp" />

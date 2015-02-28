@@ -38,6 +38,7 @@
     <ClInclude Include="..\..\..\..\include\signalrclient\transport_type.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\web_exception.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\_exports.h" />
+    <ClInclude Include="..\..\..\signalrclient\case_insensitive_comparison_utils.h" />
     <ClInclude Include="..\..\..\signalrclient\connection_impl.h" />
     <ClInclude Include="..\..\..\signalrclient\constants.h" />
     <ClInclude Include="..\..\..\signalrclient\default_websocket_client.h" />

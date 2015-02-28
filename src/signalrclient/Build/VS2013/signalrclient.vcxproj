@@ -38,6 +38,7 @@
     <ClInclude Include="..\..\..\..\include\signalrclient\transport_type.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\web_exception.h" />
     <ClInclude Include="..\..\..\..\include\signalrclient\_exports.h" />
+    <ClInclude Include="..\..\case_insensitive_comparison_utils.h" />
     <ClInclude Include="..\..\connection_impl.h" />
     <ClInclude Include="..\..\constants.h" />
     <ClInclude Include="..\..\default_websocket_client.h" />
@@ -49,7 +50,7 @@
     <ClInclude Include="..\..\negotiation_response.h" />
     <ClInclude Include="..\..\request_sender.h" />
     <ClInclude Include="..\..\stdafx.h" />
-    <ClInclude Include="..\..\trace_log_writer.h" />    
+    <ClInclude Include="..\..\trace_log_writer.h" />
     <ClInclude Include="..\..\transport.h" />
     <ClInclude Include="..\..\transport_factory.h" />
     <ClInclude Include="..\..\url_builder.h" />

@@ -85,8 +85,10 @@ TEST(create_hub_proxy, create_hub_proxy_returns_existing_proxies_if_possible)
     auto hub_connection = create_hub_connection();
     auto hub_proxy_1 = hub_connection->create_hub_proxy(_XPLATSTR("my_hub_proxy"));
     auto hub_proxy_2 = hub_connection->create_hub_proxy(_XPLATSTR("my_hub_proxy"));
+    auto hub_proxy_3 = hub_connection->create_hub_proxy(_XPLATSTR("My_Hub_Proxy"));
 
     ASSERT_EQ(hub_proxy_1.get(), hub_proxy_2.get());
+    ASSERT_EQ(hub_proxy_2.get(), hub_proxy_3.get());
 }
 
 TEST(create_hub_proxy, cannot_create_proxy_with_empty_name)
@@ -319,7 +321,7 @@ TEST(hub_invocation, hub_connection_invokes_users_code_on_hub_invocations)
         std::string responses[]
         {
             "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
-            "{ \"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_hub\", \"M\":\"broadcast\", \"A\" : [\"message\", 1]}] }",
+            "{ \"C\":\"d- F430FB19\", \"M\" : [{\"H\":\"my_HUB\", \"M\":\"BROADcast\", \"A\" : [\"message\", 1]}] }",
             "{}"
         };
 
@@ -329,11 +331,11 @@ TEST(hub_invocation, hub_connection_invokes_users_code_on_hub_invocations)
     });
 
     auto hub_connection = create_hub_connection(websocket_client);
-    auto hub_proxy = hub_connection->create_hub_proxy(_XPLATSTR("my_hub"));
+    auto hub_proxy = hub_connection->create_hub_proxy(_XPLATSTR("MY_hub"));
 
     auto payload = std::make_shared<utility::string_t>();
     auto on_broadcast_event = std::make_shared<pplx::event>();
-    hub_proxy->on(_XPLATSTR("broadcast"), [on_broadcast_event, payload](const json::value& message)
+    hub_proxy->on(_XPLATSTR("broadCAST"), [on_broadcast_event, payload](const json::value& message)
     {
         *payload = message.serialize();
         on_broadcast_event->set();

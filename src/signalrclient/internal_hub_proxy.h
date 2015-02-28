@@ -6,6 +6,7 @@
 #include "cpprest\details\basic_types.h"
 #include "cpprest\json.h"
 #include "logger.h"
+#include "case_insensitive_comparison_utils.h"
 
 using namespace web;
 
@@ -36,6 +37,6 @@ namespace signalr
         const utility::string_t m_hub_name;
         logger m_logger;
 
-        std::unordered_map<utility::string_t, std::function<void(const json::value &)>> m_subscriptions;
+        std::unordered_map<utility::string_t, std::function<void(const json::value &)>, case_insensitive_hash, case_insensitive_equals> m_subscriptions;
     };
 }
