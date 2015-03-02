@@ -6,6 +6,8 @@
 #include "internal_hub_proxy.h"
 #include "test_utils.h"
 #include "memory_log_writer.h"
+#include "test_transport_factory.h"
+#include "hub_connection_impl.h"
 
 using namespace signalr;
 
@@ -39,6 +41,30 @@ TEST(on, cannot_register_multiple_handlers_for_event)
     catch (const std::runtime_error& e)
     {
         ASSERT_STREQ("an action for this event has already been registered. event name: ping", e.what());
+    }
+}
+
+TEST(on, cannot_register_handler_if_connection_not_in_disconnected_state)
+{
+    try
+    {
+        auto websocket_client = create_test_websocket_client(
+            /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
+        auto hub_connection = hub_connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::all,
+            std::make_shared<trace_log_writer>(), /*use_default_url*/true, create_test_web_request_factory(),
+            std::make_unique<test_transport_factory>(websocket_client));
+
+        auto proxy = hub_connection->create_hub_proxy(_XPLATSTR("myhub"));
+
+        hub_connection->start().get();
+
+        proxy->on(_XPLATSTR("myfunc"), [](const web::json::value&){});
+
+        ASSERT_TRUE(false); // exception expected but not thrown
+    }
+    catch (const std::runtime_error& e)
+    {
+        ASSERT_STREQ("can't register a handler if the connection is in a disconnected stae", e.what());
     }
 }
 

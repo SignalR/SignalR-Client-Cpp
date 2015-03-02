@@ -304,16 +304,10 @@ namespace signalr
                 trace_level::errors,
                 utility::string_t(_XPLATSTR("message_received callback threw an exception: "))
                 .append(utility::conversions::to_string_t(e.what())));
-
-            // TODO: call on error callback
         }
         catch (...)
         {
-            m_logger.log(
-                trace_level::errors,
-                utility::string_t(_XPLATSTR("message_received callback threw an unknown exception")));
-
-            // TODO: call on error callback
+            m_logger.log(trace_level::errors, _XPLATSTR("message_received callback threw an unknown exception"));
         }
     }
 
@@ -729,8 +723,7 @@ namespace signalr
             .append(_XPLATSTR(" -> "))
             .append(translate_connection_state(new_state)));
 
-        // TODO: invoke state_changed callback
-        // Words of wisdom:
+        // Words of wisdom (if we decide to add a state_changed callback and invoke it from here):
         // "Be extra careful when you add this callback, because this is sometimes being called with the m_stop_lock.
         // This could lead to interesting problems.For example, you could run into a segfault if the connection is
         // stopped while / after transitioning into the connecting state."

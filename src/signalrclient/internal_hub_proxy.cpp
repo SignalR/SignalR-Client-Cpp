@@ -23,13 +23,18 @@ namespace signalr
             throw std::invalid_argument("event_name cannot be empty");
         }
 
+        auto connection = m_hub_connection.lock();
+        if (connection && connection->get_connection_state() != connection_state::disconnected)
+        {
+            throw std::runtime_error("can't register a handler if the connection is in a disconnected stae");
+        }
+
         if (m_subscriptions.find(event_name) != m_subscriptions.end())
         {
             throw std::runtime_error(std::string("an action for this event has already been registered. event name: ")
                 .append(utility::conversions::to_utf8string(event_name)));
         }
 
-        // TODO: either needs to be thread safe or we should not allow adding handlers if the connection is not closed (or both)
         m_subscriptions.insert(std::pair<utility::string_t, std::function<void(const json::value &)>> {event_name, handler});
     }
 

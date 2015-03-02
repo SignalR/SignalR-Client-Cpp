@@ -63,7 +63,6 @@ namespace signalr
                 m_websocket_client = websocket_client;
             }
 
-            // TODO: prepare request (websocket_client_config)
             pplx::cancellation_token_source receive_loop_cts;
             pplx::task_completion_event<void> connect_tce;
 

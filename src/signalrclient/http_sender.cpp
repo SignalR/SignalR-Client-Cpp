@@ -17,7 +17,6 @@ namespace signalr
             request->set_method(web::http::methods::GET);
 
             request->set_headers(headers);
-            // TODO: set other headers we set in the .NET client (if any)
             request->set_user_agent(USER_AGENT);
 
             return request->get_response().then([](web_response response)
