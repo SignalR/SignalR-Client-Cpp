@@ -17,14 +17,14 @@ using namespace signalr;
 static std::shared_ptr<connection_impl> create_connection(std::shared_ptr<websocket_client> websocket_client = create_test_websocket_client(),
     std::shared_ptr<log_writer> log_writer = std::make_shared<trace_log_writer>(), trace_level trace_level = trace_level::all)
 {
-    return connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level, log_writer,
-        create_test_web_request_factory(), std::make_unique<test_transport_factory>(websocket_client));
+    return connection_impl::create(create_uri(), _XPLATSTR(""), trace_level, log_writer, create_test_web_request_factory(),
+        std::make_unique<test_transport_factory>(websocket_client));
 }
 
 TEST(connection_impl_connection_state, initial_connection_state_is_disconnected)
 {
     auto connection =
-        connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>());
+        connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>());
 
     ASSERT_EQ(connection_state::disconnected, connection->get_connection_state());
 }
@@ -95,7 +95,7 @@ TEST(connection_impl_start, connection_state_is_disconnected_when_connection_can
     });
 
     auto connection =
-        connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>(),
+        connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>(),
         std::move(web_request_factory), std::make_unique<transport_factory>());
 
     try
@@ -118,7 +118,7 @@ TEST(connection_impl_start, start_logs_exceptions)
     });
 
     auto connection =
-        connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""), trace_level::errors, writer,
+        connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::errors, writer,
             std::move(web_request_factory), std::make_unique<transport_factory>());
 
     try
@@ -143,7 +143,7 @@ TEST(connection_impl_start, start_propagates_exceptions_from_negotiate)
     });
 
     auto connection =
-        connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>(),
+        connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>(),
         std::move(web_request_factory), std::make_unique<transport_factory>());
 
     try
@@ -202,7 +202,7 @@ TEST(connection_impl_start, start_fails_if_TryWebsockets_false_and_no_fallback_t
 
     auto websocket_client = std::make_shared<test_websocket_client>();
     auto connection =
-        connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""), trace_level::errors, std::make_shared<trace_log_writer>(),
+        connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::errors, std::make_shared<trace_log_writer>(),
         std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
 
     try
@@ -269,7 +269,7 @@ TEST(connection_impl_start, start_fails_if_start_request_fails)
     });
 
     auto connection =
-        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::messages, writer,
+        connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::messages, writer,
         std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
 
     try
@@ -306,7 +306,7 @@ TEST(connection_impl_start, start_fails_if_connect_request_times_out)
     });
 
     auto connection =
-        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::messages, writer,
+        connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::messages, writer,
         std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
 
     try
@@ -364,7 +364,7 @@ TEST(connection_impl_send, message_sent)
 TEST(connection_impl_send, send_throws_if_connection_not_connected)
 {
     auto connection =
-        connection_impl::create(_XPLATSTR("url"), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>());
+        connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::none, std::make_shared<trace_log_writer>());
 
     try
     {
@@ -690,7 +690,7 @@ TEST(connection_impl_set_configuration, set_reconnect_delay_can_be_set_only_in_d
 TEST(connection_impl_stop, stopping_disconnected_connection_is_no_op)
 {
     std::shared_ptr<log_writer> writer{ std::make_shared<memory_log_writer>() };
-    auto connection = connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::all, writer);
+    auto connection = connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::all, writer);
     connection->stop().get();
 
     ASSERT_EQ(connection_state::disconnected, connection->get_connection_state());
@@ -898,7 +898,7 @@ TEST(connection_impl_stop, stop_ignores_exceptions_from_abort_requests)
         /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
 
     auto connection =
-        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::state_changes,
+        connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::state_changes,
         writer, std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
 
     connection->start()
@@ -1006,7 +1006,7 @@ TEST(connection_impl_headers, custom_headers_set_in_requests)
         /* receive function */ []() { return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
 
     auto connection =
-        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::state_changes,
+        connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::state_changes,
         writer, std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
 
     connection->set_headers(std::unordered_map<utility::string_t, utility::string_t>({ { _XPLATSTR("Answer"), _XPLATSTR("42") } }));
@@ -1161,7 +1161,7 @@ TEST(connection_impl_reconnect, connection_stopped_if_reconnecting_failed)
 
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
     auto connection =
-        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::state_changes,
+        connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::state_changes,
         writer, std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
 
     auto disconnected_event = std::make_shared<pplx::event>();
@@ -1291,7 +1291,7 @@ TEST(connection_impl_reconnect, reconnect_canceled_if_connection_dropped_during_
 
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
     auto connection =
-        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::state_changes | trace_level::info,
+        connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::state_changes | trace_level::info,
         writer, std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
 
     try
@@ -1319,7 +1319,7 @@ TEST(connection_impl_reconnect, reconnect_canceled_if_connection_dropped_during_
     auto log_entries = memory_writer->get_log_entries();
     ASSERT_EQ(5, log_entries.size());
     ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
-    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://fakeuri/connect?transport=webSockets&clientProtocol=1.4&connectionToken=A==\n"), remove_date_from_log_entry(log_entries[1]));
+    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://reconnect_canceled_if_connection_dropped_during_start_and_start_failed/connect?transport=webSockets&clientProtocol=1.4&connectionToken=A==\n"), remove_date_from_log_entry(log_entries[1]));
     ASSERT_EQ(_XPLATSTR("[info        ] connection lost - trying to re-establish connection\n"), remove_date_from_log_entry(log_entries[2]));
     ASSERT_EQ(_XPLATSTR("[state change] connecting -> disconnected\n"), remove_date_from_log_entry(log_entries[3]));
     ASSERT_EQ(_XPLATSTR("[info        ] reconnecting cancelled - connection is not in the connected state\n"), remove_date_from_log_entry(log_entries[4]));
@@ -1369,12 +1369,12 @@ TEST(connection_impl_reconnect, reconnect_canceled_when_connection_being_stopped
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
     ASSERT_EQ(13, log_entries.size());
     ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
-    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://fakeuri/connect?transport=webSockets&clientProtocol=1.4&connectionToken=A==\n"), remove_date_from_log_entry(log_entries[1]));
+    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://reconnect_canceled_when_connection_being_stopped/connect?transport=webSockets&clientProtocol=1.4&connectionToken=A==\n"), remove_date_from_log_entry(log_entries[1]));
     ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(log_entries[2]));
     ASSERT_EQ(_XPLATSTR("[error       ] [websocket transport] error receiving response from websocket: connection exception\n"), remove_date_from_log_entry(log_entries[3]));
     ASSERT_EQ(_XPLATSTR("[info        ] connection lost - trying to re-establish connection\n"), remove_date_from_log_entry(log_entries[4]));
     ASSERT_EQ(_XPLATSTR("[state change] connected -> reconnecting\n"), remove_date_from_log_entry(log_entries[5]));
-    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://fakeuri/reconnect?transport=webSockets&clientProtocol=1.4&connectionToken=A==&messageId=x\n"), remove_date_from_log_entry(log_entries[6]));
+    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://reconnect_canceled_when_connection_being_stopped/reconnect?transport=webSockets&clientProtocol=1.4&connectionToken=A==&messageId=x\n"), remove_date_from_log_entry(log_entries[6]));
     ASSERT_EQ(_XPLATSTR("[error       ] [websocket transport] exception when connecting to the server: reconnect rejected\n"), remove_date_from_log_entry(log_entries[7]));
     ASSERT_EQ(_XPLATSTR("[info        ] reconnect attempt starting\n"), remove_date_from_log_entry(log_entries[8]));
     ASSERT_EQ(_XPLATSTR("[info        ] reconnect attempt failed due to: reconnect rejected\n"), remove_date_from_log_entry(log_entries[9]));
@@ -1589,7 +1589,7 @@ TEST(connection_impl_reconnect, can_stop_connection_from_reconnecting_event)
 
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
     auto connection =
-        connection_impl::create(_XPLATSTR("http://fakeuri"), _XPLATSTR(""), trace_level::state_changes,
+        connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::state_changes,
         writer, std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
 
     auto stop_event = std::make_shared<pplx::event>();

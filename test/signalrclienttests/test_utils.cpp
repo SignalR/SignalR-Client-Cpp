@@ -47,3 +47,14 @@ std::unique_ptr<web_request_factory> create_test_web_request_factory()
         return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
     });
 }
+
+utility::string_t create_uri()
+{
+    auto unit_test = ::testing::UnitTest::GetInstance();
+
+    // unit test will be null if this function is not called in a test
+    _ASSERTE(unit_test);
+
+    return utility::string_t(_XPLATSTR("http://"))
+        .append(utility::conversions::to_string_t(unit_test->current_test_info()->name()));
+}

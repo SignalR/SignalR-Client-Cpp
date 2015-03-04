@@ -16,3 +16,4 @@ std::shared_ptr<signalr::websocket_client> create_test_websocket_client(
     std::function<pplx::task<void>()> close_function = [](){ return pplx::task_from_result(); });
 
 std::unique_ptr<signalr::web_request_factory> create_test_web_request_factory();
+utility::string_t create_uri();
