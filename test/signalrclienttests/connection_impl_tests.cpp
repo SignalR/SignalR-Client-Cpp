@@ -1484,6 +1484,12 @@ TEST(connection_impl_reconnect, std_exception_for_reconnected_reconnecting_callb
     connection->stop().get();
 
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+
+    for (const auto& e : log_entries)
+    {
+        ucout << e << std::endl;
+    }
+
     ASSERT_EQ(3, log_entries.size());
     ASSERT_EQ(_XPLATSTR("[error       ] reconnecting callback threw an exception: exception from reconnecting\n"), remove_date_from_log_entry(log_entries[1]));
     ASSERT_EQ(_XPLATSTR("[error       ] reconnected callback threw an exception: exception from reconnected\n"), remove_date_from_log_entry(log_entries[2]));
@@ -1528,6 +1534,12 @@ TEST(connection_impl_reconnect, exception_for_reconnected_reconnecting_callback_
     connection->stop().get();
 
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+
+    for (const auto& e : log_entries)
+    {
+        ucout << e << std::endl;
+    }
+
     ASSERT_EQ(3, log_entries.size());
     ASSERT_EQ(_XPLATSTR("[error       ] reconnecting callback threw an unknown exception\n"), remove_date_from_log_entry(log_entries[1]));
     ASSERT_EQ(_XPLATSTR("[error       ] reconnected callback threw an unknown exception\n"), remove_date_from_log_entry(log_entries[2]));
