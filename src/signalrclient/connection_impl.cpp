@@ -499,8 +499,6 @@ namespace signalr
                     return pplx::task_from_result();
                 }
 
-                connection->m_start_completed_event.set();
-
                 if (reconnected)
                 {
                     if (!connection->change_state(connection_state::reconnecting, connection_state::connected))
@@ -511,6 +509,10 @@ namespace signalr
 
                         _ASSERTE(false);
                     }
+
+                    // we must set the event before calling into the user code to prevent a deadlock that would happen
+                    // if the user called stop() from the handler
+                    connection->m_start_completed_event.set();
 
                     try
                     {
@@ -531,6 +533,8 @@ namespace signalr
 
                     return pplx::task_from_result();
                 }
+
+                connection->m_start_completed_event.set();
 
                 return connection->stop();
             });
