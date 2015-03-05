@@ -1481,16 +1481,13 @@ TEST(connection_impl_reconnect, std_exception_for_reconnected_reconnecting_callb
     ASSERT_FALSE(reconnected_event->wait(5000));
     ASSERT_EQ(connection_state::connected, connection->get_connection_state());
 
-    connection->stop().get();
-
-    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
-
-    for (const auto& e : log_entries)
+    auto memory_writer = std::dynamic_pointer_cast<memory_log_writer>(writer);
+    for (int wait_time_ms = 5; wait_time_ms < 100 && memory_writer->get_log_entries().size() < 3; wait_time_ms <<= 1)
     {
-        ucout << e << std::endl;
+        pplx::wait(wait_time_ms);
     }
 
-    ASSERT_EQ(3, log_entries.size());
+    auto log_entries = memory_writer->get_log_entries();
     ASSERT_EQ(_XPLATSTR("[error       ] reconnecting callback threw an exception: exception from reconnecting\n"), remove_date_from_log_entry(log_entries[1]));
     ASSERT_EQ(_XPLATSTR("[error       ] reconnected callback threw an exception: exception from reconnected\n"), remove_date_from_log_entry(log_entries[2]));
 }
@@ -1531,15 +1528,13 @@ TEST(connection_impl_reconnect, exception_for_reconnected_reconnecting_callback_
     ASSERT_FALSE(reconnected_event->wait(5000));
     ASSERT_EQ(connection_state::connected, connection->get_connection_state());
 
-    connection->stop().get();
-
-    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
-
-    for (const auto& e : log_entries)
+    auto memory_writer = std::dynamic_pointer_cast<memory_log_writer>(writer);
+    for (int wait_time_ms = 5; wait_time_ms < 100 && memory_writer->get_log_entries().size() < 3; wait_time_ms <<= 1)
     {
-        ucout << e << std::endl;
+        pplx::wait(wait_time_ms);
     }
 
+    auto log_entries = memory_writer->get_log_entries();
     ASSERT_EQ(3, log_entries.size());
     ASSERT_EQ(_XPLATSTR("[error       ] reconnecting callback threw an unknown exception\n"), remove_date_from_log_entry(log_entries[1]));
     ASSERT_EQ(_XPLATSTR("[error       ] reconnected callback threw an unknown exception\n"), remove_date_from_log_entry(log_entries[2]));
