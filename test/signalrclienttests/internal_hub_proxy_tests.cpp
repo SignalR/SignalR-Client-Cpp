@@ -64,7 +64,7 @@ TEST(on, cannot_register_handler_if_connection_not_in_disconnected_state)
     }
     catch (const std::runtime_error& e)
     {
-        ASSERT_STREQ("can't register a handler if the connection is in a disconnected stae", e.what());
+        ASSERT_STREQ("can't register a handler if the connection is in a disconnected state", e.what());
     }
 }
 

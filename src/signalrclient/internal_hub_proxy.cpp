@@ -26,7 +26,7 @@ namespace signalr
         auto connection = m_hub_connection.lock();
         if (connection && connection->get_connection_state() != connection_state::disconnected)
         {
-            throw std::runtime_error("can't register a handler if the connection is in a disconnected stae");
+            throw std::runtime_error("can't register a handler if the connection is in a disconnected state");
         }
 
         if (m_subscriptions.find(event_name) != m_subscriptions.end())
