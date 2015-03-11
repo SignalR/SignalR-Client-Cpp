@@ -58,3 +58,14 @@ utility::string_t create_uri()
     return utility::string_t(_XPLATSTR("http://"))
         .append(utility::conversions::to_string_t(unit_test->current_test_info()->name()));
 }
+
+
+std::vector<utility::string_t> filter_vector(const std::vector<utility::string_t>& source, const utility::string_t& string)
+{
+    std::vector<utility::string_t> filtered_entries;
+    std::copy_if(source.begin(), source.end(), std::back_inserter(filtered_entries), [&string](const utility::string_t &e)
+    {
+        return e.find(string) != utility::string_t::npos;
+    });
+    return filtered_entries;
+}

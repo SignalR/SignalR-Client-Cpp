@@ -449,6 +449,8 @@ namespace signalr
     {
         m_logger.log(trace_level::info, _XPLATSTR("connection lost - trying to re-establish connection"));
 
+        pplx::cancellation_token_source disconnect_cts;
+
         {
             std::lock_guard<std::mutex> lock(m_stop_lock);
 
@@ -469,6 +471,54 @@ namespace signalr
                 return;
             }
 
+            disconnect_cts = m_disconnect_cts;
+        }
+
+        try
+        {
+            m_reconnecting();
+        }
+        catch (const std::exception &e)
+        {
+            m_logger.log(
+                trace_level::errors,
+                utility::string_t(_XPLATSTR("reconnecting callback threw an exception: "))
+                .append(utility::conversions::to_string_t(e.what())));
+        }
+        catch (...)
+        {
+            m_logger.log(
+                trace_level::errors,
+                utility::string_t(_XPLATSTR("reconnecting callback threw an unknown exception")));
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(m_stop_lock);
+
+            // This is to prevent a case where a connection was stopped (and possibly restarted and got into a reconnecting
+            // state) after we changed the state to reconnecting in the original reconnecting request. In this case we have
+            // the original cts which would have been cancelled by the stop request and we can use it to stop the original
+            // reconnecting request
+            if (disconnect_cts.get_token().is_canceled())
+            {
+                m_logger.log(trace_level::info,
+                    _XPLATSTR("reconnecting cancelled - connection was stopped and restarted after reconnecting started"));
+
+                return;
+            }
+
+            // we set the connection to the reconnecting before we invoked the reconnecting callback. If the connection
+            // state changed from the reconnecting state the user might have stopped/restarted the connection in the
+            // reconnecting callback or there might have started stopping the connection on the main thread and we should
+            // not try to continue the reconnect
+            if (m_connection_state != connection_state::reconnecting)
+            {
+                m_logger.log(trace_level::info,
+                    _XPLATSTR("reconnecting cancelled - connection is no longer in the reconnecting state"));
+
+                return;
+            }
+
             // re-using the start completed event is safe because you cannot start the connection if it is not in the
             // disconnected state. It also make it easier to handle stopping the connection when it is reconnecting.
             m_start_completed_event.reset();
@@ -480,7 +530,7 @@ namespace signalr
         auto weak_connection = std::weak_ptr<connection_impl>(shared_from_this());
 
         // this is non-blocking
-        try_reconnect(reconnect_url, utility::datetime::utc_now().to_interval(), m_reconnect_window, m_reconnect_delay, m_disconnect_cts)
+        try_reconnect(reconnect_url, utility::datetime::utc_now().to_interval(), m_reconnect_window, m_reconnect_delay, disconnect_cts)
             .then([weak_connection](pplx::task<bool> reconnect_task)
             {
                 // try reconnect does not throw
@@ -532,28 +582,6 @@ namespace signalr
 
                 return connection->stop();
             });
-
-        // note we cannot call this before starting the reconnection loop since if the user called connection.stop() from
-        // the reconnecting callback they would dead lock themselves as stop would signal that reconnection attempts
-        // should be given up and block waiting for this to happen; as a result the reconnecting event would hung and
-        // prevent from starting the reconnection loop which would unblock the stop request.
-        try
-        {
-            m_reconnecting();
-        }
-        catch (const std::exception &e)
-        {
-            m_logger.log(
-                trace_level::errors,
-                utility::string_t(_XPLATSTR("reconnecting callback threw an exception: "))
-                .append(utility::conversions::to_string_t(e.what())));
-        }
-        catch (...)
-        {
-            m_logger.log(
-                trace_level::errors,
-                utility::string_t(_XPLATSTR("reconnecting callback threw an unknown exception")));
-        }
     }
 
     // the assumption is that this function won't throw

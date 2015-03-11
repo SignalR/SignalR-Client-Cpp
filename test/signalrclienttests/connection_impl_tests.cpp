@@ -1357,7 +1357,7 @@ TEST(connection_impl_reconnect, reconnect_canceled_when_connection_being_stopped
         });
 
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
-    auto connection = create_connection(websocket_client, writer, trace_level::state_changes | trace_level::info | trace_level::errors);
+    auto connection = create_connection(websocket_client, writer, trace_level::all);
     connection->set_reconnect_delay(100);
     pplx::event reconnecting_event{};
     connection->set_reconnecting([&reconnecting_event](){ reconnecting_event.set(); });
@@ -1367,20 +1367,16 @@ TEST(connection_impl_reconnect, reconnect_canceled_when_connection_being_stopped
     connection->stop().get();
 
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
-    ASSERT_EQ(13, log_entries.size());
-    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
-    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://reconnect_canceled_when_connection_being_stopped/connect?transport=webSockets&clientProtocol=1.4&connectionToken=A==\n"), remove_date_from_log_entry(log_entries[1]));
-    ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(log_entries[2]));
-    ASSERT_EQ(_XPLATSTR("[error       ] [websocket transport] error receiving response from websocket: connection exception\n"), remove_date_from_log_entry(log_entries[3]));
-    ASSERT_EQ(_XPLATSTR("[info        ] connection lost - trying to re-establish connection\n"), remove_date_from_log_entry(log_entries[4]));
-    ASSERT_EQ(_XPLATSTR("[state change] connected -> reconnecting\n"), remove_date_from_log_entry(log_entries[5]));
-    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://reconnect_canceled_when_connection_being_stopped/reconnect?transport=webSockets&clientProtocol=1.4&connectionToken=A==&messageId=x\n"), remove_date_from_log_entry(log_entries[6]));
-    ASSERT_EQ(_XPLATSTR("[error       ] [websocket transport] exception when connecting to the server: reconnect rejected\n"), remove_date_from_log_entry(log_entries[7]));
-    ASSERT_EQ(_XPLATSTR("[info        ] reconnect attempt starting\n"), remove_date_from_log_entry(log_entries[8]));
-    ASSERT_EQ(_XPLATSTR("[info        ] reconnect attempt failed due to: reconnect rejected\n"), remove_date_from_log_entry(log_entries[9]));
-    ASSERT_TRUE(remove_date_from_log_entry(log_entries[10]).find(_XPLATSTR("[info        ] reconnecting cancelled - connection is being stopped. line")) == 0);
-    ASSERT_EQ(_XPLATSTR("[state change] reconnecting -> disconnecting\n"), remove_date_from_log_entry(log_entries[11]));
-    ASSERT_EQ(_XPLATSTR("[state change] disconnecting -> disconnected\n"), remove_date_from_log_entry(log_entries[12]));
+
+    auto state_changes = filter_vector(log_entries, _XPLATSTR("[state change]"));
+    ASSERT_EQ(state_changes.size(), 5);
+    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(state_changes[0]));
+    ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(state_changes[1]));
+    ASSERT_EQ(_XPLATSTR("[state change] connected -> reconnecting\n"), remove_date_from_log_entry(state_changes[2]));
+    ASSERT_EQ(_XPLATSTR("[state change] reconnecting -> disconnecting\n"), remove_date_from_log_entry(state_changes[3]));
+    ASSERT_EQ(_XPLATSTR("[state change] disconnecting -> disconnected\n"), remove_date_from_log_entry(state_changes[4]));
+
+    ASSERT_EQ(1, filter_vector(log_entries, _XPLATSTR("[info        ] reconnecting cancelled - connection is being stopped. line")).size());
 }
 
 TEST(connection_impl_reconnect, reconnect_canceled_if_connection_goes_out_of_scope)
@@ -1557,7 +1553,6 @@ TEST(connection_impl_reconnect, can_stop_connection_from_reconnecting_event)
     });
 
     int call_number = -1;
-    int reconnect_invocations = 0;
     auto websocket_client = create_test_websocket_client(
         /* receive function */ [call_number]() mutable
         {
@@ -1576,11 +1571,10 @@ TEST(connection_impl_reconnect, can_stop_connection_from_reconnecting_event)
                 : pplx::task_from_result(responses[call_number]);
         },
         /* send function */ [](const utility::string_t){ return pplx::task_from_exception<void>(std::runtime_error("should not be invoked"));  },
-        /* connect function */[&reconnect_invocations](const web::uri& url)
+        /* connect function */[](const web::uri& url)
         {
             if (url.path() == _XPLATSTR("/reconnect"))
             {
-                reconnect_invocations++;
                 return pplx::task_from_exception<void>(std::runtime_error("reconnect rejected"));
             }
 
@@ -1611,4 +1605,97 @@ TEST(connection_impl_reconnect, can_stop_connection_from_reconnecting_event)
     ASSERT_EQ(_XPLATSTR("[state change] connected -> reconnecting\n"), remove_date_from_log_entry(log_entries[2]));
     ASSERT_EQ(_XPLATSTR("[state change] reconnecting -> disconnecting\n"), remove_date_from_log_entry(log_entries[3]));
     ASSERT_EQ(_XPLATSTR("[state change] disconnecting -> disconnected\n"), remove_date_from_log_entry(log_entries[4]));
+}
+
+
+TEST(connection_impl_reconnect, current_reconnect_cancelled_if_another_reconnect_initiated_from_reconnecting_event)
+{
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
+    {
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"DisconnectTimeout\" : 0.5, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
+            : url.path() == _XPLATSTR("/start")
+            ? _XPLATSTR("{\"Response\":\"started\" }")
+            : _XPLATSTR("");
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    int call_number = -1;
+    auto allow_reconnect = std::make_shared<bool>(false);
+    auto websocket_client = create_test_websocket_client(
+        /* receive function */ [call_number, allow_reconnect]() mutable
+        {
+            std::string responses[]
+            {
+                "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+                "{}",
+                "{}",
+                "{}"
+            };
+
+            call_number = (call_number + 1) % 4;
+
+            return call_number == 2 && !*allow_reconnect
+                ? pplx::task_from_exception<std::string>(std::runtime_error("connection exception"))
+                : pplx::task_from_result(responses[call_number]);
+        },
+        /* send function */ [](const utility::string_t){ return pplx::task_from_exception<void>(std::runtime_error("should not be invoked"));  },
+        /* connect function */[allow_reconnect](const web::uri& url)
+        {
+            if (url.path() == _XPLATSTR("/reconnect") && !allow_reconnect)
+            {
+                return pplx::task_from_exception<void>(std::runtime_error("reconnect rejected"));
+            }
+
+            return pplx::task_from_result();
+        });
+
+    std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
+    auto connection =
+        connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::all, writer,
+        std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
+
+    auto reconnecting_count = 0;
+    connection->set_reconnecting([&connection, reconnecting_count, allow_reconnect]() mutable
+    {
+        if (++reconnecting_count == 1)
+        {
+            connection->stop().get();
+            connection->start().get();
+            *allow_reconnect = true;
+        }
+    });
+
+    pplx::event reconnected_event;
+    connection->set_reconnected([&reconnected_event]()
+    {
+        reconnected_event.set();
+    });
+
+    connection->set_reconnect_delay(100);
+    connection->start();
+
+    ASSERT_FALSE(reconnected_event.wait(5000));
+    ASSERT_EQ(connection_state::connected, connection->get_connection_state());
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+
+    ASSERT_EQ(1,
+        filter_vector(log_entries, _XPLATSTR("[info        ] reconnecting cancelled - connection was stopped and restarted after reconnecting started")).size());
+
+    auto state_changes = filter_vector(log_entries, _XPLATSTR("[state change]"));
+    ASSERT_EQ(9, state_changes.size());
+    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(state_changes[0]));
+    ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(state_changes[1]));
+    ASSERT_EQ(_XPLATSTR("[state change] connected -> reconnecting\n"), remove_date_from_log_entry(state_changes[2]));
+    ASSERT_EQ(_XPLATSTR("[state change] reconnecting -> disconnecting\n"), remove_date_from_log_entry(state_changes[3]));
+    ASSERT_EQ(_XPLATSTR("[state change] disconnecting -> disconnected\n"), remove_date_from_log_entry(state_changes[4]));
+    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(state_changes[5]));
+    ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(state_changes[6]));
+    ASSERT_EQ(_XPLATSTR("[state change] connected -> reconnecting\n"), remove_date_from_log_entry(state_changes[7]));
+    ASSERT_EQ(_XPLATSTR("[state change] reconnecting -> connected\n"), remove_date_from_log_entry(state_changes[8]));
 }
