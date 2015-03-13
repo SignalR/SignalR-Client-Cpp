@@ -696,7 +696,9 @@ TEST(connection_impl_stop, stopping_disconnected_connection_is_no_op)
     ASSERT_EQ(connection_state::disconnected, connection->get_connection_state());
 
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
-    ASSERT_TRUE(log_entries.empty());
+    ASSERT_EQ(2, log_entries.size());
+    ASSERT_EQ(_XPLATSTR("[info        ] stopping connection\n"), remove_date_from_log_entry(log_entries[0]));
+    ASSERT_EQ(_XPLATSTR("[info        ] acquired lock in shutdown()\n"), remove_date_from_log_entry(log_entries[1]));
 }
 
 TEST(connection_impl_stop, stopping_disconnecting_connection_returns_cancelled_task)
@@ -868,10 +870,12 @@ TEST(connection_impl_stop, stop_cancels_ongoing_start_request)
     ASSERT_EQ(connection_state::disconnected, connection->get_connection_state());
 
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
-    ASSERT_EQ(3, log_entries.size());
+    ASSERT_EQ(5, log_entries.size());
     ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
-    ASSERT_EQ(_XPLATSTR("[info        ] starting the connection has been cancelled.\n"), remove_date_from_log_entry(log_entries[1]));
-    ASSERT_EQ(_XPLATSTR("[state change] connecting -> disconnected\n"), remove_date_from_log_entry(log_entries[2]));
+    ASSERT_EQ(_XPLATSTR("[info        ] stopping connection\n"), remove_date_from_log_entry(log_entries[1]));
+    ASSERT_EQ(_XPLATSTR("[info        ] acquired lock in shutdown()\n"), remove_date_from_log_entry(log_entries[2]));
+    ASSERT_EQ(_XPLATSTR("[info        ] starting the connection has been cancelled.\n"), remove_date_from_log_entry(log_entries[3]));
+    ASSERT_EQ(_XPLATSTR("[state change] connecting -> disconnected\n"), remove_date_from_log_entry(log_entries[4]));
 }
 
 TEST(connection_impl_stop, stop_ignores_exceptions_from_abort_requests)
@@ -1245,7 +1249,7 @@ TEST(connection_impl_reconnect, reconnect_works_if_connection_dropped_during_aft
     ASSERT_EQ(_XPLATSTR("[state change] reconnecting -> connected\n"), remove_date_from_log_entry(log_entries[3]));
 }
 
-TEST(connection_impl_reconnect, reconnect_canceled_if_connection_dropped_during_start_and_start_failed)
+TEST(connection_impl_reconnect, reconnect_cancelled_if_connection_dropped_during_start_and_start_failed)
 {
     auto connection_dropped_event = std::make_shared<pplx::event>();
 
@@ -1300,7 +1304,8 @@ TEST(connection_impl_reconnect, reconnect_canceled_if_connection_dropped_during_
         ASSERT_TRUE(false); // exception expected but not thrown
     }
     catch (const std::exception&)
-    { }
+    {
+    }
 
     // Reconnecting happens on its own thread. If the connection is dropped after a successfull /connect but before the
     // entire start sequence completes the reconnect thread is blocked to see if the starts sequence succeded or not.
@@ -1311,50 +1316,57 @@ TEST(connection_impl_reconnect, reconnect_canceled_if_connection_dropped_during_
     // thread still has not finished. This would make the test fail so we need to wait until the reconnect thread finishes
     // which will be when it logs a message that it is giving up reconnecting.
     auto memory_writer = std::dynamic_pointer_cast<memory_log_writer>(writer);
-    for (int wait_time_ms = 5; wait_time_ms < 100 && memory_writer->get_log_entries().size() < 5; wait_time_ms <<= 1)
+    for (int wait_time_ms = 5; wait_time_ms < 100 && memory_writer->get_log_entries().size() < 6; wait_time_ms <<= 1)
     {
         pplx::wait(wait_time_ms);
     }
 
     auto log_entries = memory_writer->get_log_entries();
-    ASSERT_EQ(5, log_entries.size());
-    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
-    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://reconnect_canceled_if_connection_dropped_during_start_and_start_failed/connect?transport=webSockets&clientProtocol=1.4&connectionToken=A==\n"), remove_date_from_log_entry(log_entries[1]));
-    ASSERT_EQ(_XPLATSTR("[info        ] connection lost - trying to re-establish connection\n"), remove_date_from_log_entry(log_entries[2]));
-    ASSERT_EQ(_XPLATSTR("[state change] connecting -> disconnected\n"), remove_date_from_log_entry(log_entries[3]));
-    ASSERT_EQ(_XPLATSTR("[info        ] reconnecting cancelled - connection is not in the connected state\n"), remove_date_from_log_entry(log_entries[4]));
+    ASSERT_EQ(6, log_entries.size()) << dump_vector(log_entries);
+
+    auto state_changes = filter_vector(log_entries, _XPLATSTR("[state change]"));
+    ASSERT_EQ(2, state_changes.size()) << dump_vector(log_entries);
+    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(state_changes[0]));
+    ASSERT_EQ(_XPLATSTR("[state change] connecting -> disconnected\n"), remove_date_from_log_entry(state_changes[1]));
+
+    auto info_entries = filter_vector(log_entries, _XPLATSTR("[info        ]"));
+    ASSERT_EQ(4, info_entries.size()) << dump_vector(log_entries);
+    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://reconnect_cancelled_if_connection_dropped_during_start_and_start_failed/connect?transport=webSockets&clientProtocol=1.4&connectionToken=A==\n"), remove_date_from_log_entry(info_entries[0]));
+    ASSERT_EQ(_XPLATSTR("[info        ] connection lost - trying to re-establish connection\n"), remove_date_from_log_entry(info_entries[1]));
+    ASSERT_EQ(_XPLATSTR("[info        ] acquired lock before invoking reconnecting callback\n"), remove_date_from_log_entry(info_entries[2]));
+    ASSERT_EQ(_XPLATSTR("[info        ] reconnecting cancelled - connection is not in the connected state\n"), remove_date_from_log_entry(info_entries[3]));
 }
 
-TEST(connection_impl_reconnect, reconnect_canceled_when_connection_being_stopped)
+TEST(connection_impl_reconnect, reconnect_cancelled_when_connection_being_stopped)
 {
     std::atomic<bool> connection_started;
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
         /* receive function */ [call_number, &connection_started]() mutable
+    {
+        std::string responses[]
         {
-            std::string responses[]
-            {
-                "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
+            "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
                 "{}"
-            };
+        };
 
-            call_number = std::min(call_number + 1, 1);
+        call_number = std::min(call_number + 1, 1);
 
-            return connection_started
-                ? pplx::task_from_exception<std::string>(std::runtime_error("connection exception"))
-                : pplx::task_from_result(responses[call_number]);
-        },
+        return connection_started
+            ? pplx::task_from_exception<std::string>(std::runtime_error("connection exception"))
+            : pplx::task_from_result(responses[call_number]);
+    },
         /* send function */ [](const utility::string_t){ return pplx::task_from_exception<void>(std::runtime_error("should not be invoked"));  },
         /* connect function */[](const web::uri& url)
+    {
+        if (url.path() == _XPLATSTR("/reconnect"))
         {
-            if (url.path() == _XPLATSTR("/reconnect"))
-            {
-                return pplx::task_from_exception<void>(std::runtime_error("reconnect rejected"));
-            }
+            return pplx::task_from_exception<void>(std::runtime_error("reconnect rejected"));
+        }
 
-            return pplx::task_from_result();
-        });
+        return pplx::task_from_result();
+    });
 
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
     auto connection = create_connection(websocket_client, writer, trace_level::all);
@@ -1376,10 +1388,27 @@ TEST(connection_impl_reconnect, reconnect_canceled_when_connection_being_stopped
     ASSERT_EQ(_XPLATSTR("[state change] reconnecting -> disconnecting\n"), remove_date_from_log_entry(state_changes[3]));
     ASSERT_EQ(_XPLATSTR("[state change] disconnecting -> disconnected\n"), remove_date_from_log_entry(state_changes[4]));
 
-    ASSERT_EQ(1, filter_vector(log_entries, _XPLATSTR("[info        ] reconnecting cancelled - connection is being stopped. line")).size());
+    // there is an iherent race between stop and reconnect to acquire the lock which results in finishing reconnecting
+    // in one of two ways and, sometimes, in completing stopping the connection before finishing reconnecting
+    for (int wait_time_ms = 5; wait_time_ms < 100; wait_time_ms <<= 1)
+    {
+        log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+        if ((filter_vector(log_entries, _XPLATSTR("[info        ] reconnecting cancelled - connection is being stopped. line")).size() +
+            filter_vector(log_entries, _XPLATSTR("[info        ] reconnecting cancelled - connection was stopped and restarted after reconnecting started")).size()) != 0)
+        {
+            break;
+        }
+
+        pplx::wait(wait_time_ms);
+    }
+
+    ASSERT_EQ(1,
+        filter_vector(log_entries, _XPLATSTR("[info        ] reconnecting cancelled - connection is being stopped. line")).size() +
+        filter_vector(log_entries, _XPLATSTR("[info        ] reconnecting cancelled - connection was stopped and restarted after reconnecting started")).size())
+            << dump_vector(log_entries);
 }
 
-TEST(connection_impl_reconnect, reconnect_canceled_if_connection_goes_out_of_scope)
+TEST(connection_impl_reconnect, reconnect_cancelled_if_connection_goes_out_of_scope)
 {
     std::atomic<bool> connection_started;
 
@@ -1682,13 +1711,30 @@ TEST(connection_impl_reconnect, current_reconnect_cancelled_if_another_reconnect
     ASSERT_FALSE(reconnected_event.wait(5000));
     ASSERT_EQ(connection_state::connected, connection->get_connection_state());
 
+    // There are two racing reconnect attemps happening at the same time. The second one sets the reconnect_event and
+    // unblocks the tests so that verification can happen. Sometimes however the second reconnect one finishes before
+    // the first and verification fails. We are blocking here until we get the expected message from the first reconnect
+    // or timeout. The threads doing reconnects are not observable outside so this is the only way to verify that both
+    // reconnect attempts have actually completed.
+    for (int wait_time_ms = 5; wait_time_ms < 100; wait_time_ms <<= 1)
+    {
+        if (filter_vector(std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries(),
+            _XPLATSTR("[info        ] reconnecting cancelled - connection was stopped and restarted after reconnecting started")).size() > 0)
+        {
+            break;
+        }
+
+        pplx::wait(wait_time_ms);
+    }
+
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
 
     ASSERT_EQ(1,
-        filter_vector(log_entries, _XPLATSTR("[info        ] reconnecting cancelled - connection was stopped and restarted after reconnecting started")).size());
+        filter_vector(log_entries, _XPLATSTR("[info        ] reconnecting cancelled - connection was stopped and restarted after reconnecting started")).size())
+            << dump_vector(log_entries);
 
     auto state_changes = filter_vector(log_entries, _XPLATSTR("[state change]"));
-    ASSERT_EQ(9, state_changes.size());
+    ASSERT_EQ(9, state_changes.size()) << dump_vector(log_entries);
     ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(state_changes[0]));
     ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(state_changes[1]));
     ASSERT_EQ(_XPLATSTR("[state change] connected -> reconnecting\n"), remove_date_from_log_entry(state_changes[2]));

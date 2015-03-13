@@ -349,6 +349,8 @@ namespace signalr
 
     pplx::task<void> connection_impl::stop()
     {
+        m_logger.log(trace_level::info, _XPLATSTR("stopping connection"));
+
         auto connection = shared_from_this();
         return shutdown()
             .then([connection]()
@@ -390,6 +392,8 @@ namespace signalr
     {
         {
             std::lock_guard<std::mutex> lock(m_stop_lock);
+            m_logger.log(trace_level::info, _XPLATSTR("acquired lock in shutdown()"));
+
             auto current_state = get_connection_state();
             if (current_state == connection_state::disconnected)
             {
@@ -453,6 +457,7 @@ namespace signalr
 
         {
             std::lock_guard<std::mutex> lock(m_stop_lock);
+            m_logger.log(trace_level::info, _XPLATSTR("acquired lock before invoking reconnecting callback"));
 
             // reconnect might be called when starting the connection has not finished yet so wait until it is done
             // before actually trying to reconnect
@@ -476,7 +481,9 @@ namespace signalr
 
         try
         {
+            m_logger.log(trace_level::info, _XPLATSTR("invoking reconnecting callback"));
             m_reconnecting();
+            m_logger.log(trace_level::info, _XPLATSTR("reconnecting callback returned without error"));
         }
         catch (const std::exception &e)
         {
@@ -494,6 +501,8 @@ namespace signalr
 
         {
             std::lock_guard<std::mutex> lock(m_stop_lock);
+
+            m_logger.log(trace_level::info, _XPLATSTR("acquired lock before starting reconnect logic"));
 
             // This is to prevent a case where a connection was stopped (and possibly restarted and got into a reconnecting
             // state) after we changed the state to reconnecting in the original reconnecting request. In this case we have
@@ -560,7 +569,9 @@ namespace signalr
 
                     try
                     {
+                        connection->m_logger.log(trace_level::info, _XPLATSTR("invoking reconnected callback"));
                         connection->m_reconnected();
+                        connection->m_logger.log(trace_level::info, _XPLATSTR("reconnected callback returned without error"));
                     }
                     catch (const std::exception &e)
                     {

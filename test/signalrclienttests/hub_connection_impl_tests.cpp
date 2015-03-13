@@ -159,8 +159,9 @@ TEST(start, start_sets_connection_data)
     {
     }
 
-    ASSERT_EQ(web::uri(create_uri().append(_XPLATSTR("/signalr/negotiate?clientProtocol=1.4&connectionData=%5B%7B%22Name%22:%22my_hub%22%7D,%7B%22Name%22:%22your_hub%22%7D%5D"))),
-        requested_url);
+    ASSERT_TRUE(
+        requested_url == web::uri(create_uri().append(_XPLATSTR("/signalr/negotiate?clientProtocol=1.4&connectionData=%5B%7B%22Name%22:%22my_hub%22%7D,%7B%22Name%22:%22your_hub%22%7D%5D"))) ||
+        requested_url == web::uri(create_uri().append(_XPLATSTR("/signalr/negotiate?clientProtocol=1.4&connectionData=%5B%7B%22Name%22:%22your_hub%22%7D,%7B%22Name%22:%22my_hub%22%7D%5D"))));
 }
 
 TEST(start, start_logs_if_no_hub_proxies_exist_for_hub_connection)

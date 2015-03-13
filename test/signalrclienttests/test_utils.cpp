@@ -59,7 +59,6 @@ utility::string_t create_uri()
         .append(utility::conversions::to_string_t(unit_test->current_test_info()->name()));
 }
 
-
 std::vector<utility::string_t> filter_vector(const std::vector<utility::string_t>& source, const utility::string_t& string)
 {
     std::vector<utility::string_t> filtered_entries;
@@ -68,4 +67,20 @@ std::vector<utility::string_t> filter_vector(const std::vector<utility::string_t
         return e.find(string) != utility::string_t::npos;
     });
     return filtered_entries;
+}
+
+utility::string_t dump_vector(const std::vector<utility::string_t>& source)
+{
+    utility::stringstream_t ss;
+    ss << _XPLATSTR("Number of entries: ") << source.size() << std::endl;
+    for (const auto& e : source)
+    {
+        ss << e;
+        if (e.back() != _XPLATSTR('\n'))
+        {
+            ss << std::endl;
+        }
+    }
+
+    return ss.str();
 }
