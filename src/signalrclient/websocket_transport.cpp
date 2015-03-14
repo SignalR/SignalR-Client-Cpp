@@ -45,7 +45,7 @@ namespace signalr
         _ASSERTE(url.scheme() == _XPLATSTR("ws") || url.scheme() == _XPLATSTR("wss"));
 
         {
-            std::lock_guard<std::mutex> lock(m_start_stop_lock);
+            std::lock_guard<std::mutex> stop_lock(m_start_stop_lock);
 
             if (!m_receive_loop_cts.get_token().is_canceled())
             {
@@ -59,7 +59,7 @@ namespace signalr
             auto websocket_client = m_websocket_client_factory();
 
             {
-                std::lock_guard<std::mutex> lock(m_websocket_client_lock);
+                std::lock_guard<std::mutex> client_lock(m_websocket_client_lock);
                 m_websocket_client = websocket_client;
             }
 
@@ -165,7 +165,7 @@ namespace signalr
                 {
                     transport->process_response(utility::conversions::to_string_t(message));
 
-                    if (!pplx::is_task_cancellation_requested())
+                    if (!cts.get_token().is_canceled())
                     {
                         transport->receive_loop(cts);
                     }

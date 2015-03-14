@@ -10,6 +10,14 @@ namespace signalr
     hub_proxy::hub_proxy()
     { }
 
+    hub_proxy::hub_proxy(const hub_proxy& other)
+        : m_pImpl(other.m_pImpl)
+    { }
+
+    hub_proxy::hub_proxy(const hub_proxy && other)
+        : m_pImpl(std::move(other.m_pImpl))
+    { }
+
     hub_proxy::hub_proxy(const std::shared_ptr<internal_hub_proxy>& proxy)
         : m_pImpl(proxy)
     { }
