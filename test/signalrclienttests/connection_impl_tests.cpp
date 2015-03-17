@@ -1654,7 +1654,7 @@ TEST(connection_impl_reconnect, current_reconnect_cancelled_if_another_reconnect
     });
 
     int call_number = -1;
-    auto allow_reconnect = std::make_shared<bool>(false);
+    auto allow_reconnect = std::make_shared<std::atomic<bool>>(false);
     auto websocket_client = create_test_websocket_client(
         /* receive function */ [call_number, allow_reconnect]() mutable
         {
@@ -1668,14 +1668,14 @@ TEST(connection_impl_reconnect, current_reconnect_cancelled_if_another_reconnect
 
             call_number = (call_number + 1) % 4;
 
-            return call_number == 2 && !*allow_reconnect
+            return call_number == 2 && !(*allow_reconnect)
                 ? pplx::task_from_exception<std::string>(std::runtime_error("connection exception"))
                 : pplx::task_from_result(responses[call_number]);
         },
         /* send function */ [](const utility::string_t){ return pplx::task_from_exception<void>(std::runtime_error("should not be invoked"));  },
         /* connect function */[allow_reconnect](const web::uri& url)
         {
-            if (url.path() == _XPLATSTR("/reconnect") && !allow_reconnect)
+            if (url.path() == _XPLATSTR("/reconnect") && !(*allow_reconnect))
             {
                 return pplx::task_from_exception<void>(std::runtime_error("reconnect rejected"));
             }
