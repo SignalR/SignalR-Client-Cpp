@@ -128,30 +128,6 @@ TEST(websocket_transport_connect, can_connect_after_disconnecting)
     // shouldn't throw or crash
 }
 
-TEST(websocket_transport_connect, transport_destroyed_even_if_disconnect_not_called)
-{
-    auto client = std::make_shared<test_websocket_client>();
-    {
-        auto ws_transport = websocket_transport::create([&](){ return client; }, logger(std::make_shared<trace_log_writer>(), trace_level::none),
-            [](const utility::string_t&){}, [](const std::exception&){});
-
-        ws_transport->connect(_XPLATSTR("ws://fakeuri.org")).get();
-    }
-
-    // The receive loop may still run even if the transport goes out of scope above. Since the receive loop may hold
-    // on to the websocket_transport instance by using a shared_ptr the actual instance may not be released even though
-    // the ws_transport variable goes out of scope. Therefore we need to wait for the receive loop to finish but we
-    // don't have any indicator when it happens since it is running on a separate and unsychnronized thread.
-    for (int wait_time_ms = 10; wait_time_ms < 5000 && client.use_count() > 1; wait_time_ms <<= 1)
-    {
-        pplx::wait(wait_time_ms);
-    }
-
-    // the idea is that if the transport is not destroyed it will hold a reference
-    // to the client and therefore the `use_count()` will be greater than 1
-    ASSERT_EQ(1, client.use_count());
-}
-
 TEST(websocket_transport_send, send_creates_and_sends_websocket_messages)
 {
     bool send_called = false;

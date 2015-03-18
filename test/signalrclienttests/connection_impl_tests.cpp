@@ -878,6 +878,52 @@ TEST(connection_impl_stop, stop_cancels_ongoing_start_request)
     ASSERT_EQ(_XPLATSTR("[state change] connecting -> disconnected\n"), remove_date_from_log_entry(log_entries[4]));
 }
 
+TEST(connection_impl_stop, ongoing_start_request_cancelled_if_connection_stopped_before_init_message_received)
+{
+    auto web_request_factory = std::make_unique<test_web_request_factory>([](const web::uri& url)
+    {
+        auto response_body =
+            url.path() == _XPLATSTR("/negotiate")
+            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
+            _XPLATSTR("\"DisconnectTimeout\" : 0.5, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
+            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 0.1, \"LongPollDelay\" : 0.0}")
+            : _XPLATSTR("");
+
+        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
+    });
+
+    auto websocket_client = create_test_websocket_client(/*receive function*/ []()
+    {
+        return pplx::task_from_result<std::string>("{}");
+    });
+
+    auto writer = std::shared_ptr<log_writer>{std::make_shared<memory_log_writer>()};
+    auto connection = connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::all, writer,
+        std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
+
+    auto start_task = connection->start();
+    connection->stop().get();
+
+    start_task.then([](pplx::task<void> t)
+    {
+        try
+        {
+            t.get();
+            ASSERT_TRUE(false); // exception expected but not thrown
+        }
+        catch (const pplx::task_canceled &)
+        { }
+    }).get();
+
+    auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
+    ASSERT_EQ(5, log_entries.size());
+    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
+    ASSERT_EQ(_XPLATSTR("[info        ] stopping connection\n"), remove_date_from_log_entry(log_entries[1]));
+    ASSERT_EQ(_XPLATSTR("[info        ] acquired lock in shutdown()\n"), remove_date_from_log_entry(log_entries[2]));
+    ASSERT_EQ(_XPLATSTR("[info        ] starting the connection has been cancelled.\n"), remove_date_from_log_entry(log_entries[3]));
+    ASSERT_EQ(_XPLATSTR("[state change] connecting -> disconnected\n"), remove_date_from_log_entry(log_entries[4]));
+}
+
 TEST(connection_impl_stop, stop_ignores_exceptions_from_abort_requests)
 {
     auto writer = std::shared_ptr<log_writer>{std::make_shared<memory_log_writer>()};
@@ -1189,25 +1235,6 @@ TEST(connection_impl_reconnect, connection_stopped_if_reconnecting_failed)
 TEST(connection_impl_reconnect, reconnect_works_if_connection_dropped_during_after_init_and_before_start_successfully_completed)
 {
     auto connection_dropped_event = std::make_shared<pplx::event>();
-
-    auto web_request_factory = std::make_unique<test_web_request_factory>([&connection_dropped_event](const web::uri& url)
-    {
-        if (url.path() == _XPLATSTR("/start"))
-        {
-            connection_dropped_event->wait();
-        }
-
-        auto response_body =
-            url.path() == _XPLATSTR("/negotiate")
-            ? _XPLATSTR("{\"Url\":\"/signalr\", \"ConnectionToken\" : \"A==\", \"ConnectionId\" : \"f7707523-307d-4cba-9abf-3eef701241e8\", ")
-            _XPLATSTR("\"DisconnectTimeout\" : 0.5, \"ConnectionTimeout\" : 110.0, \"TryWebSockets\" : true, ")
-            _XPLATSTR("\"ProtocolVersion\" : \"1.4\", \"TransportConnectTimeout\" : 5.0, \"LongPollDelay\" : 0.0}")
-            : url.path() == _XPLATSTR("/start")
-                ? _XPLATSTR("{\"Response\":\"started\" }")
-                : _XPLATSTR("");
-
-        return std::unique_ptr<web_request>(new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body));
-    });
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(

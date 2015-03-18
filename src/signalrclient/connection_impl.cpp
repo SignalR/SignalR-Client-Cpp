@@ -225,10 +225,23 @@ namespace signalr
         auto transport = connection->m_transport_factory->create_transport(
             transport_type::websockets, connection->m_logger, connection->m_headers, process_response_callback, error_callback);
 
-        pplx::create_task([negotiation_response, connect_request_tce]()
+        auto& disconnect_cts = m_disconnect_cts;
+        pplx::create_task([negotiation_response, connect_request_tce, disconnect_cts, weak_connection]()
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(negotiation_response.transport_connect_timeout));
-            connect_request_tce.set_exception(std::runtime_error("transport timed out when trying to connect"));
+
+            // if the disconnect_cts is cancelled it means that the connection has been stopped or went out of scope in
+            // which case we should not throw due to timeout. Instead we need to set the tce prevent the task that is
+            // using this tce from hanging indifinitely. (This will eventually result in throwing the pplx::task_canceled
+            // exception to the user since this is what we do in the start() function if disconnect_cts is tripped).
+            if (disconnect_cts.get_token().is_canceled())
+            {
+                connect_request_tce.set();
+            }
+            else
+            {
+                connect_request_tce.set_exception(std::runtime_error("transport timed out when trying to connect"));
+            }
         });
 
         return connection->send_connect_request(transport, negotiation_response.connection_token, connect_request_tce)
