@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <metadata>
-    <id>Microsoft.AspNet.SignalR.Client.Cpp</id>
+    <id>Microsoft.AspNet.SignalR.Client.Cpp.v120.WinDesktop</id>
     <title>Microsoft ASP.NET SignalR C++ Client</title>
     <version>0.0.0</version>
     <authors>Microsoft</authors>
@@ -15,7 +15,7 @@
     <tags>Microsoft AspNet SignalR AspNetSignalR Client C++ native</tags>
     <releaseNotes>https://github.com/SignalR/SignalR/releases</releaseNotes>
     <dependencies>
-      <dependency id="cpprestsdk" version="2.4.0.1" />
+      <dependency id="cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.2.5.0" version="2.5.0" />
     </dependencies>
   </metadata>
 </package>
