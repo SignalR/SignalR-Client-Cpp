@@ -6,7 +6,7 @@
 #include "stdafx.h"
 #include <string>
 #include "cpprest\details\basic_types.h"
-#include "cpprest\json.h" 
+#include "cpprest\json.h"
 #include "connection.h"
 #include "hub_connection.h"
 
@@ -47,7 +47,7 @@ TEST(connection_tests, send_message)
 
     }).get();
 
-    ASSERT_FALSE(received_event->wait(200));
+    ASSERT_FALSE(received_event->wait(2000));
 
     ASSERT_EQ(*message, U("{\"data\":\"test\",\"type\":0}"));
 }
@@ -77,7 +77,7 @@ TEST(connection_tests, send_message_after_connection_restart)
 
     }).get();
 
-    ASSERT_FALSE(received_event->wait(200));
+    ASSERT_FALSE(received_event->wait(2000));
 
     ASSERT_EQ(*message, U("{\"data\":\"test\",\"type\":0}"));
 }

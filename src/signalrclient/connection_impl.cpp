@@ -170,26 +170,57 @@ namespace signalr
         pplx::task_completion_event<void> connect_request_tce;
 
         auto weak_connection = std::weak_ptr<connection_impl>(connection);
-        auto process_response_callback = [weak_connection, connect_request_tce](const utility::string_t& response)
-        {
-            auto connection = weak_connection.lock();
-            if (connection)
-            {
-                connection->process_response(response, connect_request_tce);
-            }
-        };
+        auto& disconnect_cts = m_disconnect_cts;
+        auto& logger = m_logger;
 
-        auto error_callback = [weak_connection, connect_request_tce](const std::exception &e)
-        {
-            // no op after connection started successfully
-            connect_request_tce.set_exception(e);
-
-            auto connection = weak_connection.lock();
-            if (connection)
+        auto process_response_callback =
+            [weak_connection, connect_request_tce, disconnect_cts, logger](const utility::string_t& response) mutable
             {
-                connection->reconnect();
-            }
-        };
+                // When a connection is stopped we don't wait for its transport to stop. As a result if the same connection
+                // is immediately re-started the old transport can still invoke this callback. To prevent this we capture
+                // the disconnect_cts by value which allows distinguishing if the message is for the running connection
+                // or for the one that was already stopped. If this is the latter we just ignore it.
+                if (disconnect_cts.get_token().is_canceled())
+                {
+                    logger.log(trace_level::info,
+                        utility::string_t(_XPLATSTR("ignoring stray message received after connection was restarted. message: "))
+                        .append(response));
+                    return;
+                }
+
+                auto connection = weak_connection.lock();
+                if (connection)
+                {
+                    connection->process_response(response, connect_request_tce);
+                }
+            };
+
+
+        auto error_callback =
+            [weak_connection, connect_request_tce, disconnect_cts, logger](const std::exception &e) mutable
+            {
+                // When a connection is stopped we don't wait for its transport to stop. As a result if the same connection
+                // is immediately re-started the old transport can still invoke this callback. To prevent this we capture
+                // the disconnect_cts by value which allows distinguishing if the error is for the running connection
+                // or for the one that was already stopped. If this is the latter we just ignore it.
+                if (disconnect_cts.get_token().is_canceled())
+                {
+                    logger.log(trace_level::info,
+                        utility::string_t(_XPLATSTR("ignoring stray error received after connection was restarted. error: "))
+                        .append(utility::conversions::to_string_t(e.what())));
+
+                    return;
+                }
+
+                // no op after connection started successfully
+                connect_request_tce.set_exception(e);
+
+                auto connection = weak_connection.lock();
+                if (connection)
+                {
+                    connection->reconnect();
+                }
+            };
 
         auto transport = connection->m_transport_factory->create_transport(
             transport_type::websockets, connection->m_logger, connection->m_headers, process_response_callback, error_callback);
@@ -327,6 +358,8 @@ namespace signalr
         }
 
         auto logger = m_logger;
+
+        logger.log(trace_level::info, utility::string_t(_XPLATSTR("sending data: ")).append(data));
 
         return transport->send(data)
             .then([logger](pplx::task<void> send_task)

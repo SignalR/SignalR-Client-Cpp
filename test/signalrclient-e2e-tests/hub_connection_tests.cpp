@@ -6,7 +6,7 @@
 #include "stdafx.h"
 #include <string>
 #include "cpprest\details\basic_types.h"
-#include "cpprest\json.h" 
+#include "cpprest\json.h"
 #include "connection.h"
 #include "hub_connection.h"
 
@@ -58,9 +58,8 @@ TEST(hub_connection_tests, connection_status_start_stop_start_reconnect)
     {
     }
 
-    ASSERT_FALSE(reconnecting_event->wait(200));
-
-    ASSERT_FALSE(reconnected_event->wait(100));
+    ASSERT_FALSE(reconnecting_event->wait(2000));
+    ASSERT_FALSE(reconnected_event->wait(2000));
 }
 
 TEST(hub_connection_tests, send_message)
@@ -136,7 +135,7 @@ TEST(hub_connection_tests, send_message_after_connection_restart)
 
     }).get();
 
-    ASSERT_FALSE(received_event->wait(200));
+    ASSERT_FALSE(received_event->wait(2000));
 
     ASSERT_EQ(*message, U("[\"Send: test\"]"));
 }
@@ -171,14 +170,14 @@ TEST(hub_connection_tests, send_message_after_reconnect)
     {
     }
 
-    ASSERT_FALSE(reconnected_event->wait(300));
+    ASSERT_FALSE(reconnected_event->wait(2000));
 
     web::json::value obj{};
     obj[0] = web::json::value(U("test"));
 
     hub_proxy.invoke<web::json::value>(U("displayMessage"), obj).get();
 
-    ASSERT_FALSE(received_event->wait(200));
+    ASSERT_FALSE(received_event->wait(2000));
 
     ASSERT_EQ(*message, U("[\"Send: test\"]"));
 }
