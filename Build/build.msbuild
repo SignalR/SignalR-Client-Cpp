@@ -9,6 +9,11 @@
   <ItemGroup>
     <TestProjects Include="$(SolutionDir)src\signalrclient\Build\VS2013\signalrclient.vcxproj" />
     <TestProjects Include="$(SolutionDir)test\signalrclienttests\Build\VS2013\signalrclienttests.vcxproj" />
+    <TestProjects Include="$(SolutionDir)test\signalrclient-e2e-tests\Build\VS2013\signalrclient-e2e-tests.vcxproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <TestHostProjects Include="$(SolutionDir)test\signalrclient-testhost\signalrclient-testhost.csproj" />
   </ItemGroup>
 
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
@@ -23,6 +28,10 @@
     <MSBuild Targets="$(BuildTargets)"
       Projects="@(TestProjects)"
       Properties="Configuration=$(Configuration);Platform=$(Platform);PlatformToolset=$(PlatformToolset)" />
+      
+    <MSBuild Targets="$(BuildTargets)"
+      Projects="@(TestHostProjects)"
+      Properties="Configuration=$(Configuration)" />
   </Target>
 
   <Target Name="Clean">
@@ -30,6 +39,8 @@
       Projects="@(Projects)" />
     <MSBuild Targets="Clean"
       Projects="@(TestProjects)" />
+    <MSBuild Targets="Clean"
+      Projects="@(TestHostProjects)" />
   </Target>
 
   <Target Name="Rebuild">
@@ -40,6 +51,9 @@
 
   <Target Name="Test" DependsOnTargets="Build">
     <Exec Command="$(OutDir)\signalrclienttests.exe --gtest_output=xml:$(OutDir)\test_results.xml" />
+    <ExecAsync Executable="$(SolutionDir)test\signalrclient-testhost\bin\$(Configuration)\signalrclient-testhost.exe" Arguments="60000" />    
+    <Exec Command="$(OutDir)\signalrclient-e2e-tests.exe --gtest_output=xml:$(OutDir)\e2e_test_results.xml" />
+    <Exec Command="taskkill /IM signalrclient-testhost.exe /F" ContinueOnError="true" />
   </Target>
 
   <Import Project="Config.Definitions.Props" />
@@ -80,4 +94,24 @@
     <Copy SourceFiles="$(OutputPath)dll\$(SignalrClientTargetName).pub.pdb" DestinationFiles="$(PackageSourceNative)dll\$(Platform)\$(PlatformToolset)\$(Configuration)\$(SignalrClientTargetName).pdb" />
   </Target>
 
+  <UsingTask TaskName="ExecAsync" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup>
+      <Executable ParameterType="System.String" Required="true" />
+      <Arguments ParameterType="System.String" Required="false" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Diagnostics" />
+      <Code Type="Fragment" Language="cs">
+      <![CDATA[
+        Log.LogMessage("Executable {0}...", Executable);
+        var name = System.IO.Path.GetFileNameWithoutExtension(Executable);
+        Log.LogMessage("Starting {0}...", name);
+        var processStartInfo = new ProcessStartInfo(Executable, Arguments) { UseShellExecute = true  };
+        Process.Start(processStartInfo);
+        Log.LogMessage("Finished starting process {0}.", name);
+      ]]>
+      </Code>
+    </Task>
+  </UsingTask>
 </Project>

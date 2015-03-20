@@ -15,7 +15,7 @@ namespace SelfHost
             using (WebApp.Start<Startup>("http://localhost:8081"))
             {
                 Console.WriteLine("Server running at http://localhost:8081/");
-                Console.ReadLine();
+                Thread.Sleep(args.Length > 0 ? int.Parse(args[0]) : Timeout.Infinite);
             }
         }
     }
