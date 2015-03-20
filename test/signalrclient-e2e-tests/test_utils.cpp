@@ -13,7 +13,7 @@ utility::string_t url;
 
 void get_url(int argc, utility::char_t* argv[])
 {
-    url = U("http://localhost:8081/");
+    url = U("http://localhost:42524/");
 
     for (int i = 0; i < argc; ++i)
     {

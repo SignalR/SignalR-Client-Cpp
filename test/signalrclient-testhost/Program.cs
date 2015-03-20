@@ -12,9 +12,9 @@ namespace SelfHost
     {
         static void Main(string[] args)
         {
-            using (WebApp.Start<Startup>("http://localhost:8081"))
+            using (WebApp.Start<Startup>("http://localhost:42524"))
             {
-                Console.WriteLine("Server running at http://localhost:8081/");
+                Console.WriteLine("Server running at http://localhost:42524/");
                 Thread.Sleep(args.Length > 0 ? int.Parse(args[0]) : Timeout.Infinite);
             }
         }
