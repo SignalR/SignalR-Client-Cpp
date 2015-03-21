@@ -3,6 +3,7 @@
 
 using Microsoft.Owin.Hosting;
 using System;
+using System.Threading;
 
 namespace SelfHost
 {
