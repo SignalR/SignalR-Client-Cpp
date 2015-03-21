@@ -51,7 +51,9 @@
 
   <Target Name="Test" DependsOnTargets="Build">
     <Exec Command="$(OutDir)\signalrclienttests.exe --gtest_output=xml:$(OutDir)\test_results.xml" />
-    <ExecAsync Executable="$(SolutionDir)test\signalrclient-testhost\bin\$(Configuration)\signalrclient-testhost.exe" Arguments="60000" />    
+    <ExecAsync Executable="$(SolutionDir)test\signalrclient-testhost\bin\$(Configuration)\signalrclient-testhost.exe" Arguments="60000" />
+    <!-- give the host some time to open the port otherwise the first tests may fail on slow machines-->
+    <Sleep TimeoutMs="3000" />
     <Exec Command="$(OutDir)\signalrclient-e2e-tests.exe --gtest_output=xml:$(OutDir)\e2e_test_results.xml" />
     <Exec Command="taskkill /IM signalrclient-testhost.exe /F" ContinueOnError="true" />
   </Target>
@@ -111,6 +113,17 @@
         Process.Start(processStartInfo);
         Log.LogMessage("Finished starting process {0}.", name);
       ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+  
+  <UsingTask TaskName="Sleep" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup>
+      <TimeoutMs ParameterType="System.Int32" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs">
+      <![CDATA[System.Threading.Thread.Sleep(TimeoutMs);]]>
       </Code>
     </Task>
   </UsingTask>
