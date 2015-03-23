@@ -74,7 +74,7 @@
     </ItemGroup>
     <Copy SourceFiles="@(Include)" DestinationFolder="$(PackageSourceNative)include\%(RecursiveDir)" />
     <Copy SourceFiles="$(NuSpecPath)" DestinationFolder="$(PackageSource)" />
-    <Copy SourceFiles="$(NuGetArtifactsPath)Microsoft.AspNet.SignalR.Client.Cpp.targets" DestinationFolder="$(PackageSourceNative)" />
+    <Copy SourceFiles="$(NuGetArtifactsPath)Microsoft.AspNet.SignalR.Client.Cpp.v120.WinDesktop.targets" DestinationFolder="$(PackageSourceNative)" />
 
     <MSBuild Targets="RestorePackages" Projects="@(Projects)" />
 
