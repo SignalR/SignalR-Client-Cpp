@@ -5,6 +5,7 @@
 #include <thread>
 #include <algorithm>
 #include "cpprest\asyncrt_utils.h"
+#include "constants.h"
 #include "connection_impl.h"
 #include "request_sender.h"
 #include "url_builder.h"
@@ -100,6 +101,15 @@ namespace signalr
             }, m_disconnect_cts.get_token())
             .then([connection](negotiation_response negotiation_response)
             {
+                if (negotiation_response.protocol_version != PROTOCOL)
+                {
+                    return pplx::task_from_exception<void>(
+                        std::runtime_error(std::string{ "incompatible protocol version. client protocol version: " }
+                        .append(utility::conversions::to_utf8string(PROTOCOL)
+                        .append(", server protocol version: ")
+                        .append(utility::conversions::to_utf8string(negotiation_response.protocol_version)))));
+                }
+
                 return connection->start_transport(negotiation_response)
                     .then([connection, negotiation_response](std::shared_ptr<transport> transport)
                     {
