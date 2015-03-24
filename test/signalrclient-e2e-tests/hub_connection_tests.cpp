@@ -304,3 +304,56 @@ TEST(hub_connection_tests, send_message_complex_type_return)
 
     ASSERT_EQ(test.serialize(), U("{\"Address\":{\"Street\":\"main st\",\"Zip\":\"98052\"},\"Age\":15,\"Name\":\"test\"}"));
 }
+
+TEST(hub_connection_tests, progress_report)
+{
+    auto hub_conn = std::make_shared<signalr::hub_connection>(url);
+    std::vector<int> vec;
+
+    auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
+
+    hub_conn->start().then([&hub_proxy, &vec]()
+    {
+        return hub_proxy.invoke<web::json::value>(U("invokeWithProgress"), [&vec](const web::json::value& arguments)
+        {
+            vec.push_back(arguments.as_integer());
+        });
+
+    }).get();
+
+    ASSERT_EQ(vec.size(), 5);
+
+    for (size_t i = 0; i < vec.size(); i++)
+    {
+        ASSERT_EQ(vec[i], i);
+    }
+}
+
+TEST(hub_connection_tests, progress_report_with_return)
+{
+    auto hub_conn = std::make_shared<signalr::hub_connection>(url);
+    std::vector<int> vec;
+
+    auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
+
+    auto test = hub_conn->start().then([&hub_proxy, &vec]()
+    {
+        web::json::value obj{};
+        obj[0] = web::json::value(U("test"));
+
+        return hub_proxy.invoke<web::json::value>(U("invokeWithProgress"), obj, [&vec](const web::json::value& arguments)
+        {
+            vec.push_back(arguments.as_integer());
+        });
+
+    }).get();
+
+    ASSERT_EQ(test.serialize(), U("\"test done!\""));
+
+    ASSERT_EQ(vec.size(), 5);
+
+    for (size_t i = 0; i < vec.size(); i++)
+    {
+        ASSERT_EQ(vec[i], i);
+    }
+}

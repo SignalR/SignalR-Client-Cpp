@@ -59,5 +59,24 @@ namespace SelfHost
             public string Street { get; set; }
             public string Zip { get; set; }
         }
+
+        public async Task InvokeWithProgress(IProgress<int> progress)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                await Task.Delay(10);
+                progress.Report(i);
+            }
+        }
+
+        public async Task<string> InvokeWithProgress(string jobName, IProgress<int> progress)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                await Task.Delay(10);
+                progress.Report(i);
+            }
+            return string.Format("{0} done!", jobName);
+        }
     }
 }
