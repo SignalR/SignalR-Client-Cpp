@@ -14,7 +14,7 @@ extern utility::string_t url;
 
 TEST(hub_connection_tests, connection_status_start_stop_start_reconnect)
 {
-    auto hub_conn = std::make_shared<signalr::hub_connection>(url + U("SignalR"));
+    auto hub_conn = std::make_shared<signalr::hub_connection>(url);
     auto weak_hub_conn = std::weak_ptr<signalr::hub_connection>(hub_conn);
     auto reconnecting_event = std::make_shared<pplx::event>();
     auto reconnected_event = std::make_shared<pplx::event>();
@@ -64,13 +64,13 @@ TEST(hub_connection_tests, connection_status_start_stop_start_reconnect)
 
 TEST(hub_connection_tests, send_message)
 {
-    auto hub_conn = std::make_shared<signalr::hub_connection>(url + U("SignalR"));
+    auto hub_conn = std::make_shared<signalr::hub_connection>(url + U("custom"), U(""), signalr::trace_level::all, nullptr, false);
     auto message = std::make_shared<utility::string_t>();
     auto received_event = std::make_shared<pplx::event>();
 
     auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
 
-    hub_proxy.on(U("displayMessage"), [message, received_event](const web::json::value& arguments)
+    hub_proxy.on(U("sendString"), [message, received_event](const web::json::value& arguments)
     {
         *message = arguments.serialize();
         received_event->set();
@@ -81,18 +81,18 @@ TEST(hub_connection_tests, send_message)
         web::json::value obj{};
         obj[0] = web::json::value(U("test"));
 
-        return hub_proxy.invoke<web::json::value>(U("displayMessage"), obj);
+        return hub_proxy.invoke<web::json::value>(U("invokeWithString"), obj);
 
     }).get();
 
-    ASSERT_FALSE(received_event->wait(200));
+    ASSERT_FALSE(received_event->wait(2000));
 
     ASSERT_EQ(*message, U("[\"Send: test\"]"));
 }
 
 TEST(hub_connection_tests, send_message_return)
 {
-    auto hub_conn = std::make_shared<signalr::hub_connection>(url + U("SignalR"));
+    auto hub_conn = std::make_shared<signalr::hub_connection>(url);
 
     auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
 
@@ -101,7 +101,7 @@ TEST(hub_connection_tests, send_message_return)
         web::json::value obj{};
         obj[0] = web::json::value(U("test"));
 
-        return hub_proxy.invoke<web::json::value>(U("returnMessage"), obj);
+        return hub_proxy.invoke<web::json::value>(U("returnString"), obj);
 
     }).get();
 
@@ -110,13 +110,13 @@ TEST(hub_connection_tests, send_message_return)
 
 TEST(hub_connection_tests, send_message_after_connection_restart)
 {
-    auto hub_conn = std::make_shared<signalr::hub_connection>(url + U("SignalR"));
+    auto hub_conn = std::make_shared<signalr::hub_connection>(url);
     auto message = std::make_shared<utility::string_t>();
     auto received_event = std::make_shared<pplx::event>();
 
     auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
 
-    hub_proxy.on(U("displayMessage"), [message, received_event](const web::json::value& arguments)
+    hub_proxy.on(U("sendString"), [message, received_event](const web::json::value& arguments)
     {
         *message = arguments.serialize();
         received_event->set();
@@ -131,7 +131,7 @@ TEST(hub_connection_tests, send_message_after_connection_restart)
         web::json::value obj{};
         obj[0] = web::json::value(U("test"));
 
-        return hub_proxy.invoke<web::json::value>(U("displayMessage"), obj);
+        return hub_proxy.invoke<web::json::value>(U("invokeWithString"), obj);
 
     }).get();
 
@@ -142,7 +142,7 @@ TEST(hub_connection_tests, send_message_after_connection_restart)
 
 TEST(hub_connection_tests, send_message_after_reconnect)
 {
-    auto hub_conn = std::make_shared<signalr::hub_connection>(url + U("SignalR"));
+    auto hub_conn = std::make_shared<signalr::hub_connection>(url);
     auto message = std::make_shared<utility::string_t>();
     auto reconnected_event = std::make_shared<pplx::event>();
     auto received_event = std::make_shared<pplx::event>();
@@ -154,7 +154,7 @@ TEST(hub_connection_tests, send_message_after_reconnect)
         reconnected_event->set();
     });
 
-    hub_proxy.on(U("displayMessage"), [message, received_event](const web::json::value& arguments)
+    hub_proxy.on(U("sendString"), [message, received_event](const web::json::value& arguments)
     {
         *message = arguments.serialize();
         received_event->set();
@@ -175,9 +175,132 @@ TEST(hub_connection_tests, send_message_after_reconnect)
     web::json::value obj{};
     obj[0] = web::json::value(U("test"));
 
-    hub_proxy.invoke<web::json::value>(U("displayMessage"), obj).get();
+    hub_proxy.invoke<web::json::value>(U("invokeWithString"), obj).get();
 
     ASSERT_FALSE(received_event->wait(2000));
 
     ASSERT_EQ(*message, U("[\"Send: test\"]"));
+}
+
+TEST(hub_connection_tests, send_message_empty_param)
+{
+    auto hub_conn = std::make_shared<signalr::hub_connection>(url);
+    auto message = std::make_shared<utility::string_t>();
+    auto received_event = std::make_shared<pplx::event>();
+
+    auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
+
+    hub_proxy.on(U("sendString"), [message, received_event](const web::json::value& arguments)
+    {
+        *message = arguments.serialize();
+        received_event->set();
+    });
+
+    hub_conn->start().then([&hub_proxy]()
+    {
+        return hub_proxy.invoke<web::json::value>(U("invokeWithEmptyParam"));
+
+    }).get();
+
+    ASSERT_FALSE(received_event->wait(2000));
+
+    ASSERT_EQ(*message, U("[\"Send\"]"));
+}
+
+TEST(hub_connection_tests, send_message_primitive_params)
+{
+    auto hub_conn = std::make_shared<signalr::hub_connection>(url);
+    auto message = std::make_shared<utility::string_t>();
+    auto received_event = std::make_shared<pplx::event>();
+
+    auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
+
+    hub_proxy.on(U("sendPrimitiveParams"), [message, received_event](const web::json::value& arguments)
+    {
+        *message = arguments.serialize();
+        received_event->set();
+    });
+
+    hub_conn->start().then([&hub_proxy]()
+    {
+        web::json::value obj{};
+        obj[0] = web::json::value(5);
+        obj[1] = web::json::value(21.05);
+        obj[2] = web::json::value(8.999999999);
+        obj[3] = web::json::value(true);
+        obj[4] = web::json::value('a');
+        return hub_proxy.invoke<web::json::value>(U("invokeWithPrimitiveParams"), obj);
+
+    }).get();
+
+    ASSERT_FALSE(received_event->wait(2000));
+
+    web::json::value obj{};
+    obj[0] = web::json::value(6);
+    obj[1] = web::json::value(22.05);
+    obj[2] = web::json::value(9.999999999);
+    obj[3] = web::json::value(true);
+    obj[4] = web::json::value::string(U("a"));
+
+    ASSERT_EQ(*message, obj.serialize());
+}
+
+TEST(hub_connection_tests, send_message_complex_type)
+{
+    auto hub_conn = std::make_shared<signalr::hub_connection>(url);
+    auto message = std::make_shared<utility::string_t>();
+    auto received_event = std::make_shared<pplx::event>();
+
+    auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
+
+    hub_proxy.on(U("sendComplexType"), [message, received_event](const web::json::value& arguments)
+    {
+        *message = arguments.serialize();
+        received_event->set();
+    });
+
+    hub_conn->start().then([&hub_proxy]()
+    {
+        web::json::value obj{};
+        web::json::value person;
+        web::json::value address;
+        address[U("street")] = web::json::value::string(U("main st"));
+        address[U("zip")] = web::json::value::string(U("98052"));
+        person[U("address")] = address;
+        person[U("name")] = web::json::value::string(U("test"));
+        person[U("age")] = web::json::value::number(15);
+        obj[0] = person;
+
+        return hub_proxy.invoke<web::json::value>(U("invokeWithComplexType"), obj);
+
+    }).get();
+
+    ASSERT_FALSE(received_event->wait(2000));
+
+    ASSERT_EQ(*message, U("[{\"Address\":{\"Street\":\"main st\",\"Zip\":\"98052\"},\"Age\":15,\"Name\":\"test\"}]"));
+}
+
+TEST(hub_connection_tests, send_message_complex_type_return)
+{
+    auto hub_conn = std::make_shared<signalr::hub_connection>(url);
+
+    auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
+
+    auto test = hub_conn->start().then([&hub_proxy]()
+    {
+        web::json::value obj{};
+        web::json::value person;
+        web::json::value address;
+        address[U("street")] = web::json::value::string(U("main st"));
+        address[U("zip")] = web::json::value::string(U("98052"));
+        person[U("address")] = address;
+        person[U("name")] = web::json::value::string(U("test"));
+        person[U("age")] = web::json::value::number(15);
+        obj[0] = person;
+
+        return hub_proxy.invoke<web::json::value>(U("returnComplexType"), obj);
+
+    }).get();
+
+    ASSERT_EQ(test.serialize(), U("{\"Address\":{\"Street\":\"main st\",\"Zip\":\"98052\"},\"Age\":15,\"Name\":\"test\"}"));
 }

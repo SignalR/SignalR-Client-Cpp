@@ -17,14 +17,47 @@ namespace SelfHost
             throw new Exception();
         }
 
-        public void DisplayMessage(string message)
+        public void InvokeWithString(string message)
         {
-            Clients.Caller.displayMessage("Send: " + message);
+            Clients.Caller.sendString("Send: " + message);
         }
 
-        public string ReturnMessage(string message)
+        public string ReturnString(string message)
         {
             return message;
+        }
+
+        public void InvokeWithEmptyParam()
+        {
+            Clients.Caller.sendString("Send");
+        }
+
+        public void InvokeWithPrimitiveParams(int myint, float myfloat, double mydouble, bool mybool, char mychar)
+        {
+            Clients.Caller.sendPrimitiveParams(myint + 1, myfloat + 1, mydouble + 1, mybool, mychar);
+        }
+
+        public void InvokeWithComplexType(Person p)
+        {
+            Clients.Caller.sendComplexType(p);
+        }
+
+        public Person ReturnComplexType(Person p)
+        {
+            return p;
+        }
+
+        public class Person
+        {
+            public string Name { get; set; }
+            public int Age { get; set; }
+            public Address Address { get; set; }
+        }
+
+        public class Address
+        {
+            public string Street { get; set; }
+            public string Zip { get; set; }
         }
     }
 }

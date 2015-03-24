@@ -9,15 +9,11 @@ namespace SelfHost
     {
         public void Configuration(IAppBuilder app)
         {
-            app.Map("/raw-connection", map =>
-            {
-                map.RunSignalR<RawConnection>();
-            });
+            app.Map("/raw-connection", map => map.RunSignalR<RawConnection>());
 
-            app.Map("/signalr", map =>
-            {
-                map.RunSignalR();
-            });
+            app.MapSignalR();
+
+            app.Map("/custom", map => map.RunSignalR());
         }
     }
 }
