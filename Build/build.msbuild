@@ -13,13 +13,21 @@
   </ItemGroup>
   
   <ItemGroup>
-    <TestHostProjects Include="$(SolutionDir)test\signalrclient-testhost\signalrclient-testhost.csproj" />
+    <ManagedProjects Include="$(SolutionDir)test\signalrclient-testhost\signalrclient-testhost.csproj" />
+    <ManagedProjects Include="$(SolutionDir)\samples\SignalRServer\SignalRServer.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <SampleProjects Include="$(SolutionDir)\samples\PersistentConnectionSample\PersistentConnectionSample.vcxproj" />
+    <SampleProjects Include="$(SolutionDir)\samples\HubConnectionSample\HubConnectionSample.vcxproj" />
   </ItemGroup>
 
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
 
   <Target Name="Build">
     <MSBuild Targets="RestorePackages" Projects="@(Projects)" />
+    <MSBuild Targets="RestorePackages" Projects="@(SampleProjects)" />
+    <MSBuild Targets="RestorePackages" Projects="@(ManagedProjects)" />
 
     <MSBuild Targets="$(BuildTargets)"
       Projects="@(Projects)"
@@ -30,7 +38,15 @@
       Properties="Configuration=$(Configuration);Platform=$(Platform);PlatformToolset=$(PlatformToolset)" />
       
     <MSBuild Targets="$(BuildTargets)"
-      Projects="@(TestHostProjects)"
+      Projects="@(TestProjects)"
+      Properties="Configuration=$(Configuration);Platform=$(Platform);PlatformToolset=$(PlatformToolset)" />
+      
+    <MSBuild Targets="$(BuildTargets)"
+      Projects="@(SampleProjects)"
+      Properties="Configuration=$(Configuration);Platform=$(Platform);PlatformToolset=$(PlatformToolset)" />
+      
+    <MSBuild Targets="$(BuildTargets)"
+      Projects="@(ManagedProjects)"
       Properties="Configuration=$(Configuration)" />
   </Target>
 
@@ -40,7 +56,9 @@
     <MSBuild Targets="Clean"
       Projects="@(TestProjects)" />
     <MSBuild Targets="Clean"
-      Projects="@(TestHostProjects)" />
+      Projects="@(SampleProjects)" />
+    <MSBuild Targets="Clean"
+      Projects="@(ManagedProjects)" />      
   </Target>
 
   <Target Name="Rebuild">
