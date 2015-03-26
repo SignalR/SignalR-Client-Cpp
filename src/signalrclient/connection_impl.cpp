@@ -235,7 +235,6 @@ namespace signalr
         auto transport = connection->m_transport_factory->create_transport(
             transport_type::websockets, connection->m_logger, connection->m_headers, process_response_callback, error_callback);
 
-        auto& disconnect_cts = m_disconnect_cts;
         pplx::create_task([negotiation_response, connect_request_tce, disconnect_cts, weak_connection]()
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(negotiation_response.transport_connect_timeout));
