@@ -14,12 +14,16 @@
   
   <ItemGroup>
     <ManagedProjects Include="$(SolutionDir)test\signalrclient-testhost\signalrclient-testhost.csproj" />
+    <!--
     <ManagedProjects Include="$(SolutionDir)\samples\SignalRServer\SignalRServer.csproj" />
+    -->
   </ItemGroup>
   
   <ItemGroup>
+  <!--
     <SampleProjects Include="$(SolutionDir)\samples\PersistentConnectionSample\PersistentConnectionSample.vcxproj" />
     <SampleProjects Include="$(SolutionDir)\samples\HubConnectionSample\HubConnectionSample.vcxproj" />
+  -->
   </ItemGroup>
 
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
