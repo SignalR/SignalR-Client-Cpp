@@ -64,8 +64,8 @@ namespace SelfHost
         {
             for (int i = 0; i < 5; i++)
             {
-                await Task.Delay(10);
                 progress.Report(i);
+                await Task.Delay(10);
             }
         }
 
@@ -73,9 +73,11 @@ namespace SelfHost
         {
             for (int i = 0; i < 5; i++)
             {
-                await Task.Delay(10);
                 progress.Report(i);
+                await Task.Delay(10);
+
             }
+
             return string.Format("{0} done!", jobName);
         }
     }
