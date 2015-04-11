@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "pplx\pplxtasks.h"
-#include "cpprest\base_uri.h"
+#include "pplx/pplxtasks.h"
+#include "cpprest/base_uri.h"
 
 namespace signalr
 {

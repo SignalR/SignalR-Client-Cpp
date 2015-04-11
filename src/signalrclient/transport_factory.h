@@ -5,7 +5,7 @@
 
 #include <memory>
 #include <unordered_map>
-#include "signalrclient\transport_type.h"
+#include "signalrclient/transport_type.h"
 #include "transport.h"
 
 namespace signalr

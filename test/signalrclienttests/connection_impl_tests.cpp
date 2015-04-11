@@ -7,10 +7,10 @@
 #include "test_websocket_client.h"
 #include "test_transport_factory.h"
 #include "connection_impl.h"
-#include "signalrclient\trace_level.h"
+#include "signalrclient/trace_level.h"
 #include "trace_log_writer.h"
 #include "memory_log_writer.h"
-#include "cpprest\ws_client.h"
+#include "cpprest/ws_client.h"
 
 using namespace signalr;
 

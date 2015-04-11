@@ -5,8 +5,8 @@
 
 #include "stdafx.h"
 #include <string>
-#include "cpprest\details\basic_types.h"
-#include "cpprest\json.h"
+#include "cpprest/details/basic_types.h"
+#include "cpprest/json.h"
 #include "connection.h"
 #include "hub_connection.h"
 

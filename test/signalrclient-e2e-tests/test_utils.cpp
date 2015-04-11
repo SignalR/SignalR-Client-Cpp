@@ -5,8 +5,8 @@
 
 #include "stdafx.h"
 #include <string>
-#include "cpprest\details\basic_types.h"
-#include "cpprest\asyncrt_utils.h"
+#include "cpprest/details/basic_types.h"
+#include "cpprest/asyncrt_utils.h"
 #include <chrono>
 
 utility::string_t url;

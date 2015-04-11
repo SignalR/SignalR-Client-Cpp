@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "cpprest\base_uri.h"
-#include "signalrclient\transport_type.h"
+#include "cpprest/base_uri.h"
+#include "signalrclient/transport_type.h"
 #include "web_request_factory.h"
 #include "negotiation_response.h"
 

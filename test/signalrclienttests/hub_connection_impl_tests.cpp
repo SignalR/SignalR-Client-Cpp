@@ -8,7 +8,7 @@
 #include "hub_connection_impl.h"
 #include "trace_log_writer.h"
 #include "memory_log_writer.h"
-#include "signalrclient\hub_exception.h"
+#include "signalrclient/hub_exception.h"
 
 using namespace signalr;
 

@@ -5,7 +5,7 @@
 
 #include <vector>
 #include <mutex>
-#include "signalrclient\log_writer.h"
+#include "signalrclient/log_writer.h"
 
 using namespace signalr;
 

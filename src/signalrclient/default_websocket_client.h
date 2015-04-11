@@ -4,7 +4,7 @@
 #pragma once
 
 #include <unordered_map>
-#include "cpprest\ws_client.h"
+#include "cpprest/ws_client.h"
 #include "websocket_client.h"
 
 namespace signalr

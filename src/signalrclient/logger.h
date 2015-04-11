@@ -4,8 +4,8 @@
 #pragma once
 
 #include <memory>
-#include "signalrclient\trace_level.h"
-#include "signalrclient\log_writer.h"
+#include "signalrclient/trace_level.h"
+#include "signalrclient/log_writer.h"
 
 namespace signalr
 {

@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <functional>
 #include <mutex>
-#include "cpprest\json.h"
+#include "cpprest/json.h"
 
 namespace signalr
 {

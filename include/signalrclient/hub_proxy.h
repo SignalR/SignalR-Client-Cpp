@@ -7,9 +7,9 @@
 #include <memory>
 #include <memory>
 #include <functional>
-#include "pplx\pplxtasks.h"
-#include "cpprest\details\basic_types.h"
-#include "cpprest\json.h"
+#include "pplx/pplxtasks.h"
+#include "cpprest/details/basic_types.h"
+#include "cpprest/json.h"
 
 namespace signalr
 {

@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "pplx\pplxtasks.h"
-#include "cpprest\details\basic_types.h"
+#include "pplx/pplxtasks.h"
+#include "cpprest/details/basic_types.h"
 
 namespace signalr
 {

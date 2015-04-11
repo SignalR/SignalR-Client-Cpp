@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "logger.h"
-#include "cpprest\asyncrt_utils.h"
+#include "cpprest/asyncrt_utils.h"
 #include <iomanip>
 
 namespace signalr

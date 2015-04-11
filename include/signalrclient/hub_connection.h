@@ -6,8 +6,8 @@
 #include "_exports.h"
 #include <memory>
 #include <functional>
-#include "pplx\pplxtasks.h"
-#include "cpprest\json.h"
+#include "pplx/pplxtasks.h"
+#include "cpprest/json.h"
 #include "connection_state.h"
 #include "trace_level.h"
 #include "log_writer.h"

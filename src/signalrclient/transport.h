@@ -3,9 +3,9 @@
 
 #pragma once;
 
-#include "pplx\pplxtasks.h"
-#include "cpprest\base_uri.h"
-#include "signalrclient\transport_type.h"
+#include "pplx/pplxtasks.h"
+#include "cpprest/base_uri.h"
+#include "signalrclient/transport_type.h"
 #include "logger.h"
 
 namespace signalr

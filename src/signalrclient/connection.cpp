@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 #include "stdafx.h"
-#include "signalrclient\connection.h"
-#include "signalrclient\transport_type.h"
+#include "signalrclient/connection.h"
+#include "signalrclient/transport_type.h"
 #include "connection_impl.h"
 
 namespace signalr

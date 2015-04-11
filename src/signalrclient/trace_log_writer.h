@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "signalrclient\log_writer.h"
+#include "signalrclient/log_writer.h"
 
 namespace signalr
 {

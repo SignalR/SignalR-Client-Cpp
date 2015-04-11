@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include <vector>
-#include "cpprest\details\basic_types.h"
+#include "cpprest/details/basic_types.h"
 #include "test_utils.h"
 
 int wmain(int argc, utility::char_t* argv[])
