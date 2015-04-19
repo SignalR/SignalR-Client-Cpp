@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Test" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildThisFileDirectory)\Common.tasks" />
   <Import Project="$(MSBuildThisFileDirectory)\Common.Build.Settings" />
 
   <ItemGroup>
@@ -89,6 +90,7 @@
       <NuGetArtifactsPath>$(MSBuildThisFileDirectory)..\NuGet\</NuGetArtifactsPath>
       <NuSpecPath>$(NuGetArtifactsPath)signalrclientcpp.nuspec</NuSpecPath>
       <PackageOutputDir>$(SolutionDir)artifacts\build</PackageOutputDir>
+      <PrivateSymbols>$(SolutionDir)bin\Symbols\</PrivateSymbols>
     </PropertyGroup>
 
     <ItemGroup>
@@ -99,54 +101,24 @@
     <Copy SourceFiles="$(NuGetArtifactsPath)Microsoft.AspNet.SignalR.Client.Cpp.v120.WinDesktop.targets" DestinationFolder="$(PackageSourceNative)" />
 
     <MSBuild Targets="RestorePackages" Projects="@(Projects)" />
-
+    
     <MSBuild Targets="BuildForNuget"
-      Projects="$(MSBuildThisFile)"
-      Properties="PackageSourceNative=$(PackageSourceNative);Configuration=%(ProjectConfiguration.Configuration);Platform=%(ProjectConfiguration.Platform);PlatformToolset=$(PlatformToolset);SignalrClientTargetName=$(SignalrClientTargetName)" />
+      Projects="$(MSBuildThisFile)" Properties="PackageSourceNative=$(PackageSourceNative);PrivateSymbols=$(PrivateSymbols);Configuration=%(ProjectConfiguration.Configuration);Platform=%(ProjectConfiguration.Platform);PlatformToolset=$(PlatformToolset);SignalrClientTargetName=$(SignalrClientTargetName)" />
 
     <MakeDir Directories="$(PackageOutputDir)" />
     <Exec Command="$(NuGetCommand) pack $(NuSpecPath) -BasePath $(PackageSource) -OutputDirectory $(PackageOutputDir) -Version $(SignalRClientCppVersionString)" LogStandardErrorAsError="true" />
+
+    <ZipDir InputDir="$(PrivateSymbols)" OutputFileName="$(PackageOutputDir)\Symbols.zip" IncludeBaseDir="false"/>
   </Target>
 
   <Target Name="BuildForNuget">
     <MSBuild Targets="$(BuildTargets)"
       Projects="@(Projects)"
       Properties="Configuration=$(Configuration);Platform=$(Platform);PlatformToolset=$(PlatformToolset)" />
-
     <Copy SourceFiles="$(OutputPath)dll\$(SignalrClientTargetName).lib" DestinationFolder="$(PackageSourceNative)lib\$(Platform)\$(PlatformToolset)\$(Configuration)" />
+    
     <Copy SourceFiles="$(OutputPath)dll\$(SignalrClientTargetName).dll" DestinationFolder="$(PackageSourceNative)dll\$(Platform)\$(PlatformToolset)\$(Configuration)" />
     <Copy SourceFiles="$(OutputPath)dll\$(SignalrClientTargetName).pub.pdb" DestinationFiles="$(PackageSourceNative)dll\$(Platform)\$(PlatformToolset)\$(Configuration)\$(SignalrClientTargetName).pdb" />
+    <Copy SourceFiles="$(OutputPath)dll\$(SignalrClientTargetName).pdb" DestinationFiles="$(PrivateSymbols)$(Platform)\$(PlatformToolset)\$(Configuration)\$(SignalrClientTargetName).pdb" />
   </Target>
-
-  <UsingTask TaskName="ExecAsync" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
-    <ParameterGroup>
-      <Executable ParameterType="System.String" Required="true" />
-      <Arguments ParameterType="System.String" Required="false" />
-    </ParameterGroup>
-    <Task>
-      <Using Namespace="System.IO" />
-      <Using Namespace="System.Diagnostics" />
-      <Code Type="Fragment" Language="cs">
-      <![CDATA[
-        Log.LogMessage("Executable {0}...", Executable);
-        var name = System.IO.Path.GetFileNameWithoutExtension(Executable);
-        Log.LogMessage("Starting {0}...", name);
-        var processStartInfo = new ProcessStartInfo(Executable, Arguments) { UseShellExecute = true  };
-        Process.Start(processStartInfo);
-        Log.LogMessage("Finished starting process {0}.", name);
-      ]]>
-      </Code>
-    </Task>
-  </UsingTask>
-  
-  <UsingTask TaskName="Sleep" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
-    <ParameterGroup>
-      <TimeoutMs ParameterType="System.Int32" Required="true" />
-    </ParameterGroup>
-    <Task>
-      <Code Type="Fragment" Language="cs">
-      <![CDATA[System.Threading.Thread.Sleep(TimeoutMs);]]>
-      </Code>
-    </Task>
-  </UsingTask>
 </Project>
