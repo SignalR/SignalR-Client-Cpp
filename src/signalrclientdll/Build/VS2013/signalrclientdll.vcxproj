@@ -100,6 +100,26 @@
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
     <Import Project="..\..\..\..\packages\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.2.5.0\build\native\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('..\..\..\..\packages\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.2.5.0\build\native\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" />
   </ImportGroup>
+
+  <Target Name="CreateVersionHeader" BeforeTargets="EnsureNuGetPackageBuildImports">
+    <PropertyGroup>
+      <Revision>$(build_number)</Revision>
+      <Revision Condition="'$(Revision)' == ''">0</Revision>
+    </PropertyGroup>
+    <ItemGroup>
+      <VersionHeaderContents Include="// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved." />
+      <VersionHeaderContents Include="// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information." />
+      <VersionHeaderContents Include="%0a" />
+      <VersionHeaderContents Include="// This file is auto-generated" />
+      <VersionHeaderContents Include="%0a" />
+      <VersionHeaderContents Include="#define FileVersion $(SignalRClientCppVersionMajor),$(SignalRClientCppVersionMinor),$(SignalRClientCppVersionPatch),$(Revision)" />
+      <VersionHeaderContents Include="#define FileVersionStr &quot;$(SignalRClientCppVersionMajor).$(SignalRClientCppVersionMinor).$(SignalRClientCppVersionPatch).$(Revision)\0&quot;" />
+      <VersionHeaderContents Include="#define ProductVersion $(SignalRClientCppVersionMajor),$(SignalRClientCppVersionMinor),$(SignalRClientCppVersionPatch),$(Revision)" />
+      <VersionHeaderContents Include="#define ProductVersionStr &quot;$(SignalRClientCppVersionString)\0&quot;" />
+    </ItemGroup>
+    <WriteLinesToFile File="..\..\version.h" Lines="@(VersionHeaderContents)" OverWrite="true" />
+  </Target>
+
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>

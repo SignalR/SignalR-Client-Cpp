@@ -16,3 +16,4 @@ ipch/
 *.exe
 artifacts/
 *.aps
+src/signalrclientdll/version.h
