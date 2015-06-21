@@ -12,7 +12,7 @@ namespace signalr
     {
         utility::string_t get_transport_name(transport_type transport)
         {
-            assert(transport == transport_type::websockets || transport == transport_type::long_polling);
+            _ASSERTE(transport == transport_type::websockets || transport == transport_type::long_polling);
 
             return transport == transport_type::websockets
                 ? _XPLATSTR("webSockets")

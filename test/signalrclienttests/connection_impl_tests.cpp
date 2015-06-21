@@ -1396,7 +1396,7 @@ TEST(connection_impl_reconnect, reconnect_cancelled_if_connection_dropped_during
 
 TEST(connection_impl_reconnect, reconnect_cancelled_when_connection_being_stopped)
 {
-    std::atomic<bool> connection_started;
+    std::atomic<bool> connection_started{ false };
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
@@ -1405,7 +1405,7 @@ TEST(connection_impl_reconnect, reconnect_cancelled_when_connection_being_stoppe
         std::string responses[]
         {
             "{ \"C\":\"x\", \"S\":1, \"M\":[] }",
-                "{}"
+            "{}"
         };
 
         call_number = std::min(call_number + 1, 1);
@@ -1467,7 +1467,7 @@ TEST(connection_impl_reconnect, reconnect_cancelled_when_connection_being_stoppe
 
 TEST(connection_impl_reconnect, reconnect_cancelled_if_connection_goes_out_of_scope)
 {
-    std::atomic<bool> connection_started;
+    std::atomic<bool> connection_started{ false };
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
