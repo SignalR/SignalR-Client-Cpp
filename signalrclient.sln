@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signalrclient", "src\signalrclient\Build\VS2013\signalrclient.vcxproj", "{87ED3AD4-D820-48CD-8382-A12564213A12}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signalrclient", "src\signalrclient\Build\VS\signalrclient.vcxproj", "{87ED3AD4-D820-48CD-8382-A12564213A12}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signalrclienttests", "test\signalrclienttests\Build\VS2013\signalrclienttests.vcxproj", "{10376148-BCF4-4B55-98A5-3C98C87FD898}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signalrclienttests", "test\signalrclienttests\Build\VS\signalrclienttests.vcxproj", "{10376148-BCF4-4B55-98A5-3C98C87FD898}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtest", "test\gtest-1.7.0\msvc\gtest.vcxproj", "{2AF210A9-5BDC-45E8-95DD-07B5A2616493}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signalrclientdll", "src\signalrclientdll\Build\VS2013\signalrclientdll.vcxproj", "{18377AE8-E372-40CE-94FD-7F65008D39A3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signalrclientdll", "src\signalrclientdll\Build\VS\signalrclientdll.vcxproj", "{18377AE8-E372-40CE-94FD-7F65008D39A3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{063421D3-4E32-4BE5-874A-2E784B450858}"
 	ProjectSection(SolutionItems) = preProject
@@ -20,7 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{063421
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{AABF08B1-12A4-4D06-A188-F01FBF8A9658}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signalrclient-e2e-tests", "test\signalrclient-e2e-tests\Build\VS2013\signalrclient-e2e-tests.vcxproj", "{6006C96A-29F0-4B18-8DDD-764DC3419E2F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signalrclient-e2e-tests", "test\signalrclient-e2e-tests\Build\VS\signalrclient-e2e-tests.vcxproj", "{6006C96A-29F0-4B18-8DDD-764DC3419E2F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "signalrclient-testhost", "test\signalrclient-testhost\signalrclient-testhost.csproj", "{11848039-1F13-4047-9539-8F9F45930788}"
 EndProject

@@ -17,3 +17,4 @@ ipch/
 artifacts/
 *.aps
 src/signalrclientdll/version.h
+/.vs/

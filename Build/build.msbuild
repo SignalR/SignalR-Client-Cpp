@@ -85,10 +85,11 @@
 
   <Target Name="CreatePackage">
     <PropertyGroup>
-      <PackageSource>$(SolutionDir)bin\Package\</PackageSource>
-      <PackageSourceNative>$(SolutionDir)bin\Package\build\native\</PackageSourceNative>
+      <PlatformToolset Condition="'$(PlatformToolset)' == ''">v120</PlatformToolset>
+      <PackageSource>$(SolutionDir)bin\Package\$(PlatformToolset)\</PackageSource>
+      <PackageSourceNative>$(PackageSource)build\native\</PackageSourceNative>
       <NuGetArtifactsPath>$(MSBuildThisFileDirectory)..\NuGet\</NuGetArtifactsPath>
-      <NuSpecPath>$(NuGetArtifactsPath)signalrclientcpp.nuspec</NuSpecPath>
+      <NuSpecTemplatePath>$(NuGetArtifactsPath)signalrclientcpp.nuspec.template</NuSpecTemplatePath>
       <PackageOutputDir>$(SolutionDir)artifacts\build</PackageOutputDir>
       <PrivateSymbols>$(SolutionDir)bin\Symbols\</PrivateSymbols>
     </PropertyGroup>
@@ -97,18 +98,20 @@
         <Include Include="$(SolutionDir)include\**\*.*" />
     </ItemGroup>
     <Copy SourceFiles="@(Include)" DestinationFolder="$(PackageSourceNative)include\%(RecursiveDir)" />
-    <Copy SourceFiles="$(NuSpecPath)" DestinationFolder="$(PackageSource)" />
-    <Copy SourceFiles="$(NuGetArtifactsPath)Microsoft.AspNet.SignalR.Client.Cpp.v120.WinDesktop.targets" DestinationFolder="$(PackageSourceNative)" />
+    <MakeDir Directories="$(PackageSource)" />
+    <RegexReplaceInFile InputFileName="$(NuSpecTemplatePath)" OutputFileName="$(PackageSource)signalrclientcpp.nuspec" Pattern="#Toolset#" Replacement="$(PlatformToolset)" />
+    <RegexReplaceInFile InputFileName="$(NuGetArtifactsPath)\Microsoft.AspNet.SignalR.Client.Cpp.WinDesktop.targets.template"
+      OutputFileName="$(PackageSourceNative)Microsoft.AspNet.SignalR.Client.Cpp.$(PlatformToolset).WinDesktop.targets" Pattern="#Toolset#" Replacement="$(PlatformToolset)" />
 
     <MSBuild Targets="RestorePackages" Projects="@(Projects)" />
-    
+
     <MSBuild Targets="BuildForNuget"
       Projects="$(MSBuildThisFile)" Properties="PackageSourceNative=$(PackageSourceNative);PrivateSymbols=$(PrivateSymbols);Configuration=%(ProjectConfiguration.Configuration);Platform=%(ProjectConfiguration.Platform);PlatformToolset=$(PlatformToolset);SignalrClientTargetName=$(SignalrClientTargetName)" />
 
     <MakeDir Directories="$(PackageOutputDir)" />
-    <Exec Command="$(NuGetCommand) pack $(NuSpecPath) -BasePath $(PackageSource) -OutputDirectory $(PackageOutputDir) -Version $(SignalRClientCppVersionString)" LogStandardErrorAsError="true" />
+    <Exec Command="$(NuGetCommand) pack $(PackageSource)signalrclientcpp.nuspec -BasePath $(PackageSource) -OutputDirectory $(PackageOutputDir) -Version $(SignalRClientCppVersionString)" LogStandardErrorAsError="true" />
 
-    <ZipDir InputDir="$(PrivateSymbols)" OutputFileName="$(PackageOutputDir)\Symbols.zip" IncludeBaseDir="false"/>
+    <ZipDir InputDir="$(PrivateSymbols)" OutputFileName="$(PackageOutputDir)\Symbols_$(PlatformToolset).zip" IncludeBaseDir="false"/>
   </Target>
 
   <Target Name="BuildForNuget">

@@ -47,5 +47,36 @@
       </Code>
     </Task>
   </UsingTask>
+  
+  <UsingTask TaskName="RegexReplaceInFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+   <ParameterGroup>
+     <InputFilename ParameterType="System.String" Required="true" />
+     <OutputFilename ParameterType="System.String" Required="true" />
+     <Pattern ParameterType="System.String" Required="true" />
+     <Replacement ParameterType="System.String" Required="true" />
+   </ParameterGroup>
+   <Task>
+     <Using Namespace="System.IO" />
+     <Using Namespace="System.Linq" />
+     <Using Namespace="System.Text.RegularExpressions" />
+     <Code Type="Fragment" Language="cs">
+       <![CDATA[
+       string contents;
+       using (var input = new StreamReader(InputFilename))
+       {
+           contents = input.ReadToEnd();
+       }
+
+       contents = new Regex(Pattern, RegexOptions.Compiled | RegexOptions.Multiline)
+                    .Replace(contents, Replacement);
+
+       using (var output = new StreamWriter(OutputFilename))
+       {
+           output.Write(contents);
+       }
+       ]]>
+     </Code>
+   </Task>
+ </UsingTask>
 
 </Project>

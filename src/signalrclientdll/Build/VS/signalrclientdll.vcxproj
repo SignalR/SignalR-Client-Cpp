@@ -119,6 +119,7 @@
       <VersionHeaderContents Include="#define FileVersionStr &quot;$(SignalRClientCppVersionMajor).$(SignalRClientCppVersionMinor).$(SignalRClientCppVersionPatch).$(Revision)\0&quot;" />
       <VersionHeaderContents Include="#define ProductVersion $(SignalRClientCppVersionMajor),$(SignalRClientCppVersionMinor),$(SignalRClientCppVersionPatch),$(Revision)" />
       <VersionHeaderContents Include="#define ProductVersionStr &quot;$(SignalRClientCppVersionString)\0&quot;" />
+      <VersionHeaderContents Include="#define PlatformToolset &quot;$(PlatformToolset)\0&quot;" />
     </ItemGroup>
     <WriteLinesToFile File="..\..\version.h" Lines="@(VersionHeaderContents)" OverWrite="true" />
   </Target>
