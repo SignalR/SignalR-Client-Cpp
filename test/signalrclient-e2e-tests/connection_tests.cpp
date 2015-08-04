@@ -30,7 +30,7 @@ TEST(connection_tests, send_message)
 {
     auto conn = std::make_shared<signalr::connection>(url + U("raw-connection"));
     auto message = std::make_shared<utility::string_t>();
-    auto received_event = std::make_shared<pplx::event>();
+    auto received_event = std::make_shared<signalr::event>();
 
     conn->set_message_received([message, received_event](const utility::string_t& payload)
     {
@@ -56,7 +56,7 @@ TEST(connection_tests, send_message_after_connection_restart)
 {
     auto conn = std::make_shared<signalr::connection>(url + U("raw-connection"));
     auto message = std::make_shared<utility::string_t>();
-    auto received_event = std::make_shared<pplx::event>();
+    auto received_event = std::make_shared<signalr::event>();
 
     conn->set_message_received([message, received_event](const utility::string_t& payload)
     {

@@ -463,7 +463,7 @@ TEST(connection_impl_set_message_received, callback_invoked_when_message_receive
 
     auto message = std::make_shared<utility::string_t>();
 
-    auto message_received_event = std::make_shared<pplx::event>();
+    auto message_received_event = std::make_shared<event>();
     connection->set_message_received_string([message, message_received_event](const utility::string_t &m){
         if (m == _XPLATSTR("\"Test\""))
         {
@@ -505,7 +505,7 @@ TEST(connection_impl_set_message_received, exception_from_callback_caught_and_lo
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
     auto connection = create_connection(websocket_client, writer, trace_level::errors);
 
-    auto message_received_event = std::make_shared<pplx::event>();
+    auto message_received_event = std::make_shared<event>();
     connection->set_message_received_string([message_received_event](const utility::string_t &m){
         if (m == _XPLATSTR("\"throw\""))
         {
@@ -551,7 +551,7 @@ TEST(connection_impl_set_message_received, non_std_exception_from_callback_caugh
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
     auto connection = create_connection(websocket_client, writer, trace_level::errors);
 
-    auto message_received_event = std::make_shared<pplx::event>();
+    auto message_received_event = std::make_shared<event>();
     connection->set_message_received_string([message_received_event](const utility::string_t &m)
     {
         if (m == _XPLATSTR("\"throw\""))
@@ -598,7 +598,7 @@ TEST(connection_impl_set_message_received, error_logged_for_malformed_payload)
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
     auto connection = create_connection(websocket_client, writer, trace_level::errors);
 
-    auto message_received_event = std::make_shared<pplx::event>();
+    auto message_received_event = std::make_shared<event>();
     connection->set_message_received_string([message_received_event](const utility::string_t&)
     {
         // this is called only once because we have just one response with a message
@@ -638,7 +638,7 @@ TEST(connection_impl_set_message_received, unexpected_responses_logged)
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
     auto connection = create_connection(websocket_client, writer, trace_level::info);
 
-    auto message_received_event = std::make_shared<pplx::event>();
+    auto message_received_event = std::make_shared<event>();
     connection->set_message_received_string([message_received_event](const utility::string_t&)
     {
         // this is called only once because we have just one response with a message
@@ -733,7 +733,7 @@ TEST(connection_impl_stop, stopping_disconnected_connection_is_no_op)
 
 TEST(connection_impl_stop, stopping_disconnecting_connection_returns_cancelled_task)
 {
-    pplx::event close_event;
+    event close_event;
     auto writer = std::shared_ptr<log_writer>{std::make_shared<memory_log_writer>()};
 
     auto websocket_client = create_test_websocket_client(
@@ -870,7 +870,7 @@ TEST(connection_impl_stop, dtor_stops_the_connection)
 
 TEST(connection_impl_stop, stop_cancels_ongoing_start_request)
 {
-    auto disconnect_completed_event = std::make_shared<pplx::event>();
+    auto disconnect_completed_event = std::make_shared<event>();
 
     auto websocket_client = create_test_websocket_client(
         /* receive function */ [disconnect_completed_event]()
@@ -1146,7 +1146,7 @@ TEST(connection_impl_reconnect, can_reconnect)
 
     auto connection = create_connection(websocket_client);
     connection->set_reconnect_delay(100);
-    auto reconnected_event = std::make_shared<pplx::event>();
+    auto reconnected_event = std::make_shared<event>();
     connection->set_reconnected([reconnected_event](){ reconnected_event->set(); });
     connection->start();
 
@@ -1178,7 +1178,7 @@ TEST(connection_impl_reconnect, successful_reconnect_state_changes)
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
     auto connection = create_connection(websocket_client, writer, trace_level::state_changes);
     connection->set_reconnect_delay(100);
-    auto reconnected_event = std::make_shared<pplx::event>();
+    auto reconnected_event = std::make_shared<event>();
     connection->set_reconnected([reconnected_event](){ reconnected_event->set(); });
     connection->start();
 
@@ -1244,7 +1244,7 @@ TEST(connection_impl_reconnect, connection_stopped_if_reconnecting_failed)
         connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::state_changes,
         writer, std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
 
-    auto disconnected_event = std::make_shared<pplx::event>();
+    auto disconnected_event = std::make_shared<event>();
     connection->set_disconnected([disconnected_event](){ disconnected_event->set(); });
     connection->set_reconnect_delay(100);
     connection->start();
@@ -1264,7 +1264,7 @@ TEST(connection_impl_reconnect, connection_stopped_if_reconnecting_failed)
 
 TEST(connection_impl_reconnect, reconnect_works_if_connection_dropped_during_after_init_and_before_start_successfully_completed)
 {
-    auto connection_dropped_event = std::make_shared<pplx::event>();
+    auto connection_dropped_event = std::make_shared<event>();
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
@@ -1291,7 +1291,7 @@ TEST(connection_impl_reconnect, reconnect_works_if_connection_dropped_during_aft
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
     auto connection = create_connection(websocket_client, writer, trace_level::state_changes);
     connection->set_reconnect_delay(100);
-    auto reconnected_event = std::make_shared<pplx::event>();
+    auto reconnected_event = std::make_shared<event>();
     connection->set_reconnected([reconnected_event](){ reconnected_event->set(); });
 
     connection->start();
@@ -1308,7 +1308,7 @@ TEST(connection_impl_reconnect, reconnect_works_if_connection_dropped_during_aft
 
 TEST(connection_impl_reconnect, reconnect_cancelled_if_connection_dropped_during_start_and_start_failed)
 {
-    auto connection_dropped_event = std::make_shared<pplx::event>();
+    auto connection_dropped_event = std::make_shared<event>();
 
     auto web_request_factory = std::make_unique<test_web_request_factory>([&connection_dropped_event](const web::uri& url)
     {
@@ -1428,7 +1428,7 @@ TEST(connection_impl_reconnect, reconnect_cancelled_when_connection_being_stoppe
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
     auto connection = create_connection(websocket_client, writer, trace_level::all);
     connection->set_reconnect_delay(100);
-    pplx::event reconnecting_event{};
+    event reconnecting_event{};
     connection->set_reconnecting([&reconnecting_event](){ reconnecting_event.set(); });
 
     connection->start().then([&connection_started](){ connection_started = true; });
@@ -1502,7 +1502,7 @@ TEST(connection_impl_reconnect, reconnect_cancelled_if_connection_goes_out_of_sc
     {
         auto connection = create_connection(websocket_client, writer, trace_level::state_changes);
         connection->set_reconnect_delay(100);
-        pplx::event reconnecting_event{};
+        event reconnecting_event{};
         connection->set_reconnecting([&reconnecting_event](){ reconnecting_event.set(); });
 
         connection->start().then([&connection_started](){ connection_started = true; });
@@ -1552,7 +1552,7 @@ TEST(connection_impl_reconnect, std_exception_for_reconnected_reconnecting_callb
     auto connection = create_connection(websocket_client, writer, trace_level::errors);
     connection->set_reconnect_delay(100);
     connection->set_reconnecting([](){ throw std::runtime_error("exception from reconnecting"); });
-    auto reconnected_event = std::make_shared<pplx::event>();
+    auto reconnected_event = std::make_shared<event>();
     connection->set_reconnected([reconnected_event]()
     {
         reconnected_event->set();
@@ -1599,7 +1599,7 @@ TEST(connection_impl_reconnect, exception_for_reconnected_reconnecting_callback_
     auto connection = create_connection(websocket_client, writer, trace_level::errors);
     connection->set_reconnect_delay(100);
     connection->set_reconnecting([](){ throw 42; });
-    auto reconnected_event = std::make_shared<pplx::event>();
+    auto reconnected_event = std::make_shared<event>();
     connection->set_reconnected([reconnected_event]()
     {
         reconnected_event->set();
@@ -1672,7 +1672,7 @@ TEST(connection_impl_reconnect, can_stop_connection_from_reconnecting_event)
         connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::state_changes,
         writer, std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
 
-    auto stop_event = std::make_shared<pplx::event>();
+    auto stop_event = std::make_shared<event>();
     connection->set_reconnecting([&connection, stop_event]()
     {
         connection->stop()
@@ -1756,7 +1756,7 @@ TEST(connection_impl_reconnect, current_reconnect_cancelled_if_another_reconnect
         }
     });
 
-    pplx::event reconnected_event;
+    event reconnected_event;
     connection->set_reconnected([&reconnected_event]()
     {
         reconnected_event.set();

@@ -292,7 +292,7 @@ TEST(websocket_transport_disconnect, exceptions_from_outstanding_receive_task_ob
 {
     auto client = std::make_shared<test_websocket_client>();
 
-    auto receive_event = std::make_shared<pplx::event>();
+    auto receive_event = std::make_shared<event>();
     client->set_receive_function([receive_event]()
     {
         return pplx::create_task([receive_event]()
@@ -343,7 +343,7 @@ TEST(websocket_transport_receive_loop, receive_loop_logs_std_exception)
 template<typename T>
 void receive_loop_logs_exception_runner(const T& e, const utility::string_t& expected_message, trace_level trace_level)
 {
-    pplx::event receive_event;
+    event receive_event;
     auto client = std::make_shared<test_websocket_client>();
 
     client->set_receive_function([&receive_event, &e]()->pplx::task<std::string>
@@ -381,7 +381,7 @@ TEST(websocket_transport_receive_loop, process_response_callback_called_when_mes
         return pplx::task_from_result(std::string("msg"));
     });
 
-    auto process_response_event = std::make_shared<pplx::event>();
+    auto process_response_event = std::make_shared<event>();
     auto msg = std::make_shared<utility::string_t>();
 
     auto process_response = [msg, process_response_event](const utility::string_t& message)
@@ -415,7 +415,7 @@ TEST(websocket_transport_receive_loop, error_callback_called_when_exception_thro
         return pplx::task_from_result();
     });
 
-    auto error_event = std::make_shared<pplx::event>();
+    auto error_event = std::make_shared<event>();
     auto exception_msg = std::make_shared<std::string>();
 
     auto error_callback = [exception_msg, error_event](const std::exception& e)

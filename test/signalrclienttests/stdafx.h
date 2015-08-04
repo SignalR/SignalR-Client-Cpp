@@ -8,9 +8,7 @@
 #define NOMINMAX
 #endif
 
-#include "targetver.h"
-
-#include <stdio.h>
 #include <tchar.h>
 
 #include "gtest/gtest.h"
+#include "../../src/signalrclient/event.h"

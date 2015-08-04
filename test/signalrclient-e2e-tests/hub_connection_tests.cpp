@@ -16,8 +16,8 @@ TEST(hub_connection_tests, connection_status_start_stop_start_reconnect)
 {
     auto hub_conn = std::make_shared<signalr::hub_connection>(url);
     auto weak_hub_conn = std::weak_ptr<signalr::hub_connection>(hub_conn);
-    auto reconnecting_event = std::make_shared<pplx::event>();
-    auto reconnected_event = std::make_shared<pplx::event>();
+    auto reconnecting_event = std::make_shared<signalr::event>();
+    auto reconnected_event = std::make_shared<signalr::event>();
 
     auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
 
@@ -66,7 +66,7 @@ TEST(hub_connection_tests, send_message)
 {
     auto hub_conn = std::make_shared<signalr::hub_connection>(url + U("custom"), U(""), signalr::trace_level::all, nullptr, false);
     auto message = std::make_shared<utility::string_t>();
-    auto received_event = std::make_shared<pplx::event>();
+    auto received_event = std::make_shared<signalr::event>();
 
     auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
 
@@ -112,7 +112,7 @@ TEST(hub_connection_tests, send_message_after_connection_restart)
 {
     auto hub_conn = std::make_shared<signalr::hub_connection>(url);
     auto message = std::make_shared<utility::string_t>();
-    auto received_event = std::make_shared<pplx::event>();
+    auto received_event = std::make_shared<signalr::event>();
 
     auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
 
@@ -144,8 +144,8 @@ TEST(hub_connection_tests, send_message_after_reconnect)
 {
     auto hub_conn = std::make_shared<signalr::hub_connection>(url);
     auto message = std::make_shared<utility::string_t>();
-    auto reconnected_event = std::make_shared<pplx::event>();
-    auto received_event = std::make_shared<pplx::event>();
+    auto reconnected_event = std::make_shared<signalr::event>();
+    auto received_event = std::make_shared<signalr::event>();
 
     auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
 
@@ -186,7 +186,7 @@ TEST(hub_connection_tests, send_message_empty_param)
 {
     auto hub_conn = std::make_shared<signalr::hub_connection>(url);
     auto message = std::make_shared<utility::string_t>();
-    auto received_event = std::make_shared<pplx::event>();
+    auto received_event = std::make_shared<signalr::event>();
 
     auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
 
@@ -211,7 +211,7 @@ TEST(hub_connection_tests, send_message_primitive_params)
 {
     auto hub_conn = std::make_shared<signalr::hub_connection>(url);
     auto message = std::make_shared<utility::string_t>();
-    auto received_event = std::make_shared<pplx::event>();
+    auto received_event = std::make_shared<signalr::event>();
 
     auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
 
@@ -249,7 +249,7 @@ TEST(hub_connection_tests, send_message_complex_type)
 {
     auto hub_conn = std::make_shared<signalr::hub_connection>(url);
     auto message = std::make_shared<utility::string_t>();
-    auto received_event = std::make_shared<pplx::event>();
+    auto received_event = std::make_shared<signalr::event>();
 
     auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
 

@@ -335,7 +335,7 @@ TEST(hub_invocation, hub_connection_invokes_users_code_on_hub_invocations)
     auto hub_proxy = hub_connection->create_hub_proxy(_XPLATSTR("MY_hub"));
 
     auto payload = std::make_shared<utility::string_t>();
-    auto on_broadcast_event = std::make_shared<pplx::event>();
+    auto on_broadcast_event = std::make_shared<event>();
     hub_proxy->on(_XPLATSTR("broadCAST"), [on_broadcast_event, payload](const json::value& message)
     {
         *payload = message.serialize();
@@ -371,7 +371,7 @@ TEST(hub_invocation, hub_connection_discards_persistent_connection_message_primi
     auto hub_connection = create_hub_connection(websocket_client, writer, trace_level::info);
     auto hub_proxy = hub_connection->create_hub_proxy(_XPLATSTR("my_hub"));
 
-    auto on_broadcast_event = std::make_shared<pplx::event>();
+    auto on_broadcast_event = std::make_shared<event>();
     hub_proxy->on(_XPLATSTR("broadcast"), [on_broadcast_event](const json::value&)
     {
         on_broadcast_event->set();
@@ -411,7 +411,7 @@ TEST(hub_invocation, hub_connection_invokes_persistent_connection_message_object
     auto hub_connection = create_hub_connection(websocket_client, writer, trace_level::info);
     auto hub_proxy = hub_connection->create_hub_proxy(_XPLATSTR("my_hub"));
 
-    auto on_broadcast_event = std::make_shared<pplx::event>();
+    auto on_broadcast_event = std::make_shared<event>();
     hub_proxy->on(_XPLATSTR("broadcast"), [on_broadcast_event](const json::value&)
     {
         on_broadcast_event->set();
@@ -484,7 +484,7 @@ TEST(hub_invocation, hub_connection_logs_if_no_hub_for_invocation)
 {
     int call_number = -1;
 
-    auto done_event = std::make_shared<pplx::event>();
+    auto done_event = std::make_shared<event>();
 
     auto websocket_client = create_test_websocket_client(
         /* receive function */ [call_number, done_event]()
@@ -522,7 +522,7 @@ TEST(hub_invocation, hub_connection_logs_if_no_hub_for_invocation)
 
 TEST(invoke_json, invoke_returns_value_returned_from_the_server)
 {
-    auto callback_registered_event = std::make_shared<pplx::event>();
+    auto callback_registered_event = std::make_shared<event>();
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
@@ -560,7 +560,7 @@ TEST(invoke_json, invoke_returns_value_returned_from_the_server)
 
 TEST(invoke_json, invoke_propagates_errors_from_server_as_exceptions)
 {
-    auto callback_registered_event = std::make_shared<pplx::event>();
+    auto callback_registered_event = std::make_shared<event>();
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
@@ -604,7 +604,7 @@ TEST(invoke_json, invoke_propagates_errors_from_server_as_exceptions)
 
 TEST(invoke_json, invoke_propagates_hub_errors_from_server_as_hub_exceptions)
 {
-    auto callback_registered_event = std::make_shared<pplx::event>();
+    auto callback_registered_event = std::make_shared<event>();
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
@@ -649,7 +649,7 @@ TEST(invoke_json, invoke_propagates_hub_errors_from_server_as_hub_exceptions)
 
 TEST(progress, progress_callback_called_for_progress_messages_json)
 {
-    auto callback_registered_event = std::make_shared<pplx::event>();
+    auto callback_registered_event = std::make_shared<event>();
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
@@ -695,7 +695,7 @@ TEST(progress, progress_callback_called_for_progress_messages_json)
 
 TEST(invoke_void, invoke_unblocks_task_when_server_completes_call)
 {
-    auto callback_registered_event = std::make_shared<pplx::event>();
+    auto callback_registered_event = std::make_shared<event>();
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
@@ -733,7 +733,7 @@ TEST(invoke_void, invoke_unblocks_task_when_server_completes_call)
 
 TEST(invoke_void, invoke_logs_if_callback_for_given_id_not_found)
 {
-    auto message_received_event = std::make_shared<pplx::event>();
+    auto message_received_event = std::make_shared<event>();
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
@@ -771,7 +771,7 @@ TEST(invoke_void, invoke_logs_if_callback_for_given_id_not_found)
 
 TEST(invoke_void, invoke_propagates_errors_from_server_as_exceptions)
 {
-    auto callback_registered_event = std::make_shared<pplx::event>();
+    auto callback_registered_event = std::make_shared<event>();
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
@@ -815,7 +815,7 @@ TEST(invoke_void, invoke_propagates_errors_from_server_as_exceptions)
 
 TEST(invoke_void, invoke_propagates_hub_errors_from_server_as_hub_exceptions)
 {
-    auto callback_registered_event = std::make_shared<pplx::event>();
+    auto callback_registered_event = std::make_shared<event>();
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
@@ -860,7 +860,7 @@ TEST(invoke_void, invoke_propagates_hub_errors_from_server_as_hub_exceptions)
 
 TEST(invoke_void, invoke_creates_hub_exception_even_if_no_error_data)
 {
-    auto callback_registered_event = std::make_shared<pplx::event>();
+    auto callback_registered_event = std::make_shared<event>();
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
@@ -905,7 +905,7 @@ TEST(invoke_void, invoke_creates_hub_exception_even_if_no_error_data)
 
 TEST(invoke_void, invoke_creates_runtime_error_when_hub_exception_indicator_false)
 {
-    auto callback_registered_event = std::make_shared<pplx::event>();
+    auto callback_registered_event = std::make_shared<event>();
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
@@ -950,7 +950,7 @@ TEST(invoke_void, invoke_creates_runtime_error_when_hub_exception_indicator_fals
 
 TEST(invoke_void, invoke_creates_runtime_error_even_hub_exception_indicator_non_bool)
 {
-    auto callback_registered_event = std::make_shared<pplx::event>();
+    auto callback_registered_event = std::make_shared<event>();
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
@@ -995,7 +995,7 @@ TEST(invoke_void, invoke_creates_runtime_error_even_hub_exception_indicator_non_
 
 TEST(progress, progress_callback_called_for_progress_messages)
 {
-    auto callback_registered_event = std::make_shared<pplx::event>();
+    auto callback_registered_event = std::make_shared<event>();
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
@@ -1041,7 +1041,7 @@ TEST(progress, progress_callback_called_for_progress_messages)
 
 TEST(progress, exceptions_from_progress_callbacks_logged)
 {
-    auto callback_registered_event = std::make_shared<pplx::event>();
+    auto callback_registered_event = std::make_shared<event>();
 
     int call_number = -1;
     auto websocket_client = create_test_websocket_client(
@@ -1091,7 +1091,7 @@ TEST(progress, exceptions_from_progress_callbacks_logged)
 
 TEST(reconnect, pending_invocations_finished_if_connection_lost)
 {
-    auto message_sent_event = std::make_shared<pplx::event>();
+    auto message_sent_event = std::make_shared<event>();
 
     auto init_sent = false;
     auto websocket_client = create_test_websocket_client(
@@ -1119,7 +1119,7 @@ TEST(reconnect, pending_invocations_finished_if_connection_lost)
 
     auto hub_connection = create_hub_connection(websocket_client);
 
-    auto test_completed_event = std::make_shared<pplx::event>();
+    auto test_completed_event = std::make_shared<event>();
     hub_connection->start()
         .then([hub_connection, message_sent_event, test_completed_event]()
         {
@@ -1145,7 +1145,7 @@ TEST(reconnect, pending_invocations_finished_if_connection_lost)
 
 TEST(reconnect, pending_invocations_finished_and_custom_reconnecting_callback_invoked_if_connection_lost)
 {
-    auto message_sent_event = std::make_shared<pplx::event>();
+    auto message_sent_event = std::make_shared<event>();
 
     auto init_sent = false;
     auto websocket_client = create_test_websocket_client(
@@ -1172,7 +1172,7 @@ TEST(reconnect, pending_invocations_finished_and_custom_reconnecting_callback_in
         });
 
     auto hub_connection = create_hub_connection(websocket_client);
-    auto reconnecting_invoked_event = std::make_shared<pplx::event >();
+    auto reconnecting_invoked_event = std::make_shared<event >();
     hub_connection->set_reconnecting([reconnecting_invoked_event](){ reconnecting_invoked_event->set(); });
 
     hub_connection->start()
@@ -1227,7 +1227,7 @@ TEST(reconnect, reconnecting_reconnected_callbacks_invoked)
 
     auto reconnecting_invoked = false;
     hub_connection->set_reconnecting([&reconnecting_invoked](){ reconnecting_invoked = true; });
-    auto reconnected_event = std::make_shared<pplx::event>();
+    auto reconnected_event = std::make_shared<event>();
     hub_connection->set_reconnected([reconnected_event]() { reconnected_event->set(); });
 
     hub_connection->start();

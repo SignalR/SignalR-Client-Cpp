@@ -12,6 +12,7 @@
 #include "transport_factory.h"
 #include "logger.h"
 #include "negotiation_response.h"
+#include "event.h"
 
 namespace signalr
 {
@@ -68,7 +69,7 @@ namespace signalr
 
         pplx::cancellation_token_source m_disconnect_cts;
         std::mutex m_stop_lock;
-        pplx::event m_start_completed_event;
+        event m_start_completed_event;
         utility::string_t m_connection_token;
         utility::string_t m_connection_data;
         int m_reconnect_window; // in milliseconds
