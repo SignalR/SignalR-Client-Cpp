@@ -3,10 +3,13 @@
 
 #include "stdafx.h"
 #include <vector>
-#include "cpprest/details/basic_types.h"
 #include "test_utils.h"
 
-int wmain(int argc, utility::char_t* argv[])
+#if defined(_WIN32)
+int wmain(int argc, wchar_t* argv[])
+#else
+int main(int argc, char* argv[])
+#endif
 {
     get_url(argc, argv);
 

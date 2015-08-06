@@ -3,7 +3,11 @@
 
 #include "stdafx.h"
 
-int _tmain(int argc, _TCHAR* argv[])
+#if defined(_WIN32)
+int wmain(int argc, wchar_t* argv[])
+#else
+int main(int argc, char* argv[])
+#endif
 {
     ::testing::InitGoogleTest(&argc, argv);
     RUN_ALL_TESTS();
