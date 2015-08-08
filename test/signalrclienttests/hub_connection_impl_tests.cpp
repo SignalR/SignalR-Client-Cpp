@@ -227,7 +227,7 @@ TEST(stop, connection_stopped_when_going_out_of_scope)
     // to happen and if it does not the test will fail. There is nothing we can block on.
     for (int wait_time_ms = 5; wait_time_ms < 100 && memory_writer->get_log_entries().size() < 4; wait_time_ms <<= 1)
     {
-        pplx::wait(wait_time_ms);
+        std::this_thread::sleep_for(std::chrono::milliseconds(wait_time_ms));
     }
 
     auto log_entries = memory_writer->get_log_entries();
@@ -1199,8 +1199,6 @@ TEST(reconnect, pending_invocations_finished_and_custom_reconnecting_callback_in
 
     ASSERT_FALSE(reconnecting_invoked_event->wait(5000));
 }
-
-#include "windows.h"
 
 TEST(reconnect, reconnecting_reconnected_callbacks_invoked)
 {

@@ -12,7 +12,7 @@ using namespace signalr;
 class memory_log_writer : public log_writer
 {
 public:
-    void _cdecl write(const utility::string_t &entry) override;
+    void __cdecl write(const utility::string_t &entry) override;
     std::vector<utility::string_t> get_log_entries();
 
 private:

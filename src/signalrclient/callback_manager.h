@@ -26,7 +26,7 @@ namespace signalr
         void clear(const web::json::value& arguments);
 
     private:
-        std::atomic<int> m_id = 0;
+        std::atomic<int> m_id { 0 };
         std::unordered_map<utility::string_t, std::function<void(const web::json::value&)>> m_callbacks;
         std::mutex m_map_lock;
         const web::json::value m_dtor_clear_arguments;

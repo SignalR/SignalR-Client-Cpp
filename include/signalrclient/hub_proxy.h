@@ -45,25 +45,12 @@ namespace signalr
             return invoke_json(method_name, web::json::value().array(), on_progress);
         }
 
-        template<>
-        pplx::task<void> invoke<void>(const utility::string_t& method_name, const on_progress_handler& on_progress)
-        {
-            return invoke_void(method_name, web::json::value().array(), on_progress);
-        }
-
         template<typename T>
         pplx::task<T> invoke(const utility::string_t& method_name, const web::json::value& arguments,
             const on_progress_handler& on_progress = [](const web::json::value&){})
         {
             static_assert(std::is_same<web::json::value, T>::value, "only web::json::value allowed");
             return invoke_json(method_name, arguments, on_progress);
-        }
-
-        template<>
-        pplx::task<void> invoke<void>(const utility::string_t& method_name, const web::json::value& arguments,
-            const on_progress_handler& on_progress)
-        {
-            return invoke_void(method_name, arguments, on_progress);
         }
 
     private:
@@ -74,4 +61,17 @@ namespace signalr
         SIGNALRCLIENT_API pplx::task<void> __cdecl invoke_void(const utility::string_t& method_name, const web::json::value& arguments,
             const on_progress_handler& on_progress);
     };
+
+    template<>
+    inline pplx::task<void> hub_proxy::invoke<void>(const utility::string_t& method_name, const on_progress_handler& on_progress)
+    {
+        return invoke_void(method_name, web::json::value().array(), on_progress);
+    }
+
+    template<>
+    inline pplx::task<void> hub_proxy::invoke<void>(const utility::string_t& method_name, const web::json::value& arguments,
+        const on_progress_handler& on_progress)
+    {
+        return invoke_void(method_name, arguments, on_progress);
+    }
 }

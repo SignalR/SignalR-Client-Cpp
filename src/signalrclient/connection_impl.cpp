@@ -10,6 +10,7 @@
 #include "request_sender.h"
 #include "url_builder.h"
 #include "trace_log_writer.h"
+#include "make_unique.h"
 
 namespace signalr
 {
@@ -372,7 +373,7 @@ namespace signalr
         auto transport = m_transport;
 
         auto connection_state = get_connection_state();
-        if (connection_state != connection_state::connected || !transport)
+        if (connection_state != signalr::connection_state::connected || !transport)
         {
             return pplx::task_from_exception<void>(std::runtime_error(
                 std::string{ "cannot send data when the connection is not in the connected state. current connection state: " }
@@ -779,11 +780,11 @@ namespace signalr
 
     void connection_impl::ensure_disconnected(const std::string& error_message)
     {
-        auto connection_state = get_connection_state();
-        if (connection_state != connection_state::disconnected)
+        auto state = get_connection_state();
+        if (state != connection_state::disconnected)
         {
             throw std::runtime_error(error_message + std::string{"current connection state: "}
-                .append(utility::conversions::to_utf8string(translate_connection_state(connection_state))));
+                .append(utility::conversions::to_utf8string(translate_connection_state(state))));
         }
     }
 

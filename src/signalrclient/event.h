@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <assert.h>
+#include <condition_variable>
 #include <mutex>
 
 namespace signalr
@@ -47,7 +49,7 @@ namespace signalr
             {
                 std::chrono::milliseconds period(timeout);
                 auto status = m_condition.wait_for(lock, period, [this]() { return m_signaled; });
-                _ASSERTE(status == m_signaled);
+                assert(status == m_signaled);
                 // Return 0 if the wait completed as a result of signaling the event. Otherwise, return timeout_infinite
                 return status ? 0 : event::timeout_infinite;
             }

@@ -14,10 +14,10 @@ std::shared_ptr<transport> test_transport_factory::create_transport(transport_ty
     std::function<void(const utility::string_t&)> process_message_callback,
     std::function<void(const std::exception&)> error_callback)
 {
-    if (transport_type == transport_type::websockets)
+    if (transport_type == signalr::transport_type::websockets)
     {
         return websocket_transport::create([&](){ return m_websocket_client; }, logger, process_message_callback, error_callback);
     }
 
-    throw std::exception("not supported");
+    throw std::runtime_error("not supported");
 }

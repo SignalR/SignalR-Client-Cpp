@@ -5,6 +5,7 @@
 #include "hub_connection_impl.h"
 #include "signalrclient/hub_exception.h"
 #include "trace_log_writer.h"
+#include "make_unique.h"
 
 namespace signalr
 {

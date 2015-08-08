@@ -39,15 +39,15 @@ namespace signalr
     {
         switch (trace_level)
         {
-        case trace_level::messages:
+        case signalr::trace_level::messages:
             return _XPLATSTR("message");
-        case trace_level::state_changes:
+        case signalr::trace_level::state_changes:
             return _XPLATSTR("state change");
-        case trace_level::events:
+        case signalr::trace_level::events:
             return _XPLATSTR("event");
-        case trace_level::errors:
+        case signalr::trace_level::errors:
             return _XPLATSTR("error");
-        case trace_level::info:
+        case signalr::trace_level::info:
             return _XPLATSTR("info");
         default:
             _ASSERTE(false);

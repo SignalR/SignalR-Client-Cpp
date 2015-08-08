@@ -12,13 +12,13 @@ namespace signalr
         std::function<void(const utility::string_t&)> process_response_callback,
         std::function<void(const std::exception&)> error_callback)
     {
-        if (transport_type == transport_type::websockets)
+        if (transport_type == signalr::transport_type::websockets)
         {
             return websocket_transport::create([headers](){ return std::make_shared<default_websocket_client>(headers); },
                 logger, process_response_callback, error_callback);
         }
 
-        throw std::exception("not implemented");
+        throw std::runtime_error("not implemented");
     }
 
     transport_factory::~transport_factory()

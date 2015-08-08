@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "web_request_factory.h"
+#include "make_unique.h"
 
 namespace signalr
 {

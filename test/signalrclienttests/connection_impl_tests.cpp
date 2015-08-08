@@ -217,7 +217,9 @@ TEST(connection_impl_start, start_fails_if_TryWebsockets_false_and_no_fallback_t
     }
 }
 
-TEST(connection_impl_start, start_fails_if_transport_fails_when_receiveing_messages)
+#if defined(_WIN32)   //  https://github.com/aspnet/SignalR-Client-Cpp/issues/131
+
+TEST(connection_impl_start, start_fails_if_transport_fails_when_receiving_messages)
 {
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
 
@@ -240,11 +242,13 @@ TEST(connection_impl_start, start_fails_if_transport_fails_when_receiveing_messa
     }
 
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
-    ASSERT_TRUE(log_entries.size() > 1);
+    ASSERT_TRUE(log_entries.size() > 1) << dump_vector(log_entries);
 
     auto entry = remove_date_from_log_entry(log_entries[1]);
-    ASSERT_EQ(_XPLATSTR("[error       ] connection could not be started due to: receive error\n"), entry);
+    ASSERT_EQ(_XPLATSTR("[error       ] connection could not be started due to: receive error\n"), entry) << dump_vector(log_entries);
 }
+
+#endif
 
 TEST(connection_impl_start, start_fails_if_start_request_fails)
 {
@@ -823,7 +827,7 @@ TEST(connection_impl_stop, can_start_and_stop_connection_multiple_times)
     // to happen and if it does not the test will fail
     for (int wait_time_ms = 5; wait_time_ms < 100 && memory_writer->get_log_entries().size() < 8; wait_time_ms <<= 1)
     {
-        pplx::wait(wait_time_ms);
+        std::this_thread::sleep_for(std::chrono::milliseconds(wait_time_ms));
     }
 
     auto log_entries = memory_writer->get_log_entries();
@@ -844,7 +848,11 @@ TEST(connection_impl_stop, dtor_stops_the_connection)
 
     {
         auto websocket_client = create_test_websocket_client(
-            /* receive function */ []() { pplx::wait(1); return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }")); });
+            /* receive function */ []() 
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                return pplx::task_from_result(std::string("{ \"C\":\"x\", \"S\":1, \"M\":[] }"));
+            });
         auto connection = create_connection(websocket_client, writer, trace_level::state_changes);
 
         connection->start().get();
@@ -857,7 +865,7 @@ TEST(connection_impl_stop, dtor_stops_the_connection)
     // to happen and if it does not the test will fail
     for (int wait_time_ms = 5; wait_time_ms < 100 && memory_writer->get_log_entries().size() < 4; wait_time_ms <<= 1)
     {
-        pplx::wait(wait_time_ms);
+        std::this_thread::sleep_for(std::chrono::milliseconds(wait_time_ms));
     }
 
     auto log_entries = memory_writer->get_log_entries();
@@ -946,7 +954,7 @@ TEST(connection_impl_stop, ongoing_start_request_cancelled_if_connection_stopped
     }).get();
 
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
-    ASSERT_EQ(5, log_entries.size());
+    ASSERT_EQ(5, log_entries.size()) << dump_vector(log_entries);
     ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
     ASSERT_EQ(_XPLATSTR("[info        ] stopping connection\n"), remove_date_from_log_entry(log_entries[1]));
     ASSERT_EQ(_XPLATSTR("[info        ] acquired lock in shutdown()\n"), remove_date_from_log_entry(log_entries[2]));
@@ -1375,7 +1383,7 @@ TEST(connection_impl_reconnect, reconnect_cancelled_if_connection_dropped_during
     auto memory_writer = std::dynamic_pointer_cast<memory_log_writer>(writer);
     for (int wait_time_ms = 5; wait_time_ms < 100 && memory_writer->get_log_entries().size() < 6; wait_time_ms <<= 1)
     {
-        pplx::wait(wait_time_ms);
+        std::this_thread::sleep_for(std::chrono::milliseconds(wait_time_ms));
     }
 
     auto log_entries = memory_writer->get_log_entries();
@@ -1456,7 +1464,7 @@ TEST(connection_impl_reconnect, reconnect_cancelled_when_connection_being_stoppe
             break;
         }
 
-        pplx::wait(wait_time_ms);
+        std::this_thread::sleep_for(std::chrono::milliseconds(wait_time_ms));
     }
 
     ASSERT_EQ(1,
@@ -1500,7 +1508,7 @@ TEST(connection_impl_reconnect, reconnect_cancelled_if_connection_goes_out_of_sc
     std::shared_ptr<log_writer> writer(std::make_shared<memory_log_writer>());
 
     {
-        auto connection = create_connection(websocket_client, writer, trace_level::state_changes);
+        auto connection = create_connection(websocket_client, writer, trace_level::all);
         connection->set_reconnect_delay(100);
         event reconnecting_event{};
         connection->set_reconnecting([&reconnecting_event](){ reconnecting_event.set(); });
@@ -1513,18 +1521,27 @@ TEST(connection_impl_reconnect, reconnect_cancelled_if_connection_goes_out_of_sc
     // used by tasks as a shared_ptr. As a result the dtor is being called on the thread which released the last reference.
     // Therefore we need to wait block until the dtor has actually completed. Time out would most likely indicate a bug.
     auto memory_writer = std::dynamic_pointer_cast<memory_log_writer>(writer);
-    for (int wait_time_ms = 5; wait_time_ms < 100 && memory_writer->get_log_entries().size() < 5; wait_time_ms <<= 1)
+    for (int wait_time_ms = 5; wait_time_ms < 10000; wait_time_ms <<= 1)
     {
-        pplx::wait(wait_time_ms);
+        if (filter_vector(std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries(),
+            _XPLATSTR("[state change] disconnecting -> disconnected")).size() > 0)
+        {
+            break;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(wait_time_ms));
     }
 
     auto log_entries = memory_writer->get_log_entries();
-    ASSERT_EQ(5, log_entries.size());
-    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(log_entries[0]));
-    ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(log_entries[1]));
-    ASSERT_EQ(_XPLATSTR("[state change] connected -> reconnecting\n"), remove_date_from_log_entry(log_entries[2]));
-    ASSERT_EQ(_XPLATSTR("[state change] reconnecting -> disconnecting\n"), remove_date_from_log_entry(log_entries[3]));
-    ASSERT_EQ(_XPLATSTR("[state change] disconnecting -> disconnected\n"), remove_date_from_log_entry(log_entries[4]));
+    auto state_changes = filter_vector(log_entries, _XPLATSTR("[state change]"));
+
+    ASSERT_EQ(5, state_changes.size()) << dump_vector(log_entries);
+
+    ASSERT_EQ(_XPLATSTR("[state change] disconnected -> connecting\n"), remove_date_from_log_entry(state_changes[0]));
+    ASSERT_EQ(_XPLATSTR("[state change] connecting -> connected\n"), remove_date_from_log_entry(state_changes[1]));
+    ASSERT_EQ(_XPLATSTR("[state change] connected -> reconnecting\n"), remove_date_from_log_entry(state_changes[2]));
+    ASSERT_EQ(_XPLATSTR("[state change] reconnecting -> disconnecting\n"), remove_date_from_log_entry(state_changes[3]));
+    ASSERT_EQ(_XPLATSTR("[state change] disconnecting -> disconnected\n"), remove_date_from_log_entry(state_changes[4]));
 }
 
 TEST(connection_impl_reconnect, std_exception_for_reconnected_reconnecting_callback_caught_and_logged)
@@ -1566,7 +1583,7 @@ TEST(connection_impl_reconnect, std_exception_for_reconnected_reconnecting_callb
     auto memory_writer = std::dynamic_pointer_cast<memory_log_writer>(writer);
     for (int wait_time_ms = 5; wait_time_ms < 100 && memory_writer->get_log_entries().size() < 3; wait_time_ms <<= 1)
     {
-        pplx::wait(wait_time_ms);
+        std::this_thread::sleep_for(std::chrono::milliseconds(wait_time_ms));
     }
 
     auto log_entries = memory_writer->get_log_entries();
@@ -1613,7 +1630,7 @@ TEST(connection_impl_reconnect, exception_for_reconnected_reconnecting_callback_
     auto memory_writer = std::dynamic_pointer_cast<memory_log_writer>(writer);
     for (int wait_time_ms = 5; wait_time_ms < 100 && memory_writer->get_log_entries().size() < 3; wait_time_ms <<= 1)
     {
-        pplx::wait(wait_time_ms);
+        std::this_thread::sleep_for(std::chrono::milliseconds(wait_time_ms));
     }
 
     auto log_entries = memory_writer->get_log_entries();
@@ -1781,7 +1798,7 @@ TEST(connection_impl_reconnect, current_reconnect_cancelled_if_another_reconnect
             break;
         }
 
-        pplx::wait(wait_time_ms);
+        std::this_thread::sleep_for(std::chrono::milliseconds(wait_time_ms));
     }
 
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();

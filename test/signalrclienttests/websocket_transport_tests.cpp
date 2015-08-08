@@ -298,7 +298,7 @@ TEST(websocket_transport_disconnect, exceptions_from_outstanding_receive_task_ob
         return pplx::create_task([receive_event]()
         {
             receive_event->wait();
-            return pplx::task_from_exception<std::string>(std::exception("exception from receive"));
+            return pplx::task_from_exception<std::string>(std::runtime_error("exception from receive"));
         });
     });
 
@@ -335,7 +335,7 @@ TEST(websocket_transport_receive_loop, receive_loop_logs_if_receive_task_cancell
 TEST(websocket_transport_receive_loop, receive_loop_logs_std_exception)
 {
     receive_loop_logs_exception_runner(
-        std::exception("exception"),
+        std::runtime_error("exception"),
         _XPLATSTR("[error       ] [websocket transport] error receiving response from websocket: exception\n"),
         trace_level::errors);
 }
@@ -364,7 +364,7 @@ void receive_loop_logs_exception_runner(const T& e, const utility::string_t& exp
     }).get();
 
     // this is race'y but there is nothing we can block on
-    pplx::wait(10);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     auto log_entries = std::dynamic_pointer_cast<memory_log_writer>(writer)->get_log_entries();
 
@@ -397,7 +397,7 @@ TEST(websocket_transport_receive_loop, process_response_callback_called_when_mes
 
     process_response_event->wait(1000);
 
-    ASSERT_EQ(_XPLATSTR("msg"), *msg);
+    ASSERT_EQ(utility::string_t(_XPLATSTR("msg")), *msg);
 }
 
 TEST(websocket_transport_receive_loop, error_callback_called_when_exception_thrown)
