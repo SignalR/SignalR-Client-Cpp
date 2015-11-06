@@ -77,6 +77,9 @@
     <ClCompile Include="..\..\logger_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\long_polling_transport_tests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>    
     <ClCompile Include="..\..\memory_log_writer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

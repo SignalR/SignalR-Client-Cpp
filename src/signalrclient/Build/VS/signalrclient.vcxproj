@@ -48,6 +48,7 @@
     <ClInclude Include="..\..\internal_hub_proxy.h" />
     <ClInclude Include="..\..\callback_manager.h" />
     <ClInclude Include="..\..\logger.h" />
+    <ClInclude Include="..\..\long_polling_transport.h" />
     <ClInclude Include="..\..\negotiation_response.h" />
     <ClInclude Include="..\..\request_sender.h" />
     <ClInclude Include="..\..\stdafx.h" />
@@ -71,6 +72,7 @@
     <ClCompile Include="..\..\internal_hub_proxy.cpp" />
     <ClCompile Include="..\..\callback_manager.cpp" />
     <ClCompile Include="..\..\logger.cpp" />
+    <ClCompile Include="..\..\long_polling_transport.cpp" />
     <ClCompile Include="..\..\request_sender.cpp" />
     <ClCompile Include="..\..\stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

@@ -58,7 +58,7 @@ namespace signalr
         std::atomic<connection_state> m_connection_state;
         logger m_logger;
         std::shared_ptr<transport> m_transport;
-        std::unique_ptr<web_request_factory> m_web_request_factory;
+        std::shared_ptr<web_request_factory> m_web_request_factory;
         std::unique_ptr<transport_factory> m_transport_factory;
 
         std::function<void(const web::json::value&)> m_message_received;
