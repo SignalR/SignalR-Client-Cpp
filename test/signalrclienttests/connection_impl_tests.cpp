@@ -1396,7 +1396,7 @@ TEST(connection_impl_reconnect, reconnect_cancelled_if_connection_dropped_during
 
     auto info_entries = filter_vector(log_entries, _XPLATSTR("[info        ]"));
     ASSERT_EQ(4, info_entries.size()) << dump_vector(log_entries);
-    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://reconnect_cancelled_if_connection_dropped_during_start_and_start_failed/connect?transport=webSockets&clientProtocol=1.4&connectionToken=A==\n"), remove_date_from_log_entry(info_entries[0]));
+    ASSERT_EQ(_XPLATSTR("[info        ] [websocket transport] connecting to: ws://reconnect_cancelled_if_connection_dropped_during_start_and_start_failed/connect?transport=webSockets&clientProtocol=1.4&connectionToken=A%3D%3D\n"), remove_date_from_log_entry(info_entries[0]));
     ASSERT_EQ(_XPLATSTR("[info        ] connection lost - trying to re-establish connection\n"), remove_date_from_log_entry(info_entries[1]));
     ASSERT_EQ(_XPLATSTR("[info        ] acquired lock before invoking reconnecting callback\n"), remove_date_from_log_entry(info_entries[2]));
     ASSERT_EQ(_XPLATSTR("[info        ] reconnecting cancelled - connection is not in the connected state\n"), remove_date_from_log_entry(info_entries[3]));
