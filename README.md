@@ -1,7 +1,7 @@
-ASP.NET SignalR C++ Client 
-======== 
+ASP.NET SignalR C++ Client
+========
 
-SignalR C++ Client is a native client for the [ASP.NET SignalR](https://github.com/SignalR/SignalR/). 
+SignalR C++ Client is a native client for the [ASP.NET SignalR](https://github.com/SignalR/SignalR/).
 
 ###Supported platforms
 
@@ -31,7 +31,7 @@ Signed nigthly builds are available on a separate feed. You can find them [here]
 
 * Building from Visual Studio:
 
-  Open the signalrclient.sln in Visual Studio 2013 or Visual Studio 2015 and build. 
+  Open the signalrclient.sln in Visual Studio 2013 or Visual Studio 2015 and build.
 
 * Building from command line:
   * Open the Developer Command Prompt for Visual Studio 2013 or Visual Studio 2015
@@ -39,7 +39,22 @@ Signed nigthly builds are available on a separate feed. You can find them [here]
     * `build.cmd /t:Build` to build the code
     * `build.cmd` to build the code and run tests
     * `build.cmd /t:CreatePackage` to build the code and create a private NuGet package for the Visual Studio version the package was built with. The package will be placed in the `artifacts\build` directory.
-  
+
+####Building for Linux (Linux support is currently only experimental)
+ * Clone C++ REST SDK code
+ * Sync the code to a tag - e.g. `git checkout v2.7.0` (optional)
+ * Build C++ REST SDK code as described [here](https://github.com/Microsoft/cpprestsdk/wiki/How-to-build-for-Linux)
+ * From the root of SignalR C++ Client repo:
+   * `mkdir build.release`
+   * `cd build.release`
+   * `CXX=g++-4.8 cmake .. -DCMAKE_BUILD_TYPE=Release -DCPPREST_INCLUDE_DIR={C++ REST SDK include directory} -DCPPREST_LIB_DIR={C++ REST SDK lib directory}`
+
+      replace `{C++ REST SDK include directory}` and `{C++ REST SDK lib directory}` with paths to corresponding C++ REST SDK folders - e.g.:
+
+      `CXX=g++-4.8 cmake .. -DCMAKE_BUILD_TYPE=Release -DCPPREST_INCLUDE_DIR=~/source/casablanca/Release/include/ -DCPPREST_LIB_DIR=~/source/casablanca/Release/build.release/Binaries`
+   * `make`
+ * The binaries will be placed in the `bin` folder
+
 ###Running tests
 
 ####Running tests on Windows
@@ -51,3 +66,11 @@ Signed nigthly builds are available on a separate feed. You can find them [here]
 * From command line
   * Open the Developer Command Prompt for Visual Studio 2013 or Visual Studio 2015
   * run `build.cmd`
+
+####Running tests on Linux
+* Build the code
+* Run `signalrclienttests`
+* Known issues:
+  * A few tests randomly fail (needs investigation)
+  * Oftentimes the process does not exit even though all tests appear to have completed (needs investigation)
+
