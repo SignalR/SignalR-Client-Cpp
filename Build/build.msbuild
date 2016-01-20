@@ -43,10 +43,6 @@
       Properties="Configuration=$(Configuration);Platform=$(Platform);PlatformToolset=$(PlatformToolset)" />
       
     <MSBuild Targets="$(BuildTargets)"
-      Projects="@(TestProjects)"
-      Properties="Configuration=$(Configuration);Platform=$(Platform);PlatformToolset=$(PlatformToolset)" />
-      
-    <MSBuild Targets="$(BuildTargets)"
       Projects="@(SampleProjects)"
       Properties="Configuration=$(Configuration);Platform=$(Platform);PlatformToolset=$(PlatformToolset)" />
       
