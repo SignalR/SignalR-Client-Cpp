@@ -19,3 +19,5 @@ artifacts/
 src/signalrclientdll/version.h
 /.vs/
 build.*
+signalrclient.VC.VC.opendb
+signalrclient.VC.db
