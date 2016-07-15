@@ -93,7 +93,7 @@
         <DownloadNuGet OutputFilename="$(NuGetExePath)" Condition=" '$(DownloadNuGetExe)' == 'true' AND !Exists('$(NuGetExePath)')" />
     </Target>
 
-    <Target Name="RestorePackages" DependsOnTargets="CheckPrerequisites"> 
+    <Target Name="RestorePackages" DependsOnTargets="CheckPrerequisites">
         <Exec Command="$(RestoreCommand)"
               Condition="'$(OS)' != 'Windows_NT' And Exists('$(PackagesConfig)')" />
 
@@ -129,7 +129,7 @@
 
                     Log.LogMessage("Downloading latest version of NuGet.exe...");
                     WebClient webClient = new WebClient();
-                    webClient.DownloadFile("https://www.nuget.org/nuget.exe", OutputFilename);
+                    webClient.DownloadFile("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", OutputFilename);
 
                     return true;
                 }
