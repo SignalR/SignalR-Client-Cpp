@@ -21,3 +21,5 @@ src/signalrclientdll/version.h
 build.*
 signalrclient.VC.VC.opendb
 signalrclient.VC.db
+samples.VC.VC.opendb
+samples.VC.db

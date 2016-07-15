@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -22,21 +22,21 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="..\..\packages\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.2.5.0\build\native\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('..\..\packages\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.2.5.0\build\native\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-    <Import Project="..\..\packages\Microsoft.AspNet.SignalR.Client.Cpp.v120.WinDesktop.1.0.0-alpha-10017\build\native\Microsoft.AspNet.SignalR.Client.Cpp.v120.WinDesktop.targets" Condition="Exists('..\..\packages\Microsoft.AspNet.SignalR.Client.Cpp.v120.WinDesktop.1.0.0-alpha-10017\build\native\Microsoft.AspNet.SignalR.Client.Cpp.v120.WinDesktop.targets')" />
+    <Import Project="..\..\packages\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.2.7.0\build\native\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('..\..\packages\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.2.7.0\build\native\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" />
+    <Import Project="..\..\packages\Microsoft.AspNet.SignalR.Client.Cpp.v140.WinDesktop.1.0.0-beta1\build\native\Microsoft.AspNet.SignalR.Client.Cpp.v140.WinDesktop.targets" Condition="Exists('..\..\packages\Microsoft.AspNet.SignalR.Client.Cpp.v140.WinDesktop.1.0.0-beta1\build\native\Microsoft.AspNet.SignalR.Client.Cpp.v140.WinDesktop.targets')" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -44,9 +44,7 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros">
-    <NuGetPackageImportStamp>7fba3d7a</NuGetPackageImportStamp>
-  </PropertyGroup>
+  <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
@@ -103,8 +101,8 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.2.5.0\build\native\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.2.5.0\build\native\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('..\..\packages\Microsoft.AspNet.SignalR.Client.Cpp.v120.WinDesktop.1.0.0-alpha-10017\build\native\Microsoft.AspNet.SignalR.Client.Cpp.v120.WinDesktop.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.AspNet.SignalR.Client.Cpp.v120.WinDesktop.1.0.0-alpha-10017\build\native\Microsoft.AspNet.SignalR.Client.Cpp.v120.WinDesktop.targets'))" />
+    <Error Condition="!Exists('..\..\packages\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.2.7.0\build\native\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.2.7.0\build\native\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
+    <Error Condition="!Exists('..\..\packages\Microsoft.AspNet.SignalR.Client.Cpp.v140.WinDesktop.1.0.0-beta1\build\native\Microsoft.AspNet.SignalR.Client.Cpp.v140.WinDesktop.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.AspNet.SignalR.Client.Cpp.v140.WinDesktop.1.0.0-beta1\build\native\Microsoft.AspNet.SignalR.Client.Cpp.v140.WinDesktop.targets'))" />
   </Target>
 </Project>
