@@ -13,3 +13,11 @@ Debug/
 Release/
 ipch/
 *.vcxproj.user
+*.exe
+artifacts/
+*.aps
+src/signalrclientdll/version.h
+/.vs/
+build.*
+signalrclient.VC.VC.opendb
+signalrclient.VC.db
