@@ -277,3 +277,56 @@ TEST(url_builder_abort, url_correct_if_connection_data_not_empty)
         url_builder::build_abort(web::uri{ _XPLATSTR("http://fake/signalr/") }, transport_type::long_polling,
         _XPLATSTR("connection token"), _XPLATSTR("[{\"Name\":\"ChatHub\"}]"), _XPLATSTR("")));
 }
+
+TEST(url_builder_poll_longPolling, url_correct_if_query_string_empty)
+{
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("http://fake/signalr/poll?transport=longPolling&clientProtocol=1.4&connectionToken=connection%20token")),
+        url_builder::build_poll(web::uri{ _XPLATSTR("http://fake/signalr/") }, _XPLATSTR("connection token"),
+            _XPLATSTR(""), _XPLATSTR(""), _XPLATSTR(""), _XPLATSTR("")));
+}
+
+TEST(url_builder_poll_longPolling, url_correct_if_query_string_not_empty)
+{
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("http://fake/signalr/poll?transport=longPolling&clientProtocol=1.4&connectionToken=connection-token&q1=1&q2=2")),
+        url_builder::build_poll(web::uri{ _XPLATSTR("http://fake/signalr/") }, _XPLATSTR("connection-token"),
+            _XPLATSTR(""), _XPLATSTR(""), _XPLATSTR(""), _XPLATSTR("q1=1&q2=2")));
+
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("http://fake/signalr/poll?transport=longPolling&clientProtocol=1.4&connectionToken=connection-token&q1=1&q2=2")),
+        url_builder::build_poll(web::uri{ _XPLATSTR("http://fake/signalr/") }, _XPLATSTR("connection-token"),
+            _XPLATSTR(""), _XPLATSTR(""), _XPLATSTR(""), _XPLATSTR("&q1=1&q2=2")));
+}
+
+TEST(url_builder_poll, url_correct_if_connection_data_not_empty)
+{
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("http://fake/signalr/poll?transport=longPolling&clientProtocol=1.4&connectionToken=connection%20token&connectionData=%5B%7B%22Name%22:%22ChatHub%22%7D%5D")),
+        url_builder::build_poll(web::uri{ _XPLATSTR("http://fake/signalr/") }, _XPLATSTR("connection token"),
+            _XPLATSTR("[{\"Name\":\"ChatHub\"}]"), _XPLATSTR(""), _XPLATSTR(""), _XPLATSTR("")));
+}
+
+TEST(url_builder_poll, url_correct_if_last_message_id_not_empty)
+{
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("http://fake/signalr/poll?transport=longPolling&clientProtocol=1.4&connectionToken=connection%20token&connectionData=%5B%7B%22Name%22:%22ChatHub%22%7D%5D&messageId=L45T%20M355463_1D")),
+        url_builder::build_poll(web::uri{ _XPLATSTR("http://fake/signalr/") }, _XPLATSTR("connection token"),
+            _XPLATSTR("[{\"Name\":\"ChatHub\"}]"), _XPLATSTR("L45T M355463_1D"), _XPLATSTR(""), _XPLATSTR("")));
+}
+
+TEST(url_builder_poll, url_correct_if_groups_token_not_empty)
+{
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("http://fake/signalr/poll?transport=longPolling&clientProtocol=1.4&connectionToken=connection%20token&connectionData=%5B%7B%22Name%22:%22ChatHub%22%7D%5D&groupsToken=G%207")),
+        url_builder::build_poll(web::uri{ _XPLATSTR("http://fake/signalr/") }, _XPLATSTR("connection token"),
+            _XPLATSTR("[{\"Name\":\"ChatHub\"}]"), _XPLATSTR(""), _XPLATSTR("G 7"), _XPLATSTR("")));
+}
+
+TEST(url_builder_poll, query_string_added_after_message_id_and_groups_token)
+{
+    ASSERT_EQ(
+        web::uri(_XPLATSTR("http://fake/signalr/poll?transport=longPolling&clientProtocol=1.4&connectionToken=connection%20token&connectionData=%5B%7B%22Name%22:%22ChatHub%22%7D%5D&messageId=L45T_M355463_1D&groupsToken=G7&X")),
+        url_builder::build_poll(web::uri{ _XPLATSTR("http://fake/signalr/") }, _XPLATSTR("connection token"),
+            _XPLATSTR("[{\"Name\":\"ChatHub\"}]"), _XPLATSTR("L45T_M355463_1D"), _XPLATSTR("G7"), _XPLATSTR("X")));
+}

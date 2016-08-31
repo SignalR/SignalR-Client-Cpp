@@ -80,7 +80,7 @@ namespace signalr
             const utility::string_t &connection_token, const utility::string_t& connection_data, const utility::string_t& query_string,
             const utility::string_t& last_message_id = _XPLATSTR(""), const utility::string_t& groups_token = _XPLATSTR(""))
         {
-            _ASSERTE(command == _XPLATSTR("reconnect") || (last_message_id.length() == 0 && groups_token.length() == 0));
+            _ASSERTE(command == _XPLATSTR("reconnect") || command == _XPLATSTR("poll") || (last_message_id.length() == 0 && groups_token.length() == 0));
 
             web::uri_builder builder(base_url);
             builder.append_path(command);
@@ -131,6 +131,15 @@ namespace signalr
             _ASSERTE(connection_token.length() > 0);
 
             return build_uri(base_url, _XPLATSTR("abort"), transport, connection_token, connection_data, query_string).to_uri();
+        }
+
+        web::uri build_poll(const web::uri& base_url, const utility::string_t &connection_token, const utility::string_t& connection_data,
+            const utility::string_t& last_message_id, const utility::string_t& groups_token, const utility::string_t &query_string)
+        {
+            _ASSERTE(connection_token.length() > 0);
+
+            return build_uri(base_url, _XPLATSTR("poll"), transport_type::long_polling, connection_token, connection_data,
+                query_string, last_message_id, groups_token).to_uri();
         }
     }
 }
