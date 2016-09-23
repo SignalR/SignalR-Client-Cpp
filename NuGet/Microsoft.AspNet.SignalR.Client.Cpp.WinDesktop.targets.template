@@ -10,22 +10,22 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
 
-  <ItemDefinitionGroup Label="x64 and #Toolset# and Release" Condition="'$(Platform.ToLower())' == 'x64' And '$(PlatformToolset.ToLower())' == '#Toolset#' And $(Configuration.ToLower().IndexOf('debug')) == -1">
+  <ItemDefinitionGroup Label="x64 and #Toolset# and Release" Condition="'$(Platform)' == 'x64' And '$(PlatformToolset)' == '#Toolset#' And $(Configuration.ToLower().IndexOf('debug')) == -1">
     <Link>
       <AdditionalDependencies>$(MSBuildThisFileDirectory)lib\x64\#Toolset#\Release\signalrclient.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Label="x64 and #Toolset# and Debug" Condition="'$(Platform.ToLower())' == 'x64' And '$(PlatformToolset.ToLower())' == '#Toolset#'">
+  <ItemDefinitionGroup Label="x64 and #Toolset# and Debug" Condition="'$(Platform)' == 'x64' And '$(PlatformToolset)' == '#Toolset#' And $(Configuration.ToLower().IndexOf('debug')) &gt; -1">
     <Link>
       <AdditionalDependencies>$(MSBuildThisFileDirectory)lib\x64\#Toolset#\Debug\signalrclient.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Label="Win32 and #Toolset# and Release" Condition="'$(Platform.ToLower())' == 'Win32' And '$(PlatformToolset.ToLower())' == '#Toolset#' And $(Configuration.ToLower().IndexOf('debug')) == -1">
+  <ItemDefinitionGroup Label="Win32 and #Toolset# and Release" Condition="'$(Platform)' == 'Win32' And '$(PlatformToolset)' == '#Toolset#' And $(Configuration.ToLower().IndexOf('debug')) == -1">
     <Link>
       <AdditionalDependencies>$(MSBuildThisFileDirectory)lib\Win32\#Toolset#\Release\signalrclient.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Label="Win32 and #Toolset# and Debug" Condition="'$(Platform.ToLower())' == 'Win32' And '$(PlatformToolset.ToLower())' == '#Toolset#'">
+  <ItemDefinitionGroup Label="Win32 and #Toolset# and Debug" Condition="'$(Platform)' == 'Win32' And '$(PlatformToolset)' == '#Toolset#' And $(Configuration.ToLower().IndexOf('debug')) &gt; -1">
     <Link>
       <AdditionalDependencies>$(MSBuildThisFileDirectory)lib\Win32\#Toolset#\Debug\signalrclient.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -41,28 +41,28 @@
   </Target>
 
   <Target Name="signalrclient_inittarget">
-    <ItemGroup Label="x64 and #Toolset# and Debug" Condition="'$(Platform.ToLower())' == 'x64' And '$(PlatformToolset.ToLower())' == '#Toolset#' And $(Configuration.ToLower().IndexOf('debug')) &gt; -1">
+    <ItemGroup Label="x64 and #Toolset# and Debug" Condition="'$(Platform)' == 'x64' And '$(PlatformToolset)' == '#Toolset#' And $(Configuration.ToLower().IndexOf('debug')) &gt; -1">
       <CopyToOutput Include="$(MSBuildThisFileDirectory)dll\x64\#Toolset#\Debug\signalrclient.dll" />
       <CopyToOutput Include="$(MSBuildThisFileDirectory)dll\x64\#Toolset#\Debug\signalrclient.pdb" />
       <None Include="$(MSBuildThisFileDirectory)dll\x64\#Toolset#\Debug\signalrclient.dll">
         <DeploymentContent>true</DeploymentContent>
       </None>
     </ItemGroup>
-    <ItemGroup Label="x64 and #Toolset# and Release" Condition="'$(Platform.ToLower())' == 'x64' And '$(PlatformToolset.ToLower())' == '#Toolset#' And $(Configuration.ToLower().IndexOf('debug')) == -1">
+    <ItemGroup Label="x64 and #Toolset# and Release" Condition="'$(Platform)' == 'x64' And '$(PlatformToolset)' == '#Toolset#' And $(Configuration.ToLower().IndexOf('debug')) == -1">
       <CopyToOutput Include="$(MSBuildThisFileDirectory)dll\x64\#Toolset#\Release\signalrclient.dll" />
       <CopyToOutput Include="$(MSBuildThisFileDirectory)dll\x64\#Toolset#\Release\signalrclient.pdb" />
       <None Include="$(MSBuildThisFileDirectory)dll\x64\#Toolset#\Release\signalrclient.dll">
         <DeploymentContent>true</DeploymentContent>
       </None>
     </ItemGroup>
-    <ItemGroup Label="Win32 and #Toolset# and Debug" Condition="'$(Platform.ToLower())' == 'Win32' And '$(PlatformToolset.ToLower())' == '#Toolset#' And $(Configuration.ToLower().IndexOf('debug')) &gt; -1">
+    <ItemGroup Label="Win32 and #Toolset# and Debug" Condition="'$(Platform)' == 'Win32' And '$(PlatformToolset)' == '#Toolset#' And $(Configuration.ToLower().IndexOf('debug')) &gt; -1">
       <CopyToOutput Include="$(MSBuildThisFileDirectory)dll\Win32\#Toolset#\Debug\signalrclient.dll" />
       <CopyToOutput Include="$(MSBuildThisFileDirectory)dll\Win32\#Toolset#\Debug\signalrclient.pdb" />
       <None Include="$(MSBuildThisFileDirectory)dll\Win32\#Toolset#\Debug\signalrclient.dll">
         <DeploymentContent>true</DeploymentContent>
       </None>
     </ItemGroup>
-    <ItemGroup Label="Win32 and #Toolset# and Release" Condition="'$(Platform.ToLower())' == 'Win32' And '$(PlatformToolset.ToLower())' == '#Toolset#' And $(Configuration.ToLower().IndexOf('debug')) == -1">
+    <ItemGroup Label="Win32 and #Toolset# and Release" Condition="'$(Platform)' == 'Win32' And '$(PlatformToolset)' == '#Toolset#' And $(Configuration.ToLower().IndexOf('debug')) == -1">
       <CopyToOutput Include="$(MSBuildThisFileDirectory)dll\Win32\#Toolset#\Release\signalrclient.dll" />
       <CopyToOutput Include="$(MSBuildThisFileDirectory)dll\Win32\#Toolset#\Release\signalrclient.pdb" />
       <None Include="$(MSBuildThisFileDirectory)dll\Win32\#Toolset#\Release\signalrclient.dll">
