@@ -170,6 +170,7 @@ TEST(request_sender_start, start_propagates_exceptions)
     catch (const web_exception& e)
     {
         ASSERT_EQ(_XPLATSTR("web exception - 503 Server unavailable"), utility::conversions::to_string_t(e.what()));
+        ASSERT_EQ(503, e.status_code());
     }
 }
 
@@ -204,5 +205,6 @@ TEST(request_sender_abort, abort_propagates_exceptions)
     catch (const web_exception& e)
     {
         ASSERT_EQ(_XPLATSTR("web exception - 503 Server unavailable"), utility::conversions::to_string_t(e.what()));
+        ASSERT_EQ(503, e.status_code());
     }
 }

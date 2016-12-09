@@ -12,8 +12,16 @@ namespace signalr
     class web_exception : public std::runtime_error
     {
     public:
-        explicit web_exception(const utility::string_t &what)
-            : runtime_error(utility::conversions::to_utf8string(what))
+        web_exception(const utility::string_t &what, unsigned short status_code)
+            : runtime_error(utility::conversions::to_utf8string(what)), m_status_code(status_code)
         {}
+
+        unsigned short status_code() const
+        {
+            return m_status_code;
+        }
+
+    private:
+        unsigned short m_status_code;
     };
 }

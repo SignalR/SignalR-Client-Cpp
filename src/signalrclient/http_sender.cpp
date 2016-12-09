@@ -25,7 +25,7 @@ namespace signalr
                 {
                     utility::ostringstream_t oss;
                     oss << _XPLATSTR("web exception - ") << response.status_code << _XPLATSTR(" ") << response.reason_phrase;
-                    throw web_exception(oss.str());
+                    throw web_exception(oss.str(), response.status_code);
                 }
 
                 return response.body;
