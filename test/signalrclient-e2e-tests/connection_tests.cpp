@@ -82,3 +82,38 @@ TEST(connection_tests, send_message_after_connection_restart)
     ASSERT_EQ(*message, U("{\"data\":\"test\",\"type\":0}"));
 }
 
+TEST(connection_tests, connection_id_start_stop)
+{
+    auto conn = std::make_shared<signalr::connection>(url + U("raw-connection"));
+
+    ASSERT_EQ(U(""), conn->get_connection_id());
+
+    conn->start().get();
+    auto connection_id = conn->get_connection_id();
+    ASSERT_NE(connection_id, U(""));
+
+    conn->stop().get();
+    ASSERT_EQ(conn->get_connection_id(), connection_id);
+
+    conn->start().get();
+    ASSERT_NE(conn->get_connection_id(), U(""));
+    ASSERT_NE(conn->get_connection_id(), connection_id);
+}
+
+TEST(connection_tests, connection_token_start_stop)
+{
+    auto conn = std::make_shared<signalr::connection>(url + U("raw-connection"));
+
+    ASSERT_EQ(U(""), conn->get_connection_token());
+
+    conn->start().get();
+    auto connection_token = conn->get_connection_token();
+    ASSERT_NE(connection_token, U(""));
+
+    conn->stop().get();
+    ASSERT_EQ(conn->get_connection_token(), connection_token);
+
+    conn->start().get();
+    ASSERT_NE(conn->get_connection_token(), U(""));
+    ASSERT_NE(conn->get_connection_token(), connection_token);
+}

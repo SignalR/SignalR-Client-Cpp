@@ -35,6 +35,8 @@ namespace signalr
         SIGNALRCLIENT_API hub_proxy __cdecl create_hub_proxy(const utility::string_t& hub_name);
 
         SIGNALRCLIENT_API connection_state __cdecl get_connection_state() const;
+        SIGNALRCLIENT_API utility::string_t __cdecl get_connection_id() const;
+        SIGNALRCLIENT_API utility::string_t __cdecl get_connection_token() const;
 
         SIGNALRCLIENT_API void __cdecl set_reconnecting(const std::function<void __cdecl()>& reconnecting_callback);
         SIGNALRCLIENT_API void __cdecl set_reconnected(const std::function<void __cdecl()>& reconnected_callback);

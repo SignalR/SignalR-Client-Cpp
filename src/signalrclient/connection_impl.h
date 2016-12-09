@@ -41,6 +41,8 @@ namespace signalr
         pplx::task<void> stop();
 
         connection_state get_connection_state() const;
+        utility::string_t get_connection_id() const;
+        utility::string_t get_connection_token() const;
 
         void set_message_received_string(const std::function<void(const utility::string_t&)>& message_received);
         void set_message_received_json(const std::function<void(const web::json::value&)>& message_received);
@@ -70,6 +72,7 @@ namespace signalr
         pplx::cancellation_token_source m_disconnect_cts;
         std::mutex m_stop_lock;
         event m_start_completed_event;
+        utility::string_t m_connection_id;
         utility::string_t m_connection_token;
         utility::string_t m_connection_data;
         int m_reconnect_window; // in milliseconds

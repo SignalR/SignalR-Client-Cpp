@@ -87,7 +87,7 @@ namespace signalr
 
             m_disconnect_cts = pplx::cancellation_token_source();
             m_start_completed_event.reset();
-            m_message_id = m_groups_token = _XPLATSTR("");
+            m_message_id = m_groups_token = m_connection_id = m_connection_token = _XPLATSTR("");
         }
 
         pplx::task_completion_event<void> start_tce;
@@ -111,12 +111,14 @@ namespace signalr
                         .append(utility::conversions::to_utf8string(negotiation_response.protocol_version)))));
                 }
 
+                connection->m_connection_id = negotiation_response.connection_id;
+                connection->m_connection_token = negotiation_response.connection_token;
+                connection->m_reconnect_window =
+                    negotiation_response.disconnect_timeout + std::max(negotiation_response.keep_alive_timeout, 0);
+
                 return connection->start_transport(negotiation_response)
                     .then([connection, negotiation_response](std::shared_ptr<transport> transport)
                     {
-                        connection->m_connection_token = negotiation_response.connection_token;
-                        connection->m_reconnect_window =
-                            negotiation_response.disconnect_timeout + std::max(negotiation_response.keep_alive_timeout, 0);
                         connection->m_transport = transport;
                     });
             }, m_disconnect_cts.get_token())
@@ -173,7 +175,7 @@ namespace signalr
         if (!negotiation_response.try_websockets)
         {
             return pplx::task_from_exception<std::shared_ptr<transport>>(
-            std::runtime_error("websockets not supported on the server and there is no fallback transport"));
+                std::runtime_error("websockets not supported on the server and there is no fallback transport"));
         }
 
         auto connection = shared_from_this();
@@ -401,7 +403,7 @@ namespace signalr
                     throw;
                 }
             });
-    }
+        }
 
     pplx::task<void> connection_impl::stop()
     {
@@ -725,6 +727,26 @@ namespace signalr
     connection_state connection_impl::get_connection_state() const
     {
         return m_connection_state.load();
+    }
+
+    utility::string_t connection_impl::get_connection_id() const
+    {
+        if (m_connection_state.load() == connection_state::connecting)
+        {
+            return _XPLATSTR("");
+        }
+
+        return m_connection_id;
+    }
+
+    utility::string_t connection_impl::get_connection_token() const
+    {
+        if (m_connection_state.load() == connection_state::connecting)
+        {
+            return _XPLATSTR("");
+        }
+
+        return m_connection_token;
     }
 
     void connection_impl::set_message_received_string(const std::function<void(const utility::string_t&)>& message_received)

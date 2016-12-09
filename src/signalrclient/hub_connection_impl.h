@@ -40,6 +40,8 @@ namespace signalr
         pplx::task<void> stop();
 
         connection_state get_connection_state() const;
+        utility::string_t get_connection_id() const;
+        utility::string_t get_connection_token() const;
 
         void set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers);
         void set_reconnecting(const std::function<void()>& reconnecting);
