@@ -5,9 +5,9 @@
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">$(MSBuildThisFileDirectory)..\</SolutionDir>
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
     <Platform Condition="'$(Platform)'==''">Win32</Platform>
-    <PlatformToolset Condition=" '$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
-    <PlatformToolset Condition=" '$(VisualStudioVersion)' == '14.0'">v140</PlatformToolset>
-    <PlatformToolset Condition=" '$(PlatformToolset)' == ''">v120</PlatformToolset>
+    <PlatformToolset Condition=" '$(PlatformToolset)' == '' And '$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
+    <PlatformToolset Condition=" '$(PlatformToolset)' == '' And '$(VisualStudioVersion)' == '14.0'">v140</PlatformToolset>
+    <PlatformToolset Condition=" '$(PlatformToolset)' == ''">v140</PlatformToolset>
     <OutputPath Condition="'$(OutputPath)' == ''">$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutputPath>
     <OutDir>$(OutputPath)</OutDir>
     <SignalrClientTargetName>signalrclient</SignalrClientTargetName>
