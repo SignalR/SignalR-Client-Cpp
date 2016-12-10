@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "signalrclient/hub_proxy.h"
 #include "internal_hub_proxy.h"
+#include "signalrclient/signalr_exception.h"
 
 namespace signalr
 {
@@ -30,7 +31,7 @@ namespace signalr
     {
         if (!m_pImpl)
         {
-            throw std::runtime_error("get_hub_name() cannot be called on uninitialized hub_proxy instance");
+            throw signalr_exception(_XPLATSTR("get_hub_name() cannot be called on uninitialized hub_proxy instance"));
         }
 
         return m_pImpl->get_hub_name();
@@ -40,7 +41,7 @@ namespace signalr
     {
         if (!m_pImpl)
         {
-            throw std::runtime_error("on() cannot be called on uninitialized hub_proxy instance");
+            throw signalr_exception(_XPLATSTR("on() cannot be called on uninitialized hub_proxy instance"));
         }
 
         return m_pImpl->on(event_name, handler);
@@ -51,7 +52,7 @@ namespace signalr
     {
         if (!m_pImpl)
         {
-            throw std::runtime_error("invoke() cannot be called on uninitialized hub_proxy instance");
+            throw signalr_exception(_XPLATSTR("invoke() cannot be called on uninitialized hub_proxy instance"));
         }
 
         return m_pImpl->invoke_json(method_name, arguments, on_progress);
@@ -62,7 +63,7 @@ namespace signalr
     {
         if (!m_pImpl)
         {
-            throw std::runtime_error("invoke() cannot be called on uninitialized hub_proxy instance");
+            throw signalr_exception(_XPLATSTR("invoke() cannot be called on uninitialized hub_proxy instance"));
         }
 
         return m_pImpl->invoke_void(method_name, arguments, on_progress);

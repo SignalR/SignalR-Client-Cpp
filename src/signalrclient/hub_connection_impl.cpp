@@ -6,6 +6,7 @@
 #include "signalrclient/hub_exception.h"
 #include "trace_log_writer.h"
 #include "make_unique.h"
+#include "signalrclient/signalr_exception.h"
 
 namespace signalr
 {
@@ -76,7 +77,7 @@ namespace signalr
 
         if (get_connection_state() != connection_state::disconnected)
         {
-            throw std::runtime_error("hub proxies cannot be created when the connection is not in the disconnected state");
+            throw signalr_exception(_XPLATSTR("hub proxies cannot be created when the connection is not in the disconnected state"));
         }
 
         auto iter = m_proxies.find(hub_name);
@@ -336,7 +337,7 @@ namespace signalr
                     {
                         set_exception(
                             std::make_exception_ptr(
-                               std::runtime_error(utility::conversions::to_utf8string(message.at(_XPLATSTR("E")).serialize()))));
+                               signalr_exception(message.at(_XPLATSTR("E")).serialize())));
                     }
 
                     return;

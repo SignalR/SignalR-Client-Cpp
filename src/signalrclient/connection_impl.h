@@ -100,6 +100,6 @@ namespace signalr
         void invoke_message_received(const web::json::value& message);
 
         static utility::string_t translate_connection_state(connection_state state);
-        void ensure_disconnected(const std::string& error_message);
+        void ensure_disconnected(const utility::string_t& error_message);
     };
 }

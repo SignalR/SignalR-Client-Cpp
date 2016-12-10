@@ -11,6 +11,7 @@
 #include "trace_log_writer.h"
 #include "memory_log_writer.h"
 #include "cpprest/ws_client.h"
+#include "signalrclient/signalr_exception.h"
 
 using namespace signalr;
 
@@ -42,7 +43,7 @@ TEST(connection_impl_start, cannot_start_non_disconnected_exception)
         connection->start().get();
         ASSERT_TRUE(false); // exception not thrown
     }
-    catch (const std::runtime_error& e)
+    catch (const signalr_exception& e)
     {
         ASSERT_STREQ("cannot start a connection that is not in the disconnected state", e.what());
     }
@@ -281,7 +282,7 @@ TEST(connection_impl_start, start_fails_if_start_request_fails)
         connection->start().get();
         ASSERT_TRUE(false); // exception not thrown
     }
-    catch (const std::runtime_error &e)
+    catch (const signalr_exception &e)
     {
         ASSERT_STREQ("start request failed due to unexpected response from the server: { }", e.what());
     }
@@ -318,7 +319,7 @@ TEST(connection_impl_start, start_fails_if_connect_request_times_out)
         connection->start().get();
         ASSERT_TRUE(false); // exception not thrown
     }
-    catch (const std::runtime_error &e)
+    catch (const signalr_exception &e)
     {
         ASSERT_STREQ("transport timed out when trying to connect", e.what());
     }
@@ -348,7 +349,7 @@ TEST(connection_impl_start, start_fails_if_protocol_versions_not_compatible)
         connection->start().get();
         ASSERT_TRUE(false); // exception not thrown
     }
-    catch (const std::runtime_error &e)
+    catch (const signalr_exception &e)
     {
         ASSERT_STREQ("incompatible protocol version. client protocol version: 1.4, server protocol version: 1.2", e.what());
     }
@@ -405,7 +406,7 @@ TEST(connection_impl_send, send_throws_if_connection_not_connected)
         connection->send(_XPLATSTR("whatever")).get();
         ASSERT_TRUE(false); // exception expected but not thrown
     }
-    catch (const std::runtime_error &e)
+    catch (const signalr_exception &e)
     {
         ASSERT_STREQ("cannot send data when the connection is not in the connected state. current connection state: disconnected", e.what());
     }
@@ -673,7 +674,7 @@ void can_be_set_only_in_disconnected_state(std::function<void(connection_impl *)
         callback(connection.get());
         ASSERT_TRUE(false); // exception expected but not thrown
     }
-    catch (const std::runtime_error &e)
+    catch (const signalr_exception &e)
     {
         ASSERT_STREQ(expected_exception_message, e.what());
     }

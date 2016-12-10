@@ -9,6 +9,7 @@
 #include "trace_log_writer.h"
 #include "memory_log_writer.h"
 #include "signalrclient/hub_exception.h"
+#include "signalrclient/signalr_exception.h"
 
 using namespace signalr;
 
@@ -119,7 +120,7 @@ TEST(create_hub_proxy, cannot_create_proxy_if_connection_not_disconnected)
 
         ASSERT_TRUE(false); // exception expected but not thrown
     }
-    catch (const std::runtime_error& e)
+    catch (const signalr_exception& e)
     {
         ASSERT_STREQ("hub proxies cannot be created when the connection is not in the disconnected state", e.what());
     }
@@ -268,7 +269,7 @@ TEST(stop, stop_cancels_pending_callbacks)
         t.get();
         ASSERT_TRUE(false); // exception expected but not thrown
     }
-    catch (const std::runtime_error &e)
+    catch (const signalr_exception& e)
     {
         ASSERT_STREQ("\"connection was stopped before invocation result was received\"", e.what());
     }
@@ -307,7 +308,7 @@ TEST(stop, pending_callbacks_finished_if_hub_connections_goes_out_of_scope)
         t.get();
         ASSERT_TRUE(false); // exception expected but not thrown
     }
-    catch (const std::runtime_error &e)
+    catch (const signalr_exception& e)
     {
         ASSERT_STREQ("\"connection went out of scope before invocation result was received\"", e.what());
     }
@@ -941,14 +942,14 @@ TEST(invoke_void, invoke_creates_runtime_error_when_hub_exception_indicator_fals
 
         ASSERT_TRUE(false); // exception expected but not thrown
     }
-    catch (const std::runtime_error& e)
+    catch (const signalr_exception& e)
     {
         ASSERT_STREQ("\"Ooops\"", e.what());
         ASSERT_TRUE(dynamic_cast<const hub_exception *>(&e) == nullptr);
     }
 }
 
-TEST(invoke_void, invoke_creates_runtime_error_even_hub_exception_indicator_non_bool)
+TEST(invoke_void, invoke_creates_runtime_error_even_if_hub_exception_indicator_exists_but_not_bool)
 {
     auto callback_registered_event = std::make_shared<event>();
 
@@ -986,7 +987,7 @@ TEST(invoke_void, invoke_creates_runtime_error_even_hub_exception_indicator_non_
 
         ASSERT_TRUE(false); // exception expected but not thrown
     }
-    catch (const std::runtime_error& e)
+    catch (const signalr_exception& e)
     {
         ASSERT_STREQ("\"Ooops\"", e.what());
         ASSERT_TRUE(dynamic_cast<const hub_exception *>(&e) == nullptr);

@@ -7,6 +7,7 @@
 #include "request_sender.h"
 #include "web_request_stub.h"
 #include "test_web_request_factory.h"
+#include "signalrclient/signalr_exception.h"
 
 using namespace signalr;
 
@@ -124,7 +125,7 @@ TEST(request_sender_start, start_request_returns_false_if_response_is_not_starte
 
         ASSERT_TRUE(false); // exception not thrown
     }
-    catch (const std::runtime_error& e)
+    catch (const signalr_exception& e)
     {
         ASSERT_STREQ("start request failed due to unexpected response from the server: {\"Response\":\"42\" }", e.what());
     }
@@ -146,7 +147,7 @@ TEST(request_sender_start, start_request_returns_false_if_response_missing)
 
         ASSERT_TRUE(false); // exception not thrown
     }
-    catch (const std::runtime_error& e)
+    catch (const signalr_exception& e)
     {
         ASSERT_STREQ("start request failed due to unexpected response from the server: {}", e.what());
     }

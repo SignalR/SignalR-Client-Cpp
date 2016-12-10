@@ -8,6 +8,7 @@
 #include "memory_log_writer.h"
 #include "test_transport_factory.h"
 #include "hub_connection_impl.h"
+#include "signalrclient/signalr_exception.h"
 
 using namespace signalr;
 
@@ -38,7 +39,7 @@ TEST(on, cannot_register_multiple_handlers_for_event)
         hub_proxy.on(_XPLATSTR("ping"), [](const json::value&){});
         ASSERT_TRUE(false); // exception expected but not thrown
     }
-    catch (const std::runtime_error& e)
+    catch (const signalr_exception& e)
     {
         ASSERT_STREQ("an action for this event has already been registered. event name: ping", e.what());
     }
@@ -62,7 +63,7 @@ TEST(on, cannot_register_handler_if_connection_not_in_disconnected_state)
 
         ASSERT_TRUE(false); // exception expected but not thrown
     }
-    catch (const std::runtime_error& e)
+    catch (const signalr_exception& e)
     {
         ASSERT_STREQ("can't register a handler if the connection is in a disconnected state", e.what());
     }
@@ -110,7 +111,7 @@ TEST(invoke_json, invoke_json_throws_when_the_underlying_connection_is_not_valid
         hub_proxy.invoke_json(_XPLATSTR("method"), web::json::value()).get();
         ASSERT_TRUE(true); // exception expected but not thrown
     }
-    catch (const std::runtime_error& e)
+    catch (const signalr_exception& e)
     {
         ASSERT_STREQ("the connection for which this hub proxy was created is no longer valid - it was either destroyed or went out of scope", e.what());
     }
@@ -126,7 +127,7 @@ TEST(invoke_void, invoke_json_throws_when_the_underlying_connection_is_not_valid
         hub_proxy.invoke_void(_XPLATSTR("method"), web::json::value()).get();
         ASSERT_TRUE(true); // exception expected but not thrown
     }
-    catch (const std::runtime_error& e)
+    catch (const signalr_exception& e)
     {
         ASSERT_STREQ("the connection for which this hub proxy was created is no longer valid - it was either destroyed or went out of scope", e.what());
     }

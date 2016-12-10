@@ -5,6 +5,7 @@
 #include "request_sender.h"
 #include "http_sender.h"
 #include "url_builder.h"
+#include "signalrclient/signalr_exception.h"
 
 namespace signalr
 {
@@ -50,8 +51,8 @@ namespace signalr
                 if (start_response_json[_XPLATSTR("Response")].is_null() ||
                     start_response_json[_XPLATSTR("Response")].as_string() != _XPLATSTR("started"))
                 {
-                    throw std::runtime_error(std::string("start request failed due to unexpected response from the server: ")
-                            .append(utility::conversions::to_utf8string(body)));
+                    throw signalr_exception(
+                        _XPLATSTR("start request failed due to unexpected response from the server: ") + body);
                 }
             });
         }

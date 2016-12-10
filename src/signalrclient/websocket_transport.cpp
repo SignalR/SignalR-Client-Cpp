@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "websocket_transport.h"
 #include "logger.h"
+#include "signalrclient/signalr_exception.h"
 
 namespace signalr
 {
@@ -49,7 +50,7 @@ namespace signalr
 
             if (!m_receive_loop_cts.get_token().is_canceled())
             {
-                throw std::runtime_error("transport already connected");
+                throw signalr_exception(_XPLATSTR("transport already connected"));
             }
 
             m_logger.log(trace_level::info,
@@ -226,7 +227,7 @@ namespace signalr
                     auto transport = weak_transport.lock();
                     if (transport)
                     {
-                        transport->error(std::runtime_error("unknown error"));
+                        transport->error(signalr_exception(_XPLATSTR("unknown error")));
                     }
                 }
             });

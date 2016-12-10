@@ -11,6 +11,7 @@
 #include "url_builder.h"
 #include "trace_log_writer.h"
 #include "make_unique.h"
+#include "signalrclient/signalr_exception.h"
 
 namespace signalr
 {
@@ -79,7 +80,7 @@ namespace signalr
             if (!change_state(connection_state::disconnected, connection_state::connecting))
             {
                 return pplx::task_from_exception<void>(
-                    std::runtime_error("cannot start a connection that is not in the disconnected state"));
+                    signalr_exception(_XPLATSTR("cannot start a connection that is not in the disconnected state")));
             }
 
             // there should not be any active transport at this point
@@ -105,10 +106,8 @@ namespace signalr
                 if (negotiation_response.protocol_version != PROTOCOL)
                 {
                     return pplx::task_from_exception<void>(
-                        std::runtime_error(std::string{ "incompatible protocol version. client protocol version: " }
-                        .append(utility::conversions::to_utf8string(PROTOCOL)
-                        .append(", server protocol version: ")
-                        .append(utility::conversions::to_utf8string(negotiation_response.protocol_version)))));
+                        signalr_exception(_XPLATSTR("incompatible protocol version. client protocol version: ") \
+                            PROTOCOL _XPLATSTR(", server protocol version: ") + negotiation_response.protocol_version));
                 }
 
                 connection->m_connection_id = negotiation_response.connection_id;
@@ -175,7 +174,7 @@ namespace signalr
         if (!negotiation_response.try_websockets)
         {
             return pplx::task_from_exception<std::shared_ptr<transport>>(
-                std::runtime_error("websockets not supported on the server and there is no fallback transport"));
+                signalr_exception(_XPLATSTR("websockets not supported on the server and there is no fallback transport")));
         }
 
         auto connection = shared_from_this();
@@ -252,7 +251,7 @@ namespace signalr
             }
             else
             {
-                connect_request_tce.set_exception(std::runtime_error("transport timed out when trying to connect"));
+                connect_request_tce.set_exception(signalr_exception(_XPLATSTR("transport timed out when trying to connect")));
             }
         });
 
@@ -377,9 +376,9 @@ namespace signalr
         auto connection_state = get_connection_state();
         if (connection_state != signalr::connection_state::connected || !transport)
         {
-            return pplx::task_from_exception<void>(std::runtime_error(
-                std::string{ "cannot send data when the connection is not in the connected state. current connection state: " }
-                    .append(utility::conversions::to_utf8string(translate_connection_state(connection_state)))));
+            return pplx::task_from_exception<void>(signalr_exception(
+                utility::string_t{_XPLATSTR("cannot send data when the connection is not in the connected state. current connection state: " })
+                    .append(translate_connection_state(connection_state))));
         }
 
         auto logger = m_logger;
@@ -759,7 +758,7 @@ namespace signalr
 
     void connection_impl::set_message_received_json(const std::function<void(const web::json::value&)>& message_received)
     {
-        ensure_disconnected("cannot set the callback when the connection is not in the disconnected state. ");
+        ensure_disconnected(_XPLATSTR("cannot set the callback when the connection is not in the disconnected state. "));
         m_message_received = message_received;
     }
 
@@ -772,41 +771,41 @@ namespace signalr
 
     void connection_impl::set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers)
     {
-        ensure_disconnected("cannot set headers when the connection is not in the disconnected state. ");
+        ensure_disconnected(_XPLATSTR("cannot set headers when the connection is not in the disconnected state. "));
         m_headers = headers;
     }
 
     void connection_impl::set_reconnecting(const std::function<void()>& reconnecting)
     {
-        ensure_disconnected("cannot set the reconnecting callback when the connection is not in the disconnected state. ");
+        ensure_disconnected(_XPLATSTR("cannot set the reconnecting callback when the connection is not in the disconnected state. "));
         m_reconnecting = reconnecting;
     }
 
     void connection_impl::set_reconnected(const std::function<void()>& reconnected)
     {
-        ensure_disconnected("cannot set the reconnected callback when the connection is not in the disconnected state. ");
+        ensure_disconnected(_XPLATSTR("cannot set the reconnected callback when the connection is not in the disconnected state. "));
         m_reconnected = reconnected;
     }
 
     void connection_impl::set_disconnected(const std::function<void()>& disconnected)
     {
-        ensure_disconnected("cannot set the disconnected callback when the connection is not in the disconnected state. ");
+        ensure_disconnected(_XPLATSTR("cannot set the disconnected callback when the connection is not in the disconnected state. "));
         m_disconnected = disconnected;
     }
 
     void connection_impl::set_reconnect_delay(const int reconnect_delay)
     {
-        ensure_disconnected("cannot set reconnect delay when the connection is not in the disconnected state. ");
+        ensure_disconnected(_XPLATSTR("cannot set reconnect delay when the connection is not in the disconnected state. "));
         m_reconnect_delay = reconnect_delay;
     }
 
-    void connection_impl::ensure_disconnected(const std::string& error_message)
+    void connection_impl::ensure_disconnected(const utility::string_t& error_message)
     {
         auto state = get_connection_state();
         if (state != connection_state::disconnected)
         {
-            throw std::runtime_error(error_message + std::string{"current connection state: "}
-                .append(utility::conversions::to_utf8string(translate_connection_state(state))));
+            throw signalr_exception(
+                error_message + _XPLATSTR("current connection state: ") + translate_connection_state(state));
         }
     }
 

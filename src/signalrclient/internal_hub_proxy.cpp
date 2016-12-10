@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "internal_hub_proxy.h"
 #include "hub_connection_impl.h"
+#include "signalrclient/signalr_exception.h"
 
 namespace signalr
 {
@@ -26,13 +27,13 @@ namespace signalr
         auto connection = m_hub_connection.lock();
         if (connection && connection->get_connection_state() != connection_state::disconnected)
         {
-            throw std::runtime_error("can't register a handler if the connection is in a disconnected state");
+            throw signalr_exception(_XPLATSTR("can't register a handler if the connection is in a disconnected state"));
         }
 
         if (m_subscriptions.find(event_name) != m_subscriptions.end())
         {
-            throw std::runtime_error(std::string("an action for this event has already been registered. event name: ")
-                .append(utility::conversions::to_utf8string(event_name)));
+            throw signalr_exception(
+                _XPLATSTR("an action for this event has already been registered. event name: ") + event_name);
         }
 
         m_subscriptions.insert(std::pair<utility::string_t, std::function<void(const json::value &)>> {event_name, handler});
@@ -60,7 +61,7 @@ namespace signalr
         if (!connection)
         {
             return pplx::task_from_exception<json::value>(
-                std::runtime_error("the connection for which this hub proxy was created is no longer valid - it was either destroyed or went out of scope"));
+                signalr_exception(_XPLATSTR("the connection for which this hub proxy was created is no longer valid - it was either destroyed or went out of scope")));
         }
 
         return connection->invoke_json(get_hub_name(), method_name, arguments, on_progress);
@@ -73,7 +74,7 @@ namespace signalr
         if (!connection)
         {
             return pplx::task_from_exception<void>(
-                std::runtime_error("the connection for which this hub proxy was created is no longer valid - it was either destroyed or went out of scope"));
+                signalr_exception(_XPLATSTR("the connection for which this hub proxy was created is no longer valid - it was either destroyed or went out of scope")));
         }
 
         return connection->invoke_void(get_hub_name(), method_name, arguments, on_progress);
