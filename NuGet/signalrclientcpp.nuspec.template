@@ -15,7 +15,7 @@
     <tags>Microsoft AspNet SignalR AspNetSignalR Client C++ native</tags>
     <releaseNotes>https://github.com/aspnet/SignalR-Client-Cpp/releases</releaseNotes>
     <dependencies>
-      <dependency id="cpprestsdk.#Toolset#.windesktop.msvcstl.dyn.rt-dyn" version="2.7.0" />
+      <dependency id="cpprestsdk.#Toolset#.windesktop.msvcstl.dyn.rt-dyn" version="2.9.1" />
     </dependencies>
   </metadata>
 </package>
