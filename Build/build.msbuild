@@ -120,4 +120,16 @@
     <Copy SourceFiles="$(OutputPath)dll\$(SignalrClientTargetName).pub.pdb" DestinationFiles="$(PackageSourceNative)dll\$(Platform)\$(PlatformToolset)\$(Configuration)\$(SignalrClientTargetName).pdb" />
     <Copy SourceFiles="$(OutputPath)dll\$(SignalrClientTargetName).pdb" DestinationFiles="$(PrivateSymbols)$(Platform)\$(PlatformToolset)\$(Configuration)\$(SignalrClientTargetName).pdb" />
   </Target>
+
+  <Target Name="NuGetPush">
+    <PropertyGroup>
+      <NuGetExePath Condition="'$(NuGetExePath)' == ''">$(PUSH_NUGET_EXE)</NuGetExePath>
+      <NuGetExePath Condition="'$(NuGetExePath)' == ''">$(MSBuildThisFileDirectory)..\.nuget\NuGet.exe</NuGetExePath>
+    </PropertyGroup>
+    <ItemGroup>
+      <Package Include="$(NUGET_PACKAGES)\*.nupkg" />
+      <Package Include="$(NUGET_PACKAGES)\*.symbols.nupkg" />
+    </ItemGroup>
+    <Exec Command="$(NuGetExePath) push -nosymbols %(Package.Identity) -Source $(NUGET_PUBLISH_FEED) -ApiKey $(APIKEY)" />
+  </Target>
 </Project>
