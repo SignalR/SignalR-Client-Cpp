@@ -752,7 +752,7 @@ namespace signalr
     {
         set_message_received_json([message_received](const web::json::value& payload)
         {
-            message_received(payload.serialize());
+            message_received(payload.is_string() ? payload.as_string() : payload.serialize());
         });
     }
 

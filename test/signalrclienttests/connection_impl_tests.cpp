@@ -470,12 +470,12 @@ TEST(connection_impl_set_message_received, callback_invoked_when_message_receive
 
     auto message_received_event = std::make_shared<event>();
     connection->set_message_received_string([message, message_received_event](const utility::string_t &m){
-        if (m == _XPLATSTR("\"Test\""))
+        if (m == _XPLATSTR("Test"))
         {
             *message = m;
         }
 
-        if (m == _XPLATSTR("\"release\""))
+        if (m == _XPLATSTR("release"))
         {
             message_received_event->set();
         }
@@ -485,7 +485,7 @@ TEST(connection_impl_set_message_received, callback_invoked_when_message_receive
 
     ASSERT_FALSE(message_received_event->wait(5000));
 
-    ASSERT_EQ(_XPLATSTR("\"Test\""), *message);
+    ASSERT_EQ(_XPLATSTR("Test"), *message);
 }
 
 TEST(connection_impl_set_message_received, exception_from_callback_caught_and_logged)
@@ -512,12 +512,12 @@ TEST(connection_impl_set_message_received, exception_from_callback_caught_and_lo
 
     auto message_received_event = std::make_shared<event>();
     connection->set_message_received_string([message_received_event](const utility::string_t &m){
-        if (m == _XPLATSTR("\"throw\""))
+        if (m == _XPLATSTR("throw"))
         {
             throw std::runtime_error("oops");
         }
 
-        if (m == _XPLATSTR("\"release\""))
+        if (m == _XPLATSTR("release"))
         {
             message_received_event->set();
         }
@@ -559,12 +559,12 @@ TEST(connection_impl_set_message_received, non_std_exception_from_callback_caugh
     auto message_received_event = std::make_shared<event>();
     connection->set_message_received_string([message_received_event](const utility::string_t &m)
     {
-        if (m == _XPLATSTR("\"throw\""))
+        if (m == _XPLATSTR("throw"))
         {
             throw 42;
         }
 
-        if (m == _XPLATSTR("\"release\""))
+        if (m == _XPLATSTR("release"))
         {
             message_received_event->set();
         }
