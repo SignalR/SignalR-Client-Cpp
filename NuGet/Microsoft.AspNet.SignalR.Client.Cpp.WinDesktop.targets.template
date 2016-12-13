@@ -32,7 +32,11 @@
   </ItemDefinitionGroup>
 
   <Target Name="signalrclient_AfterBuild" AfterTargets="AfterBuild">
-    <Copy DestinationFolder="$(TargetDir)" SourceFiles="@(CopyToOutput)" SkipUnchangedFiles="true" UseHardlinksIfPossible="true">
+    <PropertyGroup>
+      <UseHardlinksIfPossible Condition="'$(UseHardlinksIfPossible)' == ''">true</UseHardlinksIfPossible>
+    </PropertyGroup>
+
+    <Copy DestinationFolder="$(TargetDir)" SourceFiles="@(CopyToOutput)" SkipUnchangedFiles="true" UseHardlinksIfPossible="$(UseHardlinksIfPossible)">
       <Output TaskParameter="DestinationFiles" PropertyName="DestinationFiles" />
       <Output TaskParameter="DestinationFiles" ItemName="DestinationFiles" />
       <Output TaskParameter="CopiedFiles" PropertyName="CopiedFiles" />
