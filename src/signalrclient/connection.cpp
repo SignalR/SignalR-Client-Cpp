@@ -51,6 +51,11 @@ namespace signalr
         m_pImpl->set_headers(headers);
     }
 
+    void connection::set_client_config(signalr_client_config config)
+    {
+        m_pImpl->set_client_config(std::move(config));
+    }
+
     pplx::task<void> connection::stop()
     {
         return m_pImpl->stop();

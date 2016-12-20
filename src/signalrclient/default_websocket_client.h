@@ -12,7 +12,8 @@ namespace signalr
     class default_websocket_client : public websocket_client
     {
     public:
-        explicit default_websocket_client(const std::unordered_map<utility::string_t, utility::string_t>& headers);
+        explicit default_websocket_client(const std::unordered_map<utility::string_t, utility::string_t>& headers,
+            const web::websockets::client::websocket_client_config &ws_config = web::websockets::client::websocket_client_config{});
 
         pplx::task<void> connect(const web::uri &url) override;
 

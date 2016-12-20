@@ -11,6 +11,7 @@
 #include "trace_level.h"
 #include "log_writer.h"
 #include <unordered_map>
+#include "signalr_client_config.h"
 
 namespace signalr
 {
@@ -40,6 +41,7 @@ namespace signalr
         SIGNALRCLIENT_API void __cdecl set_disconnected(const std::function<void __cdecl()>& disconnected_callback);
 
         SIGNALRCLIENT_API void __cdecl set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers);
+        SIGNALRCLIENT_API void __cdecl set_client_config(signalr_client_config config);
 
         SIGNALRCLIENT_API pplx::task<void> __cdecl stop();
 

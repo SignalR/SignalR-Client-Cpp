@@ -10,11 +10,12 @@ namespace signalr
     std::shared_ptr<transport> transport_factory::create_transport(transport_type transport_type, const logger& logger,
         const std::unordered_map<utility::string_t, utility::string_t>& headers,
         std::function<void(const utility::string_t&)> process_response_callback,
-        std::function<void(const std::exception&)> error_callback)
+        std::function<void(const std::exception&)> error_callback,
+        const web::websockets::client::websocket_client_config &ws_config)
     {
         if (transport_type == signalr::transport_type::websockets)
         {
-            return websocket_transport::create([headers](){ return std::make_shared<default_websocket_client>(headers); },
+            return websocket_transport::create([headers, ws_config](){ return std::make_shared<default_websocket_client>(headers, ws_config); },
                 logger, process_response_callback, error_callback);
         }
 

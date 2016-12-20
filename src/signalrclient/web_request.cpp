@@ -7,8 +7,9 @@
 
 namespace signalr
 {
-    web_request::web_request(const web::uri &url)
+    web_request::web_request(const web::uri &url, web::http::client::http_client_config client_config)
         : m_url(url)
+        , m_client_config(std::move(client_config))
     { }
 
     void web_request::set_method(const utility::string_t &method)
@@ -31,7 +32,7 @@ namespace signalr
 
     pplx::task<web_response> web_request::get_response()
     {
-        web::http::client::http_client client(m_url);
+        web::http::client::http_client client(m_url, m_client_config);
 
         return client.request(m_request)
             .then([](web::http::http_response response)

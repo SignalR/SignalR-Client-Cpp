@@ -11,9 +11,10 @@ namespace signalr
 {
     namespace http_sender
     {
-        pplx::task<utility::string_t> get(web_request_factory& request_factory, const web::uri& url, const std::unordered_map<utility::string_t, utility::string_t>& headers)
+        pplx::task<utility::string_t> get(web_request_factory& request_factory, const web::uri& url, const std::unordered_map<utility::string_t, utility::string_t>& headers,
+            const web::http::client::http_client_config &client_config)
         {
-            auto request = request_factory.create_web_request(url);
+            auto request = request_factory.create_web_request(url, client_config);
             request->set_method(web::http::methods::GET);
 
             request->set_headers(headers);

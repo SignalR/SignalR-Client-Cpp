@@ -267,6 +267,11 @@ namespace signalr
         m_connection->set_headers(headers);
     }
 
+    void hub_connection_impl::set_client_config(signalr_client_config config)
+    {
+        m_connection->set_client_config(config);
+    }
+
     void hub_connection_impl::set_reconnecting(const std::function<void()>& reconnecting)
     {
         // weak_ptr prevents a circular dependency leading to memory leak and other problems

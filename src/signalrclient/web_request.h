@@ -5,6 +5,7 @@
 
 #include "web_response.h"
 #include "cpprest/http_msg.h"
+#include "cpprest/http_client.h"
 #include <unordered_map>
 
 namespace signalr
@@ -12,7 +13,7 @@ namespace signalr
     class web_request
     {
     public:
-        explicit web_request(const web::uri &url);
+        explicit web_request(const web::uri &url, web::http::client::http_client_config client_config = web::http::client::http_client_config{});
 
         virtual void set_method(const utility::string_t &method);
         virtual void set_user_agent(const utility::string_t &user_agent_string);
@@ -27,5 +28,6 @@ namespace signalr
     private:
         const web::uri m_url;
         web::http::http_request m_request;
+        web::http::client::http_client_config m_client_config;
     };
 }

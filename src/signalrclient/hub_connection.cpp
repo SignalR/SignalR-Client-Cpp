@@ -66,4 +66,9 @@ namespace signalr
     {
         m_pImpl->set_headers(headers);
     }
+
+    void hub_connection::set_client_config(signalr_client_config config)
+    {
+        m_pImpl->set_client_config(config);
+    }
 }

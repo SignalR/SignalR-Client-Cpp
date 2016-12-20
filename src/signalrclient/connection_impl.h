@@ -8,6 +8,7 @@
 #include "cpprest/http_client.h"
 #include "signalrclient/trace_level.h"
 #include "signalrclient/connection_state.h"
+#include "signalrclient/signalr_client_config.h"
 #include "web_request_factory.h"
 #include "transport_factory.h"
 #include "logger.h"
@@ -50,6 +51,7 @@ namespace signalr
         void set_reconnected(const std::function<void()>& reconnected);
         void set_disconnected(const std::function<void()>& disconnected);
         void set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers);
+        void set_client_config(signalr_client_config config);
         void set_reconnect_delay(const int reconnect_delay /*milliseconds*/);
 
         void set_connection_data(const utility::string_t& connection_data);
@@ -68,6 +70,7 @@ namespace signalr
         std::function<void()> m_reconnected;
         std::function<void()> m_disconnected;
         std::unordered_map<utility::string_t, utility::string_t> m_headers;
+        signalr_client_config m_signalr_client_config;
 
         pplx::cancellation_token_source m_disconnect_cts;
         std::mutex m_stop_lock;

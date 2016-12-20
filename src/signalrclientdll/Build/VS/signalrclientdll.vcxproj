@@ -71,6 +71,7 @@
     <ClCompile Include="..\..\..\signalrclient\callback_manager.cpp" />
     <ClCompile Include="..\..\..\signalrclient\logger.cpp" />
     <ClCompile Include="..\..\..\signalrclient\request_sender.cpp" />
+    <ClCompile Include="..\..\..\signalrclient\signalr_client_config.cpp" />
     <ClCompile Include="..\..\..\signalrclient\stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

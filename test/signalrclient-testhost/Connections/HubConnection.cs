@@ -80,5 +80,11 @@ namespace SelfHost
 
             return string.Format("{0} done!", jobName);
         }
+
+        public string MirrorHeader()
+        {
+          var mirrorValue = Context.Request.Headers["x-mirror"];
+          return mirrorValue;
+        }
     }
 }

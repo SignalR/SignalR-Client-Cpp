@@ -5,8 +5,10 @@
 
 #include <memory>
 #include <unordered_map>
+#include "cpprest/ws_client.h"
 #include "signalrclient/transport_type.h"
 #include "transport.h"
+
 
 namespace signalr
 {
@@ -16,7 +18,8 @@ namespace signalr
         virtual std::shared_ptr<transport> create_transport(transport_type transport_type, const logger& logger,
             const std::unordered_map<utility::string_t, utility::string_t>& headers,
             std::function<void(const utility::string_t&)> process_response_callback,
-            std::function<void(const std::exception&)> error_callback);
+            std::function<void(const std::exception&)> error_callback,
+            const web::websockets::client::websocket_client_config &ws_config = web::websockets::client::websocket_client_config{});
 
         virtual ~transport_factory();
     };
