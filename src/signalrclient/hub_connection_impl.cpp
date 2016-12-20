@@ -262,9 +262,9 @@ namespace signalr
         return m_connection->get_connection_token();
     }
 
-    void hub_connection_impl::set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers)
+    void hub_connection_impl::set_client_config(const signalr_client_config& config)
     {
-        m_connection->set_headers(headers);
+        m_connection->set_client_config(config);
     }
 
     void hub_connection_impl::set_reconnecting(const std::function<void()>& reconnecting)

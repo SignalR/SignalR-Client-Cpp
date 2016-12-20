@@ -438,7 +438,7 @@ TEST(websocket_transport_receive_loop, error_callback_called_when_exception_thro
 TEST(websocket_transport_get_transport_type, get_transport_type_returns_websockets)
 {
     auto ws_transport = websocket_transport::create(
-        [](){ return std::make_shared<default_websocket_client>(std::unordered_map<utility::string_t, utility::string_t> {}); },
+        [](){ return std::make_shared<default_websocket_client>(); },
         logger(std::make_shared<trace_log_writer>(), trace_level::none),
         [](const utility::string_t&){}, [](const std::exception&){});
 

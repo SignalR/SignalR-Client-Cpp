@@ -173,6 +173,9 @@
     <ClCompile Include="..\..\..\signalrclient\callback_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\signalrclient\signalr_client_config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\Resource.rc">

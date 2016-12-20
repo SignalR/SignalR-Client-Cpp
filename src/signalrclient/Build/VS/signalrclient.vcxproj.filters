@@ -114,6 +114,9 @@
     <ClInclude Include="..\..\..\..\include\signalrclient\signalr_exception.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\include\signalrclient\signalr_client_config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\stdafx.cpp">
@@ -171,6 +174,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\trace_log_writer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\signalr_client_config.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
