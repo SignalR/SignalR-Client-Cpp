@@ -15,7 +15,14 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
-
+  <PropertyGroup Condition="'$(SubSystem)' == 'UWP'">
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <AppContainerApplication>true</AppContainerApplication>
+    <ApplicationType>Windows Store</ApplicationType>
+    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
+    <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
+  </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -23,9 +30,11 @@
       <TreatWarningAsError Condition="'$(TreatWarningsAsErrors)' != ''">true</TreatWarningAsError>
       <SDLCheck>true</SDLCheck>
       <StringPooling>true</StringPooling>
+      <CompileAsWinRT Condition="'$(SubSystem)' == 'UWP'">true</CompileAsWinRT>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem Condition="'$(SubSystem)' != 'UWP'">Windows</SubSystem>
+      <SubSystem Condition="'$(SubSystem)' == 'UWP'">Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
       <StripPrivateSymbols>$(OutDir)$(TargetName).pub.pdb</StripPrivateSymbols>

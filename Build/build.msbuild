@@ -81,7 +81,7 @@
 
   <Target Name="CreatePackage">
     <PropertyGroup>
-      <PlatformToolset Condition="'$(PlatformToolset)' == ''">v120</PlatformToolset>
+      <PlatformToolset Condition="'$(PlatformToolset)' == ''">v140</PlatformToolset>
       <PackageSource>$(SolutionDir)bin\Package\$(PlatformToolset)\</PackageSource>
       <PackageSourceNative>$(PackageSource)build\native\</PackageSourceNative>
       <NuGetArtifactsPath>$(MSBuildThisFileDirectory)..\NuGet\</NuGetArtifactsPath>
