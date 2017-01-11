@@ -18,31 +18,29 @@ namespace signalr
 
     void web_request::set_user_agent(const utility::string_t &user_agent_string)
     {
-        m_request.headers()[_XPLATSTR("User-Agent")] = user_agent_string;
+        m_user_agent_string = user_agent_string;
     }
 
-    void web_request::set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers)
+    pplx::task<web_response> web_request::get_response(const signalr_client_config& signalr_client_config)
     {
-        for (auto &header : headers)
+        web::http::client::http_client client(m_url, signalr_client_config.get_http_client_config());
+
+        m_request.headers() = signalr_client_config.get_http_headers();
+        if (!m_user_agent_string.empty())
         {
-            m_request.headers()[header.first] = header.second;
+            m_request.headers()[_XPLATSTR("User-Agent")] = m_user_agent_string;
         }
-    }
-
-    pplx::task<web_response> web_request::get_response()
-    {
-        web::http::client::http_client client(m_url);
 
         return client.request(m_request)
             .then([](web::http::http_response response)
+        {
+            return web_response
             {
-                return web_response
-                {
-                    response.status_code(),
-                    response.reason_phrase(),
-                    response.extract_string()
-                };
-            });
+                response.status_code(),
+                response.reason_phrase(),
+                response.extract_string()
+            };
+        });
     }
 
     web_request::~web_request() = default;

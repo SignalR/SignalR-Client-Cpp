@@ -9,8 +9,6 @@
 #include "web_request_stub.h"
 #include "test_web_request_factory.h"
 
-namespace { typedef std::unordered_map<utility::string_t, utility::string_t> headers_t; }
-
 TEST(http_sender_get_response, request_sent_using_get_method)
 {
     utility::string_t response_body{ _XPLATSTR("response body") };
@@ -23,7 +21,7 @@ TEST(http_sender_get_response, request_sent_using_get_method)
         return std::unique_ptr<web_request>(request);
     });
 
-    ASSERT_EQ(response_body, http_sender::get(*web_request_factory, _XPLATSTR("url"), headers_t{}).get());
+    ASSERT_EQ(response_body, http_sender::get(*web_request_factory, _XPLATSTR("url")).get());
 }
 
 TEST(http_sender_get_response, exception_thrown_if_status_code_not_200)
@@ -37,7 +35,7 @@ TEST(http_sender_get_response, exception_thrown_if_status_code_not_200)
 
     try
     {
-        http_sender::get(*web_request_factory, _XPLATSTR("url"), headers_t{}).get();
+        http_sender::get(*web_request_factory, _XPLATSTR("url")).get();
         ASSERT_TRUE(false); // exception not thrown
     }
     catch (const web_exception &e)
@@ -64,7 +62,7 @@ TEST(http_sender_get_response, user_agent_set)
         return std::unique_ptr<web_request>(request);
     });
 
-    ASSERT_EQ(response_body, http_sender::get(*web_request_factory, _XPLATSTR("url"), headers_t{}).get());
+    ASSERT_EQ(response_body, http_sender::get(*web_request_factory, _XPLATSTR("url")).get());
 }
 
 TEST(http_sender_get_response, headers_set)
@@ -83,9 +81,11 @@ TEST(http_sender_get_response, headers_set)
         return std::unique_ptr<web_request>(request);
     });
 
-    headers_t headers;
-    headers[_XPLATSTR("abc")] = _XPLATSTR("123");
+    signalr::signalr_client_config signalr_client_config;
+    auto http_headers = signalr_client_config.get_http_headers();
+    http_headers[_XPLATSTR("abc")] = _XPLATSTR("123");
+    signalr_client_config.set_http_headers(http_headers);
 
     // ensures that web_request.get_response() was invoked
-    ASSERT_EQ(response_body, http_sender::get(*web_request_factory, _XPLATSTR("url"), headers).get());
+    ASSERT_EQ(response_body, http_sender::get(*web_request_factory, _XPLATSTR("url"), signalr_client_config).get());
 }

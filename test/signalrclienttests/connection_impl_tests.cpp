@@ -1066,7 +1066,7 @@ TEST(connection_impl_stop, exception_for_disconnected_callback_caught_and_logged
     ASSERT_EQ(_XPLATSTR("[error       ] disconnected callback threw an unknown exception\n"), remove_date_from_log_entry(log_entries[0]));
 }
 
-TEST(connection_impl_headers, custom_headers_set_in_requests)
+TEST(connection_impl_config, custom_headers_set_in_requests)
 {
     auto writer = std::shared_ptr<log_writer>{std::make_shared<memory_log_writer>()};
 
@@ -1098,7 +1098,11 @@ TEST(connection_impl_headers, custom_headers_set_in_requests)
         connection_impl::create(create_uri(), _XPLATSTR(""), trace_level::state_changes,
         writer, std::move(web_request_factory), std::make_unique<test_transport_factory>(websocket_client));
 
-    connection->set_headers(std::unordered_map<utility::string_t, utility::string_t>({ { _XPLATSTR("Answer"), _XPLATSTR("42") } }));
+    signalr::signalr_client_config signalr_client_config{};
+    auto http_headers = signalr_client_config.get_http_headers();
+    http_headers[_XPLATSTR("Answer")] = _XPLATSTR("42");
+    signalr_client_config.set_http_headers(http_headers);
+    connection->set_client_config(signalr_client_config);
 
     connection->start()
         .then([connection]()
@@ -1109,11 +1113,14 @@ TEST(connection_impl_headers, custom_headers_set_in_requests)
     ASSERT_EQ(connection_state::disconnected, connection->get_connection_state());
 }
 
-TEST(connection_impl_set_headers, headers_can_be_set_only_in_disconnected_state)
+TEST(connection_impl_set_config, config_can_be_set_only_in_disconnected_state)
 {
     can_be_set_only_in_disconnected_state(
-        [](connection_impl* connection) { connection->set_headers(std::unordered_map<utility::string_t, utility::string_t>{}); },
-        "cannot set headers when the connection is not in the disconnected state. current connection state: connected");
+        [](connection_impl* connection) 
+        {
+            signalr::signalr_client_config signalr_client_config;
+            connection->set_client_config(signalr_client_config);
+        },"cannot set client config when the connection is not in the disconnected state. current connection state: connected");
 }
 
 TEST(connection_impl_change_state, change_state_logs)

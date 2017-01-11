@@ -4,7 +4,7 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
+#include "signalrclient/signalr_client_config.h"
 #include "signalrclient/transport_type.h"
 #include "transport.h"
 
@@ -14,9 +14,9 @@ namespace signalr
     {
     public:
         virtual std::shared_ptr<transport> create_transport(transport_type transport_type, const logger& logger,
-            const std::unordered_map<utility::string_t, utility::string_t>& headers,
             std::function<void(const utility::string_t&)> process_response_callback,
-            std::function<void(const std::exception&)> error_callback);
+            std::function<void(const std::exception&)> error_callback,
+            const signalr_client_config& signalr_client_config = signalr_client_config{});
 
         virtual ~transport_factory();
     };

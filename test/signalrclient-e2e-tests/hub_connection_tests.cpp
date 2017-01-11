@@ -9,6 +9,7 @@
 #include "cpprest/json.h"
 #include "connection.h"
 #include "hub_connection.h"
+#include "signalr_exception.h"
 
 extern utility::string_t url;
 
@@ -472,4 +473,40 @@ TEST(hub_connection_tests, connection_token_start_stop_start_reconnect)
 
     ASSERT_FALSE(reconnecting_event->wait(2000));
     ASSERT_FALSE(reconnected_event->wait(2000));
+}
+
+TEST(hub_connection_tests, mirror_header)
+{
+    auto hub_conn = std::make_shared<signalr::hub_connection>(url);
+
+    auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
+
+    signalr::signalr_client_config signalr_client_config{};
+    auto headers = signalr_client_config.get_http_headers();
+    headers[U("x-mirror")] = U("MirrorThis");
+    signalr_client_config.set_http_headers(headers);
+    hub_conn->set_client_config(signalr_client_config);
+
+    {
+        auto test = hub_conn->start().then([&hub_proxy]()
+        {
+            return hub_proxy.invoke<web::json::value>(U("mirrorHeader"));
+        }).get();
+        ASSERT_EQ(U("MirrorThis"), test.as_string());
+    }
+
+    headers[U("x-mirror")] = U("MirrorThat");
+    signalr_client_config.set_http_headers(headers);
+
+    ASSERT_THROW(hub_conn->set_client_config(signalr_client_config), signalr::signalr_exception);
+
+    hub_conn->stop().wait();
+    hub_conn->set_client_config(signalr_client_config);
+    {
+        auto test = hub_conn->start().then([&hub_proxy]()
+        {
+            return hub_proxy.invoke<web::json::value>(U("mirrorHeader"));
+        }).get();
+        ASSERT_EQ(U("MirrorThat"), test.as_string());
+    }
 }

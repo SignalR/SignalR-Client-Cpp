@@ -46,9 +46,9 @@ namespace signalr
         m_pImpl->set_disconnected(disconnected_callback);
     }
 
-    void connection::set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers)
+    void connection::set_client_config(const signalr_client_config& config)
     {
-        m_pImpl->set_headers(headers);
+        m_pImpl->set_client_config(config);
     }
 
     pplx::task<void> connection::stop()
