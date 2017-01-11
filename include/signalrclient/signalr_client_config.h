@@ -15,8 +15,8 @@ namespace signalr
         SIGNALRCLIENT_API void __cdecl set_proxy(const web::web_proxy &proxy);
         // Please note that setting credentials does not work in all cases.
         // For example, Basic Authentication fails under Win32.
-        // As a workaround, you can set the required headers directly by
-        // using connection::set_headers or hub_connection::set_headers
+        // As a workaround, you can set the required authorization headers directly
+        // using signalr_client_config::set_http_headers
         SIGNALRCLIENT_API void __cdecl set_credentials(const web::credentials &credentials);
 
         SIGNALRCLIENT_API web::http::client::http_client_config __cdecl get_http_client_config() const;
