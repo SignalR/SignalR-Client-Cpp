@@ -4,7 +4,6 @@
 #pragma once
 
 #include "cpprest/base_uri.h"
-#include "cpprest/http_client.h"
 #include "web_request.h"
 
 namespace signalr
@@ -12,8 +11,7 @@ namespace signalr
     class web_request_factory
     {
     public:
-        virtual std::unique_ptr<web_request> create_web_request(const web::uri &url,
-            const web::http::client::http_client_config &client_config = web::http::client::http_client_config{});
+        virtual std::unique_ptr<web_request> create_web_request(const web::uri &url);
 
         virtual ~web_request_factory();
     };

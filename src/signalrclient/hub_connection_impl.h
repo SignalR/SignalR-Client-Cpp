@@ -43,8 +43,7 @@ namespace signalr
         utility::string_t get_connection_id() const;
         utility::string_t get_connection_token() const;
 
-        void set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers);
-        void set_client_config(signalr_client_config config);
+        void set_client_config(const signalr_client_config& config);
         void set_reconnecting(const std::function<void()>& reconnecting);
         void set_reconnected(const std::function<void()>& reconnected);
         void set_disconnected(const std::function<void()>& disconnected);

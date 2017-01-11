@@ -8,62 +8,45 @@
 
 namespace signalr
 {
-    signalr_client_config::~signalr_client_config() {}
-
-    signalr_client_config::signalr_client_config()
-        : m_http_client_config{ std::make_unique<web::http::client::http_client_config>() }
-        , m_websocket_client_config{ std::make_unique<web::websockets::client::websocket_client_config>() }
-    {}
-
-    signalr_client_config::signalr_client_config(signalr_client_config&& other)
-    {
-        m_http_client_config = std::move(other.m_http_client_config);
-        m_websocket_client_config = std::move(other.m_websocket_client_config);
-    }
-
-    signalr_client_config& signalr_client_config::operator = (signalr_client_config&& other)
-    {
-        if (this != &other)
-        {
-            m_http_client_config = std::move(other.m_http_client_config);
-            m_websocket_client_config = std::move(other.m_websocket_client_config);
-        }
-        return *this;
-    }
-
-    signalr_client_config::signalr_client_config(const signalr_client_config& other)
-        : m_http_client_config{ std::make_unique<web::http::client::http_client_config>(*other.m_http_client_config) }
-        , m_websocket_client_config{ std::make_unique<web::websockets::client::websocket_client_config>(*other.m_websocket_client_config)}
-    {
-    }
-
-    signalr_client_config& signalr_client_config::operator = (const signalr_client_config& other)
-    {
-        m_http_client_config = std::make_unique<web::http::client::http_client_config>(*other.m_http_client_config);
-        m_websocket_client_config = std::make_unique<web::websockets::client::websocket_client_config>(*other.m_websocket_client_config);
-        return *this;
-    }
-
-
     void signalr_client_config::set_proxy(const web::web_proxy &proxy)
     {
-        m_http_client_config->set_proxy(proxy);
-        m_websocket_client_config->set_proxy(proxy);
+        m_http_client_config.set_proxy(proxy);
+        m_websocket_client_config.set_proxy(proxy);
     }
 
-    void signalr_client_config::set_credentials(const web::credentials &cred)
+    void signalr_client_config::set_credentials(const web::credentials &credentials)
     {
-        m_http_client_config->set_credentials(cred);
-        m_websocket_client_config->set_credentials(cred);
+        m_http_client_config.set_credentials(credentials);
+        m_websocket_client_config.set_credentials(credentials);
     }
 
-    web::http::client::http_client_config& signalr_client_config::http_client_config()
+    web::http::client::http_client_config signalr_client_config::get_http_client_config() const
     {
-        return *m_http_client_config;
+        return m_http_client_config;
     }
 
-    web::websockets::client::websocket_client_config& signalr_client_config::websocket_client_config()
+    void signalr_client_config::set_http_client_config(const web::http::client::http_client_config& http_client_config)
     {
-        return *m_websocket_client_config;
+        m_http_client_config = http_client_config;
+    }
+
+    web::websockets::client::websocket_client_config signalr_client_config::get_websocket_client_config() const
+    {
+        return m_websocket_client_config;
+    }
+
+    void signalr_client_config::set_websocket_client_config(const web::websockets::client::websocket_client_config& websocket_client_config)
+    {
+        m_websocket_client_config = websocket_client_config;
+    }
+
+    web::http::http_headers signalr_client_config::get_http_headers() const
+    {
+        return m_http_headers;
+    }
+
+    void signalr_client_config::set_http_headers(const web::http::http_headers& http_headers)
+    {
+        m_http_headers = http_headers;
     }
 }

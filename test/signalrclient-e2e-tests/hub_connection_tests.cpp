@@ -481,9 +481,11 @@ TEST(hub_connection_tests, mirror_header)
 
     auto hub_proxy = hub_conn->create_hub_proxy(U("hubConnection"));
 
-    std::unordered_map<utility::string_t, utility::string_t> headers;
+    signalr::signalr_client_config signalr_client_config{};
+    auto headers = signalr_client_config.get_http_headers();
     headers[U("x-mirror")] = U("MirrorThis");
-    hub_conn->set_headers(headers);
+    signalr_client_config.set_http_headers(headers);
+    hub_conn->set_client_config(signalr_client_config);
 
     {
         auto test = hub_conn->start().then([&hub_proxy]()
@@ -494,11 +496,12 @@ TEST(hub_connection_tests, mirror_header)
     }
 
     headers[U("x-mirror")] = U("MirrorThat");
+    signalr_client_config.set_http_headers(headers);
 
-    ASSERT_THROW(hub_conn->set_headers(headers), signalr::signalr_exception);
+    ASSERT_THROW(hub_conn->set_client_config(signalr_client_config), signalr::signalr_exception);
 
     hub_conn->stop().wait();
-    hub_conn->set_headers(headers);
+    hub_conn->set_client_config(signalr_client_config);
     {
         auto test = hub_conn->start().then([&hub_proxy]()
         {

@@ -50,8 +50,7 @@ namespace signalr
         void set_reconnecting(const std::function<void()>& reconnecting);
         void set_reconnected(const std::function<void()>& reconnected);
         void set_disconnected(const std::function<void()>& disconnected);
-        void set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers);
-        void set_client_config(signalr_client_config config);
+        void set_client_config(const signalr_client_config& config);
         void set_reconnect_delay(const int reconnect_delay /*milliseconds*/);
 
         void set_connection_data(const utility::string_t& connection_data);
@@ -69,7 +68,6 @@ namespace signalr
         std::function<void()> m_reconnecting;
         std::function<void()> m_reconnected;
         std::function<void()> m_disconnected;
-        std::unordered_map<utility::string_t, utility::string_t> m_headers;
         signalr_client_config m_signalr_client_config;
 
         pplx::cancellation_token_source m_disconnect_cts;

@@ -83,8 +83,8 @@ namespace SelfHost
 
         public string MirrorHeader()
         {
-          var mirrorValue = Context.Request.Headers["x-mirror"];
-          return mirrorValue;
+            var mirrorValue = Context.Request.Headers["x-mirror"];
+            return mirrorValue;
         }
     }
 }

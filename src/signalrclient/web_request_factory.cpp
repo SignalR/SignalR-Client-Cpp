@@ -5,13 +5,11 @@
 #include "web_request_factory.h"
 #include "make_unique.h"
 
-
-
 namespace signalr
 {
-    std::unique_ptr<web_request> web_request_factory::create_web_request(const web::uri &url, const web::http::client::http_client_config& client_config)
+    std::unique_ptr<web_request> web_request_factory::create_web_request(const web::uri &url)
     {
-        return std::make_unique<web_request>(url, client_config);
+        return std::make_unique<web_request>(url);
     }
 
     web_request_factory::~web_request_factory()

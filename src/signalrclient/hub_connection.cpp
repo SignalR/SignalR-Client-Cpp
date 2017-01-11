@@ -62,12 +62,7 @@ namespace signalr
         m_pImpl->set_disconnected(disconnected_callback);
     }
 
-    void hub_connection::set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers)
-    {
-        m_pImpl->set_headers(headers);
-    }
-
-    void hub_connection::set_client_config(signalr_client_config config)
+    void hub_connection::set_client_config(const signalr_client_config& config)
     {
         m_pImpl->set_client_config(config);
     }

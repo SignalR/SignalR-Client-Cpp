@@ -4,22 +4,19 @@
 #pragma once
 
 #include "web_response.h"
-#include "cpprest/http_msg.h"
-#include "cpprest/http_client.h"
-#include <unordered_map>
+#include "signalrclient/signalr_client_config.h"
 
 namespace signalr
 {
     class web_request
     {
     public:
-        explicit web_request(const web::uri &url, web::http::client::http_client_config client_config = web::http::client::http_client_config{});
+        explicit web_request(const web::uri &url);
 
         virtual void set_method(const utility::string_t &method);
         virtual void set_user_agent(const utility::string_t &user_agent_string);
-        virtual void set_headers(const std::unordered_map<utility::string_t, utility::string_t>& headers);
 
-        virtual pplx::task<web_response> get_response();
+        virtual pplx::task<web_response> get_response(const signalr_client_config& signalr_client_config = signalr_client_config{});
 
         web_request& operator=(const web_request&) = delete;
 
@@ -28,6 +25,6 @@ namespace signalr
     private:
         const web::uri m_url;
         web::http::http_request m_request;
-        web::http::client::http_client_config m_client_config;
+        utility::string_t m_user_agent_string;
     };
 }
