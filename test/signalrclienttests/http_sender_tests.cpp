@@ -74,8 +74,9 @@ TEST(http_sender_get_response, headers_set)
         auto request = new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body);
         request->on_get_response = [](web_request_stub& request)
         {
-            ASSERT_EQ(1, request.m_headers.size());
-            ASSERT_EQ(_XPLATSTR("123"), request.m_headers[_XPLATSTR("abc")]);
+            auto http_headers = request.m_signalr_client_config.get_http_headers();
+            ASSERT_EQ(1, http_headers.size());
+            ASSERT_EQ(_XPLATSTR("123"), http_headers[_XPLATSTR("abc")]);
         };
 
         return std::unique_ptr<web_request>(request);

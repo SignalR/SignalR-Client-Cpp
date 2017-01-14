@@ -488,25 +488,24 @@ TEST(hub_connection_tests, mirror_header)
     hub_conn->set_client_config(signalr_client_config);
 
     {
-        auto test = hub_conn->start().then([&hub_proxy]()
+        auto mirrored_header_value = hub_conn->start().then([&hub_proxy]()
         {
             return hub_proxy.invoke<web::json::value>(U("mirrorHeader"));
         }).get();
-        ASSERT_EQ(U("MirrorThis"), test.as_string());
+        ASSERT_EQ(U("MirrorThis"), mirrored_header_value.as_string());
     }
+
+    hub_conn->stop().wait();
 
     headers[U("x-mirror")] = U("MirrorThat");
     signalr_client_config.set_http_headers(headers);
-
-    ASSERT_THROW(hub_conn->set_client_config(signalr_client_config), signalr::signalr_exception);
-
-    hub_conn->stop().wait();
     hub_conn->set_client_config(signalr_client_config);
+
     {
-        auto test = hub_conn->start().then([&hub_proxy]()
+        auto mirrored_header_value = hub_conn->start().then([&hub_proxy]()
         {
             return hub_proxy.invoke<web::json::value>(U("mirrorHeader"));
         }).get();
-        ASSERT_EQ(U("MirrorThat"), test.as_string());
+        ASSERT_EQ(U("MirrorThat"), mirrored_header_value.as_string());
     }
 }

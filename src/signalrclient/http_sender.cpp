@@ -17,8 +17,9 @@ namespace signalr
             request->set_method(web::http::methods::GET);
 
             request->set_user_agent(USER_AGENT);
+            request->set_client_config(signalr_client_config);
 
-            return request->get_response(signalr_client_config).then([](web_response response)
+            return request->get_response().then([](web_response response)
             {
                 if (response.status_code != 200)
                 {

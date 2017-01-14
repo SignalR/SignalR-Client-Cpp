@@ -15,8 +15,9 @@ namespace signalr
 
         virtual void set_method(const utility::string_t &method);
         virtual void set_user_agent(const utility::string_t &user_agent_string);
+        virtual void set_client_config(const signalr_client_config& signalr_client_config);
 
-        virtual pplx::task<web_response> get_response(const signalr_client_config& signalr_client_config = signalr_client_config{});
+        virtual pplx::task<web_response> get_response();
 
         web_request& operator=(const web_request&) = delete;
 
@@ -26,5 +27,6 @@ namespace signalr
         const web::uri m_url;
         web::http::http_request m_request;
         utility::string_t m_user_agent_string;
+        signalr_client_config m_signalr_client_config;
     };
 }

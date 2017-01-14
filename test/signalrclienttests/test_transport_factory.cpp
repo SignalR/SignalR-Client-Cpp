@@ -10,9 +10,8 @@ test_transport_factory::test_transport_factory(const std::shared_ptr<websocket_c
 { }
 
 std::shared_ptr<transport> test_transport_factory::create_transport(transport_type transport_type, const logger& logger,
-    std::function<void(const utility::string_t&)> process_message_callback,
-    std::function<void(const std::exception&)> error_callback,
-    const signalr_client_config&)
+    const signalr_client_config&, std::function<void(const utility::string_t&)> process_message_callback,
+    std::function<void(const std::exception&)> error_callback)
 {
     if (transport_type == signalr::transport_type::websockets)
     {

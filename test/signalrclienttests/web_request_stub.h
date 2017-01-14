@@ -15,13 +15,14 @@ struct web_request_stub : public web_request
     utility::string_t m_response_body;
     utility::string_t m_method;
     utility::string_t m_user_agent_string;
-    web::http::http_headers m_headers;
+    signalr_client_config m_signalr_client_config;
     std::function<void(web_request_stub&)> on_get_response = [](web_request_stub&){};
 
     web_request_stub(unsigned short status_code, const utility::string_t& reason_phrase, const utility::string_t& response_body = _XPLATSTR(""));
 
     virtual void set_method(const utility::string_t &method) override;
     virtual void set_user_agent(const utility::string_t &user_agent_string) override;
+    virtual void set_client_config(const signalr_client_config& client_config) override;
 
-    virtual pplx::task<web_response> get_response(const signalr::signalr_client_config&) override;
+    virtual pplx::task<web_response> get_response() override;
 };

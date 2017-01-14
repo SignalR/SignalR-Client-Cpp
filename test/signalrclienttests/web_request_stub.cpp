@@ -18,9 +18,13 @@ void web_request_stub::set_user_agent(const utility::string_t &user_agent_string
     m_user_agent_string = user_agent_string;
 }
 
-pplx::task<web_response> web_request_stub::get_response(const signalr::signalr_client_config& signalr_client_config)
+void web_request_stub::set_client_config(const signalr_client_config& config)
 {
-    m_headers = signalr_client_config.get_http_headers();
+    m_signalr_client_config = config;
+}
+
+pplx::task<web_response> web_request_stub::get_response()
+{
     on_get_response(*this);
 
     return pplx::task_from_result<web_response>(

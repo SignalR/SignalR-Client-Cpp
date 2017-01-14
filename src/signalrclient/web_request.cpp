@@ -21,11 +21,16 @@ namespace signalr
         m_user_agent_string = user_agent_string;
     }
 
-    pplx::task<web_response> web_request::get_response(const signalr_client_config& signalr_client_config)
+    void web_request::set_client_config(const signalr_client_config& signalr_client_config)
     {
-        web::http::client::http_client client(m_url, signalr_client_config.get_http_client_config());
+        m_signalr_client_config = signalr_client_config;
+    }
 
-        m_request.headers() = signalr_client_config.get_http_headers();
+    pplx::task<web_response> web_request::get_response()
+    {
+        web::http::client::http_client client(m_url, m_signalr_client_config.get_http_client_config());
+
+        m_request.headers() = m_signalr_client_config.get_http_headers();
         if (!m_user_agent_string.empty())
         {
             m_request.headers()[_XPLATSTR("User-Agent")] = m_user_agent_string;

@@ -236,8 +236,8 @@ namespace signalr
             };
 
         auto transport = connection->m_transport_factory->create_transport(
-            transport_type::websockets, connection->m_logger, process_response_callback,
-            error_callback, connection->m_signalr_client_config);
+            transport_type::websockets, connection->m_logger, connection->m_signalr_client_config,
+            process_response_callback, error_callback);
 
         pplx::create_task([negotiation_response, connect_request_tce, disconnect_cts, weak_connection]()
         {
@@ -491,8 +491,8 @@ namespace signalr
         }
 
         // This is fire and forget because we don't really care about the result
-        request_sender::abort(*m_web_request_factory, m_base_url, m_transport->get_transport_type(), m_connection_token, m_connection_data, m_query_string,
-            m_signalr_client_config)
+        request_sender::abort(*m_web_request_factory, m_base_url, m_transport->get_transport_type(), m_connection_token,
+            m_connection_data, m_query_string, m_signalr_client_config)
             .then([](pplx::task<utility::string_t> abort_task)
             {
                 try
@@ -774,7 +774,7 @@ namespace signalr
 
     void connection_impl::set_client_config(const signalr_client_config& config)
     {
-        ensure_disconnected(U("cannot set client config when the connection is not in the disconnected state. "));
+        ensure_disconnected(_XPLATSTR("cannot set client config when the connection is not in the disconnected state. "));
         m_signalr_client_config = config;
     }
 
