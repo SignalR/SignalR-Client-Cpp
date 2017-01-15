@@ -7,8 +7,8 @@
     <RootNamespace>signalrclient</RootNamespace>
     <ProjectName>signalrclientdll</ProjectName>
     <TargetName>$(SignalrClientTargetName)</TargetName>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <OutDir Condition="'$(OutDir)' == ''">$(SolutionDir)$(Configuration)\</OutDir>
+    <SolutionDir Condition="$(SolutionDir) == '' Or '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <OutDir Condition="'$(OutDir)' == ''">$(SolutionDir)bin\$(SubSystem)\$(Platform)\$(Configuration)\</OutDir>
     <OutDir>$(OutDir)dll\</OutDir>
     <IntDir>$(Configuration)\dll\</IntDir>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
