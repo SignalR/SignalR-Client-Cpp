@@ -15,6 +15,9 @@ namespace SelfHost
     {
         protected override Task OnReceived(IRequest request, string connectionId, string data)
         {
+            // This is test code, not best practice and does not address input validation or other security concerns.
+            // Applications need to ensure they perform proper data sanitization and best practices when working
+            // with untrusted input.
             var message = JsonConvert.DeserializeObject<Message>(data);
 
             switch (message.Type)
