@@ -20,7 +20,7 @@ The repo contains a separate solution (samples_VS2013.sln) with sample projects 
 
 ###Nightly builds
 
-Signed nigthly builds are available on a separate feed. You can find them [here](https://www.myget.org/gallery/aspnetvnext)
+Signed nigthly builds are available on a separate feed. You can find them [here](https://dotnet.myget.org/gallery/aspnetcore-ci-dev)
 
 ###Building the Code
 
