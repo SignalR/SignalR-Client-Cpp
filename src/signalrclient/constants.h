@@ -5,6 +5,6 @@
 
 #include "cpprest/details/basic_types.h"
 
-#define SIGNALR_VERSION _XPLATSTR("1.0.0-beta1")
+#define SIGNALR_VERSION _XPLATSTR("1.0.0-beta2")
 #define PROTOCOL _XPLATSTR("1.4")
 #define USER_AGENT _XPLATSTR("SignalR.Client.Cpp/") SIGNALR_VERSION

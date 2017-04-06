@@ -56,7 +56,7 @@ TEST(http_sender_get_response, user_agent_set)
         auto request = new web_request_stub((unsigned short)200, _XPLATSTR("OK"), response_body);
         request->on_get_response = [](web_request_stub& request)
         {
-            ASSERT_EQ(_XPLATSTR("SignalR.Client.Cpp/1.0.0-beta1"), request.m_user_agent_string);
+            ASSERT_EQ(_XPLATSTR("SignalR.Client.Cpp/1.0.0-beta2"), request.m_user_agent_string);
         };
 
         return std::unique_ptr<web_request>(request);
