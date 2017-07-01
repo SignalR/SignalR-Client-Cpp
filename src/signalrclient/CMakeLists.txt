@@ -12,6 +12,7 @@ set (SOURCES
  internal_hub_proxy.cpp
  logger.cpp
  request_sender.cpp
+ signalr_client_config.cpp
  stdafx.cpp
  trace_log_writer.cpp
  transport.cpp
