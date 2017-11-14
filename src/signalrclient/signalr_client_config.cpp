@@ -5,9 +5,15 @@
 #include "signalrclient/signalr_client_config.h"
 #include "cpprest/http_client.h"
 #include "cpprest/ws_client.h"
+#include "constants.h"
 
 namespace signalr
 {
+    signalr_client_config::signalr_client_config()
+    {
+        m_user_agent_string = USER_AGENT;
+    }
+
     void signalr_client_config::set_proxy(const web::web_proxy &proxy)
     {
         m_http_client_config.set_proxy(proxy);
@@ -48,5 +54,15 @@ namespace signalr
     void signalr_client_config::set_http_headers(const web::http::http_headers& http_headers)
     {
         m_http_headers = http_headers;
+    }
+
+    const utility::string_t& signalr_client_config::get_user_agent() const
+    {
+        return m_user_agent_string;
+    }
+
+    void signalr_client_config::set_user_agent(const utility::string_t& user_agent_string)
+    {
+        m_user_agent_string = user_agent_string;
     }
 }

@@ -12,6 +12,8 @@ namespace signalr
     class signalr_client_config
     {
     public:
+        signalr_client_config();
+
         SIGNALRCLIENT_API void __cdecl set_proxy(const web::web_proxy &proxy);
         // Please note that setting credentials does not work in all cases.
         // For example, Basic Authentication fails under Win32.
@@ -28,9 +30,13 @@ namespace signalr
         SIGNALRCLIENT_API web::http::http_headers __cdecl get_http_headers() const;
         SIGNALRCLIENT_API void __cdecl set_http_headers(const web::http::http_headers& http_headers);
 
+        SIGNALRCLIENT_API const utility::string_t& __cdecl get_user_agent() const;
+        SIGNALRCLIENT_API void __cdecl set_user_agent(const utility::string_t &user_agent_string);
+
     private:
         web::http::client::http_client_config m_http_client_config;
         web::websockets::client::websocket_client_config m_websocket_client_config;
         web::http::http_headers m_http_headers;
+        utility::string_t m_user_agent_string;
     };
 }

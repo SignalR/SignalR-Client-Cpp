@@ -4,7 +4,6 @@
 #include "stdafx.h"
 #include "signalrclient/web_exception.h"
 #include "web_request_factory.h"
-#include "constants.h"
 
 namespace signalr
 {
@@ -16,7 +15,6 @@ namespace signalr
             auto request = request_factory.create_web_request(url);
             request->set_method(web::http::methods::GET);
 
-            request->set_user_agent(USER_AGENT);
             request->set_client_config(signalr_client_config);
 
             return request->get_response().then([](web_response response)
