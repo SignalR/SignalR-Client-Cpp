@@ -1,3 +1,7 @@
+# This repository is obsolete and no longer used or maintained.
+
+No further work is being done on the ASP.NET SignalR C++ client. There is new work for the ASP.NET Core SignalR C++ client located at https://github.com/aspnet/SignalR-Client-Cpp.
+
 ASP.NET SignalR C++ Client
 ========
 
