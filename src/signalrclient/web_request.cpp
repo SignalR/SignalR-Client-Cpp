@@ -16,11 +16,6 @@ namespace signalr
         m_request.set_method(method);
     }
 
-    void web_request::set_user_agent(const utility::string_t &user_agent_string)
-    {
-        m_user_agent_string = user_agent_string;
-    }
-
     void web_request::set_client_config(const signalr_client_config& signalr_client_config)
     {
         m_signalr_client_config = signalr_client_config;
@@ -31,9 +26,9 @@ namespace signalr
         web::http::client::http_client client(m_url, m_signalr_client_config.get_http_client_config());
 
         m_request.headers() = m_signalr_client_config.get_http_headers();
-        if (!m_user_agent_string.empty())
+        if (!m_signalr_client_config.get_user_agent().empty())
         {
-            m_request.headers()[_XPLATSTR("User-Agent")] = m_user_agent_string;
+            m_request.headers()[_XPLATSTR("User-Agent")] = m_signalr_client_config.get_user_agent();
         }
 
         return client.request(m_request)
